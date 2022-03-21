@@ -1,0 +1,24 @@
+{
+  "name": "@cardinal/stake-pool",
+  "version": "0.0.1",
+  "description": "Cardinal stake pool SDK",
+  "keywords": [
+    "solana",
+    "anchor",
+    "cardinal"
+  ],
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "repository": "git@github.com:cardinal-labs/cardinal-stake-pool.git",
+  "author": "Giannis Chatziveroglou <giannis@cardinal.so>",
+  "bugs": {
+    "url": "https://github.com/cardinal-labs/cardinal-stake-pool/issues",
+    "email": "info@cardinal.so"
+  },
+  "homepage": "https://cardinal.so",
+  "license": "AGPL-3.0",
+  "scripts": {},
+  "dependencies": {
+    "@saberhq/anchor-contrib": "^1.12.55"
+  }
+}
