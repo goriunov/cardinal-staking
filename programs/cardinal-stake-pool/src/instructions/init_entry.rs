@@ -4,10 +4,6 @@ use {
     anchor_lang::{prelude::*, solana_program::{program::{invoke, invoke_signed}}},
 };
 
-use cardinal_token_manager::{
-    state::{TokenManager},
-};
-
 use anchor_spl::{
     token::{self, Mint, Token},
     associated_token::{self}
@@ -17,7 +13,7 @@ use anchor_spl::{
 pub struct InitEntryIx {
     name: String,
     symbol: String,
-    text_overlay: String
+    text_overlay: String,
 }
 
 use metaplex_token_metadata::{instruction::{create_metadata_accounts}};
@@ -28,21 +24,20 @@ pub struct InitEntryCtx<'info> {
     #[account(
         init,
         payer = payer,
-        seeds = [STAKE_ENTRY_PREFIX.as_bytes(), stake_pool.identifier.as_ref(), original_mint.key().as_ref()],
+        seeds = [STAKE_ENTRY_PREFIX.as_bytes(), stake_pool.identifier.to_le_bytes().as_ref(), original_mint.key().as_ref()],
         bump,
         space = STAKE_ENTRY_SIZE,
     )]
     stake_entry: Box<Account<'info, StakeEntry>>,
     stake_pool: Box<Account<'info, StakePool>>,
-    token_manager: Box<Account<'info, TokenManager>>,
-
+    
     original_mint: Box<Account<'info, Mint>>,
-    #[account(constraint = token_manager.mint == mint.key())]
-    mint: Signer<'info>,
+    #[account(mut)]
+    mint: UncheckedAccount<'info>,
     
     #[account(mut)]
     mint_token_account: UncheckedAccount<'info>,
-    #[account(mut)]  
+    #[account(mut)]
     mint_metadata: UncheckedAccount<'info>,
 
     #[account(mut)]
@@ -56,7 +51,6 @@ pub struct InitEntryCtx<'info> {
 pub fn handler(ctx: Context<InitEntryCtx>, ix: InitEntryIx) -> Result<()> {
     let stake_entry = &mut ctx.accounts.stake_entry;
     stake_entry.bump = *ctx.bumps.get("stake_entry").unwrap();
-    stake_entry.token_manager = ctx.accounts.token_manager.key();
     stake_entry.original_mint = ctx.accounts.original_mint.key();
     stake_entry.mint = ctx.accounts.mint.key();
 
@@ -113,7 +107,7 @@ pub fn handler(ctx: Context<InitEntryCtx>, ix: InitEntryIx) -> Result<()> {
             ix.name,
             ix.symbol,
             // generative URL which will include image of the name with expiration data
-            "https://api.cardinal.so/metadata/".to_string() + &ctx.accounts.mint.key().to_string() + &"?text=STAKING".to_string() + &ix.text_overlay,
+            "https://api.cardinal.so/metadata/".to_string() + &ctx.accounts.mint.key().to_string() + &"?text=".to_string() + &ix.text_overlay,
             None,
             1,
             true,

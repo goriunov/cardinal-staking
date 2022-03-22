@@ -44,19 +44,14 @@ export type CardinalStakePool = {
           isSigner: false;
         },
         {
-          name: "tokenManager";
-          isMut: false;
-          isSigner: false;
-        },
-        {
           name: "originalMint";
           isMut: false;
           isSigner: false;
         },
         {
           name: "mint";
-          isMut: false;
-          isSigner: true;
+          isMut: true;
+          isSigner: false;
         },
         {
           name: "mintTokenAccount";
@@ -132,7 +127,7 @@ export type CardinalStakePool = {
           isSigner: false;
         },
         {
-          name: "stakeEntryTokenManagerMintTokenAccount";
+          name: "stakeEntryMintTokenAccount";
           isMut: true;
           isSigner: false;
         },
@@ -147,7 +142,7 @@ export type CardinalStakePool = {
           isSigner: false;
         },
         {
-          name: "userTokenManagerMintTokenAccount";
+          name: "userMintTokenAccount";
           isMut: true;
           isSigner: false;
         },
@@ -241,6 +236,10 @@ export type CardinalStakePool = {
           {
             name: "lastStaker";
             type: "publicKey";
+          },
+          {
+            name: "authority";
+            type: "publicKey";
           }
         ];
       };
@@ -256,7 +255,7 @@ export type CardinalStakePool = {
           },
           {
             name: "identifier";
-            type: "publicKey";
+            type: "u64";
           }
         ];
       };
@@ -290,7 +289,7 @@ export type CardinalStakePool = {
         fields: [
           {
             name: "identifier";
-            type: "publicKey";
+            type: "u64";
           }
         ];
       };
@@ -382,19 +381,14 @@ export const IDL: CardinalStakePool = {
           isSigner: false,
         },
         {
-          name: "tokenManager",
-          isMut: false,
-          isSigner: false,
-        },
-        {
           name: "originalMint",
           isMut: false,
           isSigner: false,
         },
         {
           name: "mint",
-          isMut: false,
-          isSigner: true,
+          isMut: true,
+          isSigner: false,
         },
         {
           name: "mintTokenAccount",
@@ -470,7 +464,7 @@ export const IDL: CardinalStakePool = {
           isSigner: false,
         },
         {
-          name: "stakeEntryTokenManagerMintTokenAccount",
+          name: "stakeEntryMintTokenAccount",
           isMut: true,
           isSigner: false,
         },
@@ -485,7 +479,7 @@ export const IDL: CardinalStakePool = {
           isSigner: false,
         },
         {
-          name: "userTokenManagerMintTokenAccount",
+          name: "userMintTokenAccount",
           isMut: true,
           isSigner: false,
         },
@@ -580,6 +574,10 @@ export const IDL: CardinalStakePool = {
             name: "lastStaker",
             type: "publicKey",
           },
+          {
+            name: "authority",
+            type: "publicKey",
+          },
         ],
       },
     },
@@ -594,7 +592,7 @@ export const IDL: CardinalStakePool = {
           },
           {
             name: "identifier",
-            type: "publicKey",
+            type: "u64",
           },
         ],
       },
@@ -628,7 +626,7 @@ export const IDL: CardinalStakePool = {
         fields: [
           {
             name: "identifier",
-            type: "publicKey",
+            type: "u64",
           },
         ],
       },

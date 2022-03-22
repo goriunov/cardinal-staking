@@ -1,5 +1,5 @@
-import { MetadataProgram } from "@metaplex-foundation/mpl-token-metadata";
-import type { Wallet } from "@project-serum/anchor";
+import { Wallet } from "@metaplex/js";
+import { BN } from "@project-serum/anchor";
 import { Program, Provider } from "@project-serum/anchor";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -8,16 +8,15 @@ import {
 import type { TransactionInstruction } from "@solana/web3.js";
 import * as web3 from "@solana/web3.js";
 
-import { TOKEN_MANAGER_ADDRESS } from "../tokenManager";
-import { findTokenManagerAddress } from "../tokenManager/pda";
+import { MetadataProgram } from "@metaplex-foundation/mpl-token-metadata";
 import type { STAKE_POOL_PROGRAM } from ".";
 import { STAKE_POOL_ADDRESS, STAKE_POOL_IDL } from ".";
-import { findStakeEntryId, findStakePoolId } from "./pda";
+import { TOKEN_MANAGER_ADDRESS } from "@cardinal/token-manager/dist/cjs/programs/tokenManager";
 
 export const initStakePool = (
   connection: web3.Connection,
   wallet: Wallet,
-  params: { identifier: web3.PublicKey; stakePoolId: web3.PublicKey }
+  params: { identifier: BN; stakePoolId: web3.PublicKey }
 ): TransactionInstruction => {
   const provider = new Provider(connection, wallet, {});
   const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
@@ -39,32 +38,27 @@ export const initStakePool = (
   );
 };
 
-export const initStakeEntry = async (
+export const initStakeEntry = (
   connection: web3.Connection,
   wallet: Wallet,
   params: {
-    stakePoolIdentifier: web3.PublicKey;
-    tokenManager: web3.PublicKey;
+    stakePoolId: web3.PublicKey;
+    stakeEntryId: web3.PublicKey;
     originalMint: web3.PublicKey;
     mintTokenAccount: web3.PublicKey;
     mintMetadata: web3.PublicKey;
     mint: web3.PublicKey;
-    name: string;
-    symbol: string;
-    textOverlay: string;
+    name: String;
+    symbol: String;
+    textOverlay: String;
   }
-): Promise<TransactionInstruction> => {
+): TransactionInstruction => {
   const provider = new Provider(connection, wallet, {});
   const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
     STAKE_POOL_IDL,
     STAKE_POOL_ADDRESS,
     provider
   );
-
-  const [stakePoolId, stakeEntryId] = await Promise.all([
-    findStakePoolId(params.stakePoolIdentifier),
-    findStakeEntryId(params.stakePoolIdentifier, params.originalMint),
-  ]);
 
   return stakePoolProgram.instruction.initEntry(
     {
@@ -74,9 +68,8 @@ export const initStakeEntry = async (
     },
     {
       accounts: {
-        stakeEntry: stakeEntryId,
-        stakePool: stakePoolId,
-        tokenManager: params.tokenManager,
+        stakeEntry: params.stakeEntryId,
+        stakePool: params.stakePoolId,
         originalMint: params.originalMint,
         mint: params.mint,
         mintTokenAccount: params.mintTokenAccount,
@@ -91,22 +84,23 @@ export const initStakeEntry = async (
   );
 };
 
-export const stake = async (
+export const stake = (
   connection: web3.Connection,
   wallet: Wallet,
   params: {
-    identifier: web3.PublicKey;
-    stakePoolIdentifier: web3.PublicKey;
+    stakeEntryId: web3.PublicKey;
+    tokenManagerId: web3.PublicKey;
+    stakePoolIdentifier: BN;
     originalMint: web3.PublicKey;
     mint: web3.PublicKey;
     stakeEntryOriginalMintTokenAccount: web3.PublicKey;
-    stakeEntryTokenManagerMintTokenAccount: web3.PublicKey;
+    stakeEntryMintTokenAccount: web3.PublicKey;
     user: web3.PublicKey;
     userOriginalMintTokenAccount: web3.PublicKey;
-    userTokenManagerMintTokenAccount: web3.PublicKey;
+    userMintTokenAccount: web3.PublicKey;
     tokenManagerTokenAccount: web3.PublicKey;
   }
-): Promise<TransactionInstruction> => {
+): TransactionInstruction => {
   const provider = new Provider(connection, wallet, {});
   const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
     STAKE_POOL_IDL,
@@ -114,24 +108,18 @@ export const stake = async (
     provider
   );
 
-  const [stakeEntryId, tokenManagerId] = await Promise.all([
-    findStakeEntryId(params.stakePoolIdentifier, params.originalMint),
-    findTokenManagerAddress(params.originalMint),
-  ]);
-
   return stakePoolProgram.instruction.stake({
     accounts: {
-      stakeEntry: stakeEntryId,
-      tokenManager: tokenManagerId,
+      stakeEntry: params.stakeEntryId,
+      tokenManager: params.tokenManagerId,
       originalMint: params.originalMint,
       mint: params.mint,
       stakeEntryOriginalMintTokenAccount:
         params.stakeEntryOriginalMintTokenAccount,
-      stakeEntryTokenManagerMintTokenAccount:
-        params.stakeEntryTokenManagerMintTokenAccount,
+      stakeEntryMintTokenAccount: params.stakeEntryMintTokenAccount,
       user: params.user,
       userOriginalMintTokenAccount: params.userOriginalMintTokenAccount,
-      userTokenManagerMintTokenAccount: params.userTokenManagerMintTokenAccount,
+      userMintTokenAccount: params.userMintTokenAccount,
       tokenManagerTokenAccount: params.tokenManagerTokenAccount,
       tokenProgram: TOKEN_PROGRAM_ID,
       tokenManagerProgram: TOKEN_MANAGER_ADDRESS,

@@ -27,7 +27,7 @@ export const getStakePool = async (
 
 export const getStakeEntry = async (
   connection: web3.Connection,
-  stakePoolId: web3.PublicKey
+  stakeEntryId: web3.PublicKey
 ): Promise<AccountData<StakePoolData>> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -38,9 +38,9 @@ export const getStakeEntry = async (
     provider
   );
 
-  const parsed = await stakePoolProgram.account.stakePool.fetch(stakePoolId);
+  const parsed = await stakePoolProgram.account.stakeEntry.fetch(stakeEntryId);
   return {
     parsed,
-    pubkey: stakePoolId,
+    pubkey: stakeEntryId,
   };
 };

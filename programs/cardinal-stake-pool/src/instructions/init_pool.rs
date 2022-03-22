@@ -5,7 +5,7 @@ use {
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct InitPoolIx {
-    pub identifier: Pubkey,
+    pub identifier: u64,
 }
 
 #[derive(Accounts)]
@@ -15,7 +15,7 @@ pub struct InitPoolCtx<'info>{
         init,
         payer = payer,
         space = STAKE_POOL_SIZE,
-        seeds = [STAKE_POOL_PREFIX.as_bytes(), ix.identifier.as_ref()],
+        seeds = [STAKE_POOL_PREFIX.as_bytes(), ix.identifier.to_le_bytes().as_ref()],
         bump
     )]
     stake_pool: Account<'info, StakePool>,

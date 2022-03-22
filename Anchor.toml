@@ -1,0 +1,21 @@
+anchor_version = "0.22.0"
+solana_version = "1.8.5"
+
+[scripts]
+test = "yarn mocha tests/*.spec.ts"
+
+[provider]
+cluster = "localnet"
+wallet = "./tests/test-key.json"
+
+[programs.mainnet]
+cardinal_stake_pool = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+
+[programs.devnet]
+cardinal_stake_pool = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+
+[programs.testnet]
+cardinal_stake_pool = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+
+[programs.localnet]
+cardinal_stake_pool = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
