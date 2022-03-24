@@ -4,6 +4,7 @@ import type * as web3 from "@solana/web3.js";
 import type { AccountData } from "../../utils";
 import type { STAKE_POOL_PROGRAM, StakePoolData } from ".";
 import { STAKE_POOL_ADDRESS, STAKE_POOL_IDL } from ".";
+import { StakeEntryData } from "./constants";
 
 export const getStakePool = async (
   connection: web3.Connection,
@@ -28,7 +29,7 @@ export const getStakePool = async (
 export const getStakeEntry = async (
   connection: web3.Connection,
   stakeEntryId: web3.PublicKey
-): Promise<AccountData<StakePoolData>> => {
+): Promise<AccountData<StakeEntryData>> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   const provider = new Provider(connection, null, {});

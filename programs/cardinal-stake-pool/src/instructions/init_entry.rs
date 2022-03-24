@@ -6,7 +6,7 @@ use {
 
 use anchor_spl::{
     token::{self, Mint, Token},
-    associated_token::{self}
+    associated_token::{self, AssociatedToken}
 };
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
@@ -24,16 +24,17 @@ pub struct InitEntryCtx<'info> {
     #[account(
         init,
         payer = payer,
-        seeds = [STAKE_ENTRY_PREFIX.as_bytes(), stake_pool.identifier.to_le_bytes().as_ref(), original_mint.key().as_ref()],
-        bump,
         space = STAKE_ENTRY_SIZE,
+        seeds = [STAKE_ENTRY_PREFIX.as_bytes(), stake_pool.key().as_ref(), original_mint.key().as_ref()],
+        bump,
     )]
     stake_entry: Box<Account<'info, StakeEntry>>,
+    #[account(mut)]
     stake_pool: Box<Account<'info, StakePool>>,
-    
+
     original_mint: Box<Account<'info, Mint>>,
     #[account(mut)]
-    mint: UncheckedAccount<'info>,
+    mint: Signer<'info>,
     
     #[account(mut)]
     mint_token_account: UncheckedAccount<'info>,
@@ -44,17 +45,20 @@ pub struct InitEntryCtx<'info> {
     payer: Signer<'info>,
     rent: Sysvar<'info, Rent>,
     token_program: Program<'info, Token>,
+    associated_token: Program<'info, AssociatedToken>,
     token_metadata_program: UncheckedAccount<'info>,
     system_program: Program<'info, System>,
 }
 
 pub fn handler(ctx: Context<InitEntryCtx>, ix: InitEntryIx) -> Result<()> {
     let stake_entry = &mut ctx.accounts.stake_entry;
+    let stake_pool = &mut ctx.accounts.stake_pool;
     stake_entry.bump = *ctx.bumps.get("stake_entry").unwrap();
+    stake_entry.pool = stake_pool.key();
     stake_entry.original_mint = ctx.accounts.original_mint.key();
     stake_entry.mint = ctx.accounts.mint.key();
 
-    let stake_entry_seed = &[STAKE_ENTRY_PREFIX.as_bytes(), stake_entry.original_mint.as_ref(), &[stake_entry.bump]];
+    let stake_entry_seed = &[STAKE_ENTRY_PREFIX.as_bytes(), stake_entry.pool.as_ref(), stake_entry.original_mint.as_ref(), &[stake_entry.bump]];
     let stake_entry_signer = &[&stake_entry_seed[..]];
 
     // create mint
@@ -72,7 +76,7 @@ pub fn handler(ctx: Context<InitEntryCtx>, ix: InitEntryIx) -> Result<()> {
         ],
     )?;
 
-    // Initialize token manager mint
+    // Initialize mint
     let cpi_accounts = token::InitializeMint {
         mint: ctx.accounts.mint.to_account_info(),
         rent: ctx.accounts.rent.to_account_info(),

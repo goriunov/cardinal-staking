@@ -40,12 +40,12 @@ export type CardinalStakePool = {
         },
         {
           name: "stakePool";
-          isMut: false;
+          isMut: true;
           isSigner: false;
         },
         {
           name: "originalMint";
-          isMut: false;
+          isMut: true;
           isSigner: false;
         },
         {
@@ -377,12 +377,12 @@ export const IDL: CardinalStakePool = {
         },
         {
           name: "stakePool",
-          isMut: false,
+          isMut: true,
           isSigner: false,
         },
         {
           name: "originalMint",
-          isMut: false,
+          isMut: true,
           isSigner: false,
         },
         {

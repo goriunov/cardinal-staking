@@ -5,7 +5,7 @@ use {
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct InitPoolIx {
-    pub identifier: u64,
+    identifier: u64,
 }
 
 #[derive(Accounts)]

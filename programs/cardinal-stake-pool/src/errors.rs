@@ -13,5 +13,7 @@ pub enum ErrorCode {
     #[msg("Invalid stake entry original mint token account")]
     InvalidStakeEntryOriginalMintTokenAccount,
     #[msg("Invalid stake entry token manager mint token account")]
-    InvalidStakeEntryTokenManagerMintTokenAccount,
+    InvalidStakeEntryMintTokenAccount,
+    #[msg("Invalid unstake user only last staker can unstake")]
+    InvalidUnstakeUser,
 }

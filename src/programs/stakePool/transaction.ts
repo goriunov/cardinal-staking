@@ -1,13 +1,15 @@
 import { BN } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
 import * as web3 from "@solana/web3.js";
-import * as splToken from "@solana/spl-token";
 import * as metaplex from "@metaplex-foundation/mpl-token-metadata";
 
 import { initStakeEntry, initStakePool, stake } from "./instruction";
 import { findStakeEntryId, findStakePoolId } from "./pda";
-import { findTokenManagerAddress } from "@cardinal/token-manager/dist/cjs/programs/tokenManager/pda";
-import { withFindOrInitAssociatedTokenAccount } from "@cardinal/common";
+import {
+  findAta,
+  withFindOrInitAssociatedTokenAccount,
+} from "@cardinal/common";
+import { withIssueToken } from "@cardinal/token-manager";
 
 export const withCreatePool = async (
   transaction: web3.Transaction,
@@ -32,23 +34,21 @@ export const withCreateEntry = async (
   connection: web3.Connection,
   wallet: Wallet,
   params: {
-    mint: web3.PublicKey;
+    mint: web3.Keypair;
     stakePoolIdentifier: BN;
     originalMint: web3.PublicKey;
     name: String;
     symbol: String;
     textOverlay: string;
   }
-): Promise<[web3.Transaction, web3.PublicKey]> => {
+): Promise<[web3.Transaction, web3.PublicKey, web3.Keypair]> => {
   const [[stakePoolId], [stakeEntryId]] = await Promise.all([
     findStakePoolId(params.stakePoolIdentifier),
     findStakeEntryId(params.stakePoolIdentifier, params.originalMint),
   ]);
 
-  const mintTokenAccount = await splToken.Token.getAssociatedTokenAddress(
-    splToken.ASSOCIATED_TOKEN_PROGRAM_ID,
-    splToken.TOKEN_PROGRAM_ID,
-    params.mint,
+  const mintTokenAccount = await findAta(
+    params.mint.publicKey,
     stakeEntryId,
     true
   );
@@ -57,7 +57,7 @@ export const withCreateEntry = async (
     [
       Buffer.from(metaplex.MetadataProgram.PREFIX),
       metaplex.MetadataProgram.PUBKEY.toBuffer(),
-      params.mint.toBuffer(),
+      params.mint.publicKey.toBuffer(),
     ],
     metaplex.MetadataProgram.PUBKEY
   );
@@ -69,13 +69,13 @@ export const withCreateEntry = async (
       originalMint: params.originalMint,
       mintTokenAccount: mintTokenAccount,
       mintMetadata: mintMetadataId,
-      mint: params.mint,
+      mint: params.mint.publicKey,
       name: params.name,
       symbol: params.symbol,
       textOverlay: params.textOverlay,
     })
   );
-  return [transaction, stakeEntryId];
+  return [transaction, stakeEntryId, params.mint];
 };
 
 export const withStake = async (
@@ -88,10 +88,10 @@ export const withStake = async (
     mint: web3.PublicKey;
   }
 ): Promise<[web3.Transaction, web3.PublicKey]> => {
-  const [[stakeEntryId], [tokenManagerId]] = await Promise.all([
-    findStakeEntryId(params.stakePoolIdentifier, params.originalMint),
-    findTokenManagerAddress(params.mint),
-  ]);
+  const [stakeEntryId] = await findStakeEntryId(
+    params.stakePoolIdentifier,
+    params.originalMint
+  );
 
   const userOriginalMintTokenAccount =
     await withFindOrInitAssociatedTokenAccount(
@@ -129,7 +129,19 @@ export const withStake = async (
     true
   );
 
-  const tokenManagerTokenAccount = await withFindOrInitAssociatedTokenAccount(
+  const issueTokenParameters = {
+    paymentAmount: new BN(0),
+    mint: params.originalMint,
+    issuerTokenAccountId: userOriginalMintTokenAccount,
+  };
+  let [_, tokenManagerId] = await withIssueToken(
+    transaction,
+    connection,
+    wallet,
+    issueTokenParameters
+  );
+
+  const tokenManagerMintAccount = await withFindOrInitAssociatedTokenAccount(
     transaction,
     connection,
     params.mint,
@@ -148,9 +160,8 @@ export const withStake = async (
       stakeEntryOriginalMintTokenAccount: stakeEntryOriginalMintTokenAccount,
       stakeEntryMintTokenAccount: stakeEntryMintTokenAccount,
       user: wallet.publicKey,
-      userOriginalMintTokenAccount: userOriginalMintTokenAccount,
       userMintTokenAccount: userMintTokenAccount,
-      tokenManagerTokenAccount: tokenManagerTokenAccount,
+      tokenManagerMintAccount: tokenManagerMintAccount,
     })
   );
 

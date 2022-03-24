@@ -77,6 +77,7 @@ export const initStakeEntry = (
         payer: wallet.publicKey,
         rent: web3.SYSVAR_RENT_PUBKEY,
         tokenProgram: TOKEN_PROGRAM_ID,
+        associatedToken: ASSOCIATED_TOKEN_PROGRAM_ID,
         tokenMetadataProgram: MetadataProgram.PUBKEY,
         systemProgram: web3.SystemProgram.programId,
       },
@@ -96,9 +97,8 @@ export const stake = (
     stakeEntryOriginalMintTokenAccount: web3.PublicKey;
     stakeEntryMintTokenAccount: web3.PublicKey;
     user: web3.PublicKey;
-    userOriginalMintTokenAccount: web3.PublicKey;
     userMintTokenAccount: web3.PublicKey;
-    tokenManagerTokenAccount: web3.PublicKey;
+    tokenManagerMintAccount: web3.PublicKey;
   }
 ): TransactionInstruction => {
   const provider = new Provider(connection, wallet, {});
@@ -118,9 +118,8 @@ export const stake = (
         params.stakeEntryOriginalMintTokenAccount,
       stakeEntryMintTokenAccount: params.stakeEntryMintTokenAccount,
       user: params.user,
-      userOriginalMintTokenAccount: params.userOriginalMintTokenAccount,
       userMintTokenAccount: params.userMintTokenAccount,
-      tokenManagerTokenAccount: params.tokenManagerTokenAccount,
+      tokenManagerMintAccount: params.tokenManagerMintAccount,
       tokenProgram: TOKEN_PROGRAM_ID,
       tokenManagerProgram: TOKEN_MANAGER_ADDRESS,
       associatedToken: ASSOCIATED_TOKEN_PROGRAM_ID,

@@ -28,10 +28,11 @@ export const findStakeEntryId = async (
   stakePoolIdentifier: BN,
   originalMintId: web3.PublicKey
 ): Promise<[web3.PublicKey, number]> => {
+  let [stakePoolId] = await findStakePoolId(stakePoolIdentifier);
   return web3.PublicKey.findProgramAddress(
     [
       utils.bytes.utf8.encode(STAKE_ENTRY_SEED),
-      stakePoolIdentifier.toBuffer(),
+      stakePoolId.toBuffer(),
       originalMintId.toBuffer(),
     ],
     STAKE_POOL_ADDRESS

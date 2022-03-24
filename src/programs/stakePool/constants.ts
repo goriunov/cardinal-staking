@@ -1,10 +1,10 @@
 import type { AnchorTypes } from "@saberhq/anchor-contrib";
 import { PublicKey } from "@solana/web3.js";
 
-import * as STAKE_POOL_TYPES from "../../idl/cardinal_stake_pool";
+import * as STAKE_POOL_TYPES from "../../../target/types/cardinal_stake_pool";
 
 export const STAKE_POOL_ADDRESS = new PublicKey(
-  "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+  "stkBL96RZkjY5ine4TvPihGqW8UHJfch2cokjAPzV8i"
 );
 
 export const STAKE_POOL_SEED = "stake-pool";
