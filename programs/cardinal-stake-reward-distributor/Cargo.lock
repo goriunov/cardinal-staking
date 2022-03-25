@@ -415,20 +415,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cardinal-stake-reward-distributor"
-version = "0.1.0"
-dependencies = [
- "anchor-lang",
- "anchor-spl",
- "cardinal-stake-pool",
- "cardinal-token-manager",
- "metaplex-token-metadata",
- "proptest",
- "solana-program",
- "spl-token",
-]
-
-[[package]]
 name = "cardinal-token-manager"
 version = "0.2.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
