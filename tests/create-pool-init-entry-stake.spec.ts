@@ -20,7 +20,6 @@ import {
 } from "../src/programs/stakePool/accounts";
 import {
   findStakeEntryId,
-  // findStakeEntryId,
   findStakePoolId,
 } from "../src/programs/stakePool/pda";
 
@@ -150,10 +149,86 @@ describe("Create stake pool", () => {
       stakeEntryId
     );
 
-    console.log(stakeEntryData);
+    const userOriginalMintTokenAccountId = await getAta(
+      originalMint.publicKey,
+      provider.wallet.publicKey,
+      true
+    );
+
+    const userMintTokenAccountId = await getAta(
+      mint.publicKey,
+      provider.wallet.publicKey,
+      true
+    );
+
+    const stakeEntryOriginalMintTokenAccountId = await getAta(
+      originalMint.publicKey,
+      stakeEntryData.pubkey,
+      true
+    );
+
+    const stakeEntryMintTokenAccountId = await getAta(
+      mint.publicKey,
+      stakeEntryData.pubkey,
+      true
+    );
+
+    expect(stakeEntryData.parsed.lastStakedAt.toNumber()).to.be.greaterThan(0);
+    expect(stakeEntryData.parsed.lastStaker.toString()).to.eq(
+      provider.wallet.publicKey.toString()
+    );
+
+    const checkMint = new splToken.Token(
+      provider.connection,
+      mint.publicKey,
+      splToken.TOKEN_PROGRAM_ID,
+      // @ts-ignore
+      null
+    );
+
+    const checkUserMintTokenAccount = await checkMint.getAccountInfo(
+      userMintTokenAccountId
+    );
+    expect(checkUserMintTokenAccount.amount.toNumber()).to.eq(1);
+
+    const checkStakeEntryMintTokenAccount = await checkMint.getAccountInfo(
+      stakeEntryMintTokenAccountId
+    );
+    expect(checkStakeEntryMintTokenAccount.amount.toNumber()).to.eq(0);
+
+    const checkUserOriginalTokenAccount = await originalMint.getAccountInfo(
+      userOriginalMintTokenAccountId
+    );
+    expect(checkUserOriginalTokenAccount.amount.toNumber()).to.eq(0);
+
+    const checkStakeEntryOriginalMintTokenAccount =
+      await originalMint.getAccountInfo(stakeEntryOriginalMintTokenAccountId);
+    expect(checkStakeEntryOriginalMintTokenAccount.amount.toNumber()).to.eq(1);
+  });
+
+  it("Stake", async () => {
+    const provider = getProvider();
+    const transaction = new web3.Transaction();
+
+    await 
   });
 });
 
 function getRandomInt(max: number) {
   return Math.floor(Math.random() * max);
 }
+
+const getAta = async (
+  mint: web3.PublicKey,
+  owner: web3.PublicKey,
+  allowOwnerOffCurve?: true
+): Promise<web3.PublicKey> => {
+  const associatedAddress = await splToken.Token.getAssociatedTokenAddress(
+    splToken.ASSOCIATED_TOKEN_PROGRAM_ID,
+    splToken.TOKEN_PROGRAM_ID,
+    mint,
+    owner,
+    allowOwnerOffCurve
+  );
+  return associatedAddress;
+};

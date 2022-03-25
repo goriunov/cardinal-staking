@@ -9,6 +9,12 @@ use anchor_spl::{
     associated_token::{self, AssociatedToken}
 };
 
+use cardinal_token_manager::{
+    self,
+    program::CardinalTokenManager,
+
+};
+
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct InitEntryIx {
     name: String,
@@ -35,6 +41,8 @@ pub struct InitEntryCtx<'info> {
     original_mint: Box<Account<'info, Mint>>,
     #[account(mut)]
     mint: Signer<'info>,
+    #[account(mut)]
+    mint_manager: AccountInfo<'info>,
     
     #[account(mut)]
     mint_token_account: UncheckedAccount<'info>,
@@ -45,6 +53,7 @@ pub struct InitEntryCtx<'info> {
     payer: Signer<'info>,
     rent: Sysvar<'info, Rent>,
     token_program: Program<'info, Token>,
+    token_manager_program: Program<'info, CardinalTokenManager>,
     associated_token: Program<'info, AssociatedToken>,
     token_metadata_program: UncheckedAccount<'info>,
     system_program: Program<'info, System>,
@@ -138,6 +147,19 @@ pub fn handler(ctx: Context<InitEntryCtx>, ix: InitEntryIx) -> Result<()> {
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(stake_entry_signer);
     token::mint_to(cpi_context, 1)?;
+
+    // init certificate  manager
+    let certificate_program = ctx.accounts.token_manager_program.to_account_info();
+    let cpi_accounts = cardinal_token_manager::cpi::accounts::CreateMintManagerCtx {
+        mint_manager: ctx.accounts.mint_manager.to_account_info(), 
+        mint: ctx.accounts.mint.to_account_info(),
+        freeze_authority: stake_entry.to_account_info(),
+        payer: ctx.accounts.payer.to_account_info(),
+        token_program: ctx.accounts.token_program.to_account_info(),
+        system_program: ctx.accounts.system_program.to_account_info(),
+    };
+    let cpi_ctx = CpiContext::new(certificate_program, cpi_accounts).with_signer(stake_entry_signer);
+    cardinal_token_manager::cpi::create_mint_manager(cpi_ctx)?;
 
     return Ok(())
 }

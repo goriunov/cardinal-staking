@@ -9,7 +9,7 @@ pub enum ErrorCode {
     #[msg("Invalid user original mint token account")]
     InvalidUserOriginalMintTokenAccount,
     #[msg("Invalid user token manager mint account")]
-    InvalidUserTokenManagerMintTokenAccount,
+    InvalidUserMintTokenAccount,
     #[msg("Invalid stake entry original mint token account")]
     InvalidStakeEntryOriginalMintTokenAccount,
     #[msg("Invalid stake entry token manager mint token account")]

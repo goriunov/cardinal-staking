@@ -11,7 +11,11 @@ import * as web3 from "@solana/web3.js";
 import { MetadataProgram } from "@metaplex-foundation/mpl-token-metadata";
 import type { STAKE_POOL_PROGRAM } from ".";
 import { STAKE_POOL_ADDRESS, STAKE_POOL_IDL } from ".";
-import { TOKEN_MANAGER_ADDRESS } from "@cardinal/token-manager/dist/cjs/programs/tokenManager";
+import {
+  getRemainingAccountsForKind,
+  TokenManagerKind,
+  TOKEN_MANAGER_ADDRESS,
+} from "@cardinal/token-manager/dist/cjs/programs/tokenManager";
 
 export const initStakePool = (
   connection: web3.Connection,
@@ -48,6 +52,7 @@ export const initStakeEntry = (
     mintTokenAccount: web3.PublicKey;
     mintMetadata: web3.PublicKey;
     mint: web3.PublicKey;
+    mintManager: web3.PublicKey;
     name: String;
     symbol: String;
     textOverlay: String;
@@ -72,11 +77,13 @@ export const initStakeEntry = (
         stakePool: params.stakePoolId,
         originalMint: params.originalMint,
         mint: params.mint,
+        mintManager: params.mintManager,
         mintTokenAccount: params.mintTokenAccount,
         mintMetadata: params.mintMetadata,
         payer: wallet.publicKey,
         rent: web3.SYSVAR_RENT_PUBKEY,
         tokenProgram: TOKEN_PROGRAM_ID,
+        tokenManagerProgram: TOKEN_MANAGER_ADDRESS,
         associatedToken: ASSOCIATED_TOKEN_PROGRAM_ID,
         tokenMetadataProgram: MetadataProgram.PUBKEY,
         systemProgram: web3.SystemProgram.programId,
@@ -85,22 +92,26 @@ export const initStakeEntry = (
   );
 };
 
-export const stake = (
+export const stake = async (
   connection: web3.Connection,
   wallet: Wallet,
   params: {
     stakeEntryId: web3.PublicKey;
     tokenManagerId: web3.PublicKey;
+    mintCounterId: web3.PublicKey;
     stakePoolIdentifier: BN;
     originalMint: web3.PublicKey;
     mint: web3.PublicKey;
     stakeEntryOriginalMintTokenAccount: web3.PublicKey;
     stakeEntryMintTokenAccount: web3.PublicKey;
     user: web3.PublicKey;
+    userOriginalMintTokenAccount: web3.PublicKey;
     userMintTokenAccount: web3.PublicKey;
     tokenManagerMintAccount: web3.PublicKey;
+    tokenManagerKind: TokenManagerKind;
+    claimReceipt: web3.PublicKey | undefined;
   }
-): TransactionInstruction => {
+): Promise<TransactionInstruction> => {
   const provider = new Provider(connection, wallet, {});
   const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
     STAKE_POOL_IDL,
@@ -108,16 +119,23 @@ export const stake = (
     provider
   );
 
+  const remainingAccounts = await getRemainingAccountsForKind(
+    params.mint,
+    params.tokenManagerKind
+  );
+
   return stakePoolProgram.instruction.stake({
     accounts: {
       stakeEntry: params.stakeEntryId,
-      tokenManager: params.tokenManagerId,
       originalMint: params.originalMint,
       mint: params.mint,
+      tokenManager: params.tokenManagerId,
+      mintCounter: params.mintCounterId,
       stakeEntryOriginalMintTokenAccount:
         params.stakeEntryOriginalMintTokenAccount,
       stakeEntryMintTokenAccount: params.stakeEntryMintTokenAccount,
       user: params.user,
+      userOriginalMintTokenAccount: params.userOriginalMintTokenAccount,
       userMintTokenAccount: params.userMintTokenAccount,
       tokenManagerMintAccount: params.tokenManagerMintAccount,
       tokenProgram: TOKEN_PROGRAM_ID,
@@ -126,5 +144,11 @@ export const stake = (
       rent: web3.SYSVAR_RENT_PUBKEY,
       systemProgram: web3.SystemProgram.programId,
     },
+    remainingAccounts: params.claimReceipt
+      ? [
+          ...remainingAccounts,
+          { pubkey: params.claimReceipt, isSigner: false, isWritable: true },
+        ]
+      : remainingAccounts,
   });
 };
