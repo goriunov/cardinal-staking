@@ -21,8 +21,8 @@ pub mod cardinal_stake_pool {
     pub fn stake<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, StakeCtx<'info>>) -> Result<()> {
         stake::handler(ctx)
     }
-    pub fn unstake(ctx: Context<UnstakeCtx>, ix: UnstakeIx) -> Result<()> {
-        unstake::handler(ctx, ix)
+    pub fn unstake(ctx: Context<UnstakeCtx>) -> Result<()> {
+        unstake::handler(ctx)
     }
 
 }

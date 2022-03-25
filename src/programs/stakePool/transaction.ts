@@ -1,10 +1,9 @@
-// import * as splToken from "@solana/spl-token";
 import { BN } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
 import * as web3 from "@solana/web3.js";
 import * as metaplex from "@metaplex-foundation/mpl-token-metadata";
 
-import { initStakeEntry, initStakePool, stake } from "./instruction";
+import { initStakeEntry, initStakePool, stake, unstake } from "./instruction";
 import { findStakeEntryId, findStakePoolId } from "./pda";
 import {
   findAta,
@@ -16,6 +15,7 @@ import {
   findTokenManagerAddress,
 } from "@cardinal/token-manager/dist/cjs/programs/tokenManager/pda";
 import { TokenManagerKind } from "@cardinal/token-manager/dist/cjs/programs/tokenManager";
+import { withInvalidate } from "@cardinal/token-manager";
 
 export const withCreatePool = async (
   transaction: web3.Transaction,
@@ -172,16 +172,81 @@ export const withStake = async (
   return [transaction, tokenManagerId];
 };
 
-// export const withUnstake = async (
-//   transaction: web3.Transaction,
-//   connection: web3.Connection,
-//   wallet: Wallet,
-//   params: {
-//     stakePoolIdentifier: BN;
-//     originalMint: web3.PublicKey;
-//     mint: web3.PublicKey;
-//     claimReicipt?: web3.PublicKey;
-//   }
-// ): Promise<[web3.Transaction, web3.PublicKey]> => {
+export const withUnstake = async (
+  transaction: web3.Transaction,
+  connection: web3.Connection,
+  wallet: Wallet,
+  params: {
+    stakePoolIdentifier: BN;
+    originalMint: web3.PublicKey;
+    mint: web3.PublicKey;
+  }
+): Promise<[web3.Transaction, web3.PublicKey]> => {
+  const [[stakeEntryId], [tokenManagerId]] = await Promise.all([
+    findStakeEntryId(params.stakePoolIdentifier, params.originalMint),
+    findTokenManagerAddress(params.mint),
+  ]);
 
-// })
+  const stakeEntryOriginalMintTokenAccount =
+    await withFindOrInitAssociatedTokenAccount(
+      transaction,
+      connection,
+      params.originalMint,
+      stakeEntryId,
+      wallet.publicKey,
+      true
+    );
+
+  const stakeEntryMintTokenAccount = await withFindOrInitAssociatedTokenAccount(
+    transaction,
+    connection,
+    params.mint,
+    stakeEntryId,
+    wallet.publicKey,
+    true
+  );
+
+  const userOriginalMintTokenAccount =
+    await withFindOrInitAssociatedTokenAccount(
+      transaction,
+      connection,
+      params.originalMint,
+      wallet.publicKey,
+      wallet.publicKey
+    );
+
+  const userMintTokenAccount = await withFindOrInitAssociatedTokenAccount(
+    transaction,
+    connection,
+    params.mint,
+    wallet.publicKey,
+    wallet.publicKey
+  );
+
+  const tokenManagerMintAccount = await withFindOrInitAssociatedTokenAccount(
+    transaction,
+    connection,
+    params.mint,
+    tokenManagerId,
+    wallet.publicKey,
+    true
+  );
+
+  await withInvalidate(transaction, connection, wallet, params.mint);
+
+  transaction.add(
+    await unstake(connection, wallet, {
+      stakeEntryId: stakeEntryId,
+      tokenManagerId: tokenManagerId,
+      mint: params.mint,
+      stakeEntryOriginalMintTokenAccount: stakeEntryOriginalMintTokenAccount,
+      stakeEntryMintTokenAccount: stakeEntryMintTokenAccount,
+      user: wallet.publicKey,
+      userOriginalMintTokenAccount: userOriginalMintTokenAccount,
+      userMintTokenAccount: userMintTokenAccount,
+      tokenManagerMintAccount: tokenManagerMintAccount,
+    })
+  );
+
+  return [transaction, stakeEntryId];
+};

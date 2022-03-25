@@ -4,20 +4,23 @@ use {
 };
 
 use anchor_spl::{
-    token::{self, Token, TokenAccount},
+    token::{self, Token, TokenAccount, Mint},
 };
 
-#[derive(AnchorSerialize, AnchorDeserialize)]
-pub struct UnstakeIx {
-    bump: u8,
-}
+use cardinal_token_manager::{
+    self,
+    program::CardinalTokenManager,
+    state::{TokenManager},
+};
 
 #[derive(Accounts)]
-#[instruction(ix: UnstakeIx)]
 pub struct UnstakeCtx<'info> {
     #[account(mut)]
     stake_entry: Box<Account<'info, StakeEntry>>,
+    #[account(mut, constraint = token_manager.key() == stake_entry.token_manager)]
+    token_manager: Box<Account<'info, TokenManager>>,
 
+    mint: Box<Account<'info, Mint>>,
     // stake_entry token accounts
     #[account(mut, constraint =
         stake_entry_original_mint_token_account.amount > 0
@@ -41,12 +44,21 @@ pub struct UnstakeCtx<'info> {
         && user_original_mint_token_account.owner == user.key()
         @ ErrorCode::InvalidUserOriginalMintTokenAccount)]
     user_original_mint_token_account: Box<Account<'info, TokenAccount>>,
+    #[account(mut, constraint =
+        user_mint_token_account.amount == 0
+        && user_mint_token_account.mint == mint.key()
+        && user_mint_token_account.owner == user.key()
+        @ ErrorCode::InvalidUserMintTokenAccount)]
+    user_mint_token_account: Box<Account<'info, TokenAccount>>,
+    #[account(mut)]
+    token_manager_mint_account: Box<Account<'info, TokenAccount>>,
 
     // programs
     token_program: Program<'info, Token>,
+    token_manager_program: Program<'info, CardinalTokenManager>,
 }
 
-pub fn handler(ctx: Context<UnstakeCtx>, ix: UnstakeIx) -> Result<()> {
+pub fn handler(ctx: Context<UnstakeCtx>) -> Result<()> {
     let stake_entry = &mut ctx.accounts.stake_entry;
     stake_entry.total_stake_seconds = Clock::get().unwrap().unix_timestamp - stake_entry.last_staked_at;
     stake_entry.last_staker = Pubkey::default();
@@ -63,5 +75,6 @@ pub fn handler(ctx: Context<UnstakeCtx>, ix: UnstakeIx) -> Result<()> {
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(stake_entry_signer);
     token::transfer(cpi_context, 1)?;
+
     return Ok(())
 }

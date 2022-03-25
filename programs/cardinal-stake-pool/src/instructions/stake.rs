@@ -96,8 +96,14 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     };
     let cpi_ctx = CpiContext::new(ctx.accounts.token_manager_program.to_account_info(), cpi_accounts).with_signer(stake_entry_signer);
     cardinal_token_manager::cpi::init(cpi_ctx, ctx.accounts.mint.key(), 1)?;
-
     let token_manager = &mut(Account::<TokenManager>::try_from(&ctx.accounts.token_manager)?);
+
+    let cpi_accounts = cardinal_token_manager::cpi::accounts::AddInvalidatorCtx{
+        token_manager: token_manager.to_account_info(),
+        issuer: stake_entry.to_account_info(),
+    };
+    let cpi_ctx = CpiContext::new(ctx.accounts.token_manager_program.to_account_info(), cpi_accounts).with_signer(stake_entry_signer);
+    cardinal_token_manager::cpi::add_invalidator(cpi_ctx, ctx.accounts.user.key())?;
 
     // token manager issue
     let cpi_accounts = cardinal_token_manager::cpi::accounts::IssueCtx {
@@ -118,6 +124,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     cardinal_token_manager::cpi::issue(cpi_ctx, issue_ix)?;
     token_manager.state = TokenManagerState::Issued as u8;
     token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;
+
 
     // token manager claim
     let cpi_accounts = cardinal_token_manager::cpi::accounts::ClaimCtx {

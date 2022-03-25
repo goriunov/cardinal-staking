@@ -152,3 +152,43 @@ export const stake = async (
       : remainingAccounts,
   });
 };
+
+export const unstake = async (
+  connection: web3.Connection,
+  wallet: Wallet,
+  params: {
+    stakeEntryId: web3.PublicKey;
+    tokenManagerId: web3.PublicKey;
+    mint: web3.PublicKey;
+    stakeEntryOriginalMintTokenAccount: web3.PublicKey;
+    stakeEntryMintTokenAccount: web3.PublicKey;
+    user: web3.PublicKey;
+    userOriginalMintTokenAccount: web3.PublicKey;
+    userMintTokenAccount: web3.PublicKey;
+    tokenManagerMintAccount: web3.PublicKey;
+  }
+): Promise<TransactionInstruction> => {
+  const provider = new Provider(connection, wallet, {});
+  const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
+    STAKE_POOL_IDL,
+    STAKE_POOL_ADDRESS,
+    provider
+  );
+
+  return stakePoolProgram.instruction.unstake({
+    accounts: {
+      stakeEntry: params.stakeEntryId,
+      tokenManager: params.tokenManagerId,
+      mint: params.mint,
+      stakeEntryOriginalMintTokenAccount:
+        params.stakeEntryOriginalMintTokenAccount,
+      stakeEntryMintTokenAccount: params.stakeEntryMintTokenAccount,
+      user: params.user,
+      userOriginalMintTokenAccount: params.userOriginalMintTokenAccount,
+      userMintTokenAccount: params.userMintTokenAccount,
+      tokenManagerMintAccount: params.tokenManagerMintAccount,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      tokenManagerProgram: TOKEN_MANAGER_ADDRESS,
+    },
+  });
+};

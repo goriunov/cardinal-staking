@@ -6,6 +6,7 @@ import {
   withCreateEntry,
   withCreatePool,
   withStake,
+  withUnstake,
   // withStake,
 } from "../src/programs/stakePool/transaction";
 import { expectTXTable } from "@saberhq/chai-solana";
@@ -206,11 +207,93 @@ describe("Create stake pool", () => {
     expect(checkStakeEntryOriginalMintTokenAccount.amount.toNumber()).to.eq(1);
   });
 
-  it("Stake", async () => {
+  it("Unstake", async () => {
     const provider = getProvider();
     const transaction = new web3.Transaction();
 
-    await 
+    await withUnstake(transaction, provider.connection, provider.wallet, {
+      stakePoolIdentifier: poolIdentifier,
+      originalMint: originalMint.publicKey,
+      mint: mint.publicKey,
+    });
+
+    const txEnvelope = new TransactionEnvelope(
+      SolanaProvider.init({
+        connection: provider.connection,
+        wallet: provider.wallet,
+        opts: provider.opts,
+      }),
+      [...transaction.instructions]
+    );
+    await expectTXTable(txEnvelope, "test", {
+      verbosity: "error",
+      formatLogs: true,
+    }).to.be.fulfilled;
+
+    let [stakeEntryId] = await findStakeEntryId(
+      poolIdentifier,
+      originalMint.publicKey
+    );
+    const stakeEntryData = await getStakeEntry(
+      provider.connection,
+      stakeEntryId
+    );
+
+    expect(stakeEntryData.parsed.lastStaker.toString()).to.eq(
+      web3.PublicKey.default.toString()
+    );
+    expect(stakeEntryData.parsed.lastStakedAt.toNumber()).to.gt(0);
+
+    const checkMint = new splToken.Token(
+      provider.connection,
+      mint.publicKey,
+      splToken.TOKEN_PROGRAM_ID,
+      // @ts-ignore
+      null
+    );
+
+    const userOriginalMintTokenAccountId = await getAta(
+      originalMint.publicKey,
+      provider.wallet.publicKey,
+      true
+    );
+
+    const userMintTokenAccountId = await getAta(
+      mint.publicKey,
+      provider.wallet.publicKey,
+      true
+    );
+
+    const stakeEntryOriginalMintTokenAccountId = await getAta(
+      originalMint.publicKey,
+      stakeEntryData.pubkey,
+      true
+    );
+
+    const stakeEntryMintTokenAccountId = await getAta(
+      mint.publicKey,
+      stakeEntryData.pubkey,
+      true
+    );
+
+    const checkUserMintTokenAccount = await checkMint.getAccountInfo(
+      userMintTokenAccountId
+    );
+    expect(checkUserMintTokenAccount.amount.toNumber()).to.eq(0);
+
+    const checkStakeEntryMintTokenAccount = await checkMint.getAccountInfo(
+      stakeEntryMintTokenAccountId
+    );
+    expect(checkStakeEntryMintTokenAccount.amount.toNumber()).to.eq(1);
+
+    const checkUserOriginalTokenAccount = await originalMint.getAccountInfo(
+      userOriginalMintTokenAccountId
+    );
+    expect(checkUserOriginalTokenAccount.amount.toNumber()).to.eq(1);
+
+    const checkStakeEntryOriginalMintTokenAccount =
+      await originalMint.getAccountInfo(stakeEntryOriginalMintTokenAccountId);
+    expect(checkStakeEntryOriginalMintTokenAccount.amount.toNumber()).to.eq(0);
   });
 });
 
