@@ -1,6 +1,6 @@
+pub mod errors;
 pub mod instructions;
 pub mod state;
-pub mod errors;
 
 use {anchor_lang::prelude::*, instructions::*};
 
@@ -17,12 +17,11 @@ pub mod cardinal_stake_pool {
     pub fn init_entry(ctx: Context<InitEntryCtx>, ix: InitEntryIx) -> Result<()> {
         init_entry::handler(ctx, ix)
     }
-    
+
     pub fn stake<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, StakeCtx<'info>>) -> Result<()> {
         stake::handler(ctx)
     }
     pub fn unstake(ctx: Context<UnstakeCtx>) -> Result<()> {
         unstake::handler(ctx)
     }
-
 }

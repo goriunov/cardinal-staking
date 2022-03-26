@@ -1,4 +1,4 @@
-use {anchor_lang::prelude::*};
+use anchor_lang::prelude::*;
 
 pub const REWARD_ENTRY_SEED: &str = "reward-entry";
 pub const REWARD_ENTRY_SIZE: usize = 8 + std::mem::size_of::<RewardEntry>() + 8;

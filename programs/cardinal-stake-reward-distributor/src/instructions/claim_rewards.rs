@@ -1,8 +1,8 @@
 use {
-    crate::{state::*, errors::ErrorCode},
-    anchor_lang::{prelude::*},
-    anchor_spl::{token::{Token, TokenAccount}},
-    cardinal_stake_pool::{state::{StakeEntry, StakePool}}
+    crate::{errors::ErrorCode, state::*},
+    anchor_lang::prelude::*,
+    anchor_spl::token::{Token, TokenAccount},
+    cardinal_stake_pool::state::{StakeEntry, StakePool},
 };
 
 #[derive(Accounts)]
@@ -50,5 +50,5 @@ pub fn handler(ctx: Context<ClaimRewardsCtx>) -> Result<()> {
     if reward_time_received <= ctx.accounts.stake_entry.total_stake_seconds as u64 {
         // mint to the user = reward_time_received / reward_duration_seconds * reward_amount
     }
-    return Ok(())
+    return Ok(());
 }

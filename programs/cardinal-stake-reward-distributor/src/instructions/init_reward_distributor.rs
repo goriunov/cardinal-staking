@@ -1,8 +1,8 @@
 use {
-    crate::{state::*, errors::ErrorCode},
-    anchor_lang::{prelude::*},
-    anchor_spl::{token::{Mint}},
-    cardinal_stake_pool::{state::{StakePool}}
+    crate::{errors::ErrorCode, state::*},
+    anchor_lang::prelude::*,
+    anchor_spl::token::Mint,
+    cardinal_stake_pool::state::StakePool,
 };
 
 #[derive(Accounts)]
@@ -35,5 +35,5 @@ pub fn handler(ctx: Context<InitRewardDistributorCtx>, reward_amount: u64, rewar
 
     // todo transfer mint authority of tokens
     // todo make instruction to take back mint authority?
-    return Ok(())
+    return Ok(());
 }

@@ -1,17 +1,11 @@
 use {
-    crate::{state::*, errors::ErrorCode},
-    anchor_lang::{prelude::*},
+    crate::{errors::ErrorCode, state::*},
+    anchor_lang::prelude::*,
 };
 
-use anchor_spl::{
-    token::{self, Token, TokenAccount, Mint},
-};
+use anchor_spl::token::{self, Mint, Token, TokenAccount};
 
-use cardinal_token_manager::{
-    self,
-    program::CardinalTokenManager,
-    state::{TokenManager},
-};
+use cardinal_token_manager::{self, program::CardinalTokenManager, state::TokenManager};
 
 #[derive(Accounts)]
 pub struct UnstakeCtx<'info> {
@@ -76,5 +70,5 @@ pub fn handler(ctx: Context<UnstakeCtx>) -> Result<()> {
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(stake_entry_signer);
     token::transfer(cpi_context, 1)?;
 
-    return Ok(())
+    return Ok(());
 }
