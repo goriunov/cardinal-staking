@@ -20,7 +20,7 @@ pub struct ClaimRewardsCtx<'info> {
     #[account(constraint = reward_distributor.stake_pool == stake_pool.key())]
     reward_distributor: Box<Account<'info, RewardDistributor>>,
 
-    #[account(constraint = stake_entry.mint == mint)]
+    #[account(constraint = stake_entry.original_mint == mint)]
     stake_entry: Box<Account<'info, StakeEntry>>,
     #[account(constraint = stake_pool.key() == stake_entry.pool)]
     stake_pool: Box<Account<'info, StakePool>>,

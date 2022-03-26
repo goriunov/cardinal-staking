@@ -112,7 +112,7 @@ describe("Create stake pool", () => {
       originalMint.publicKey.toString()
     );
     expect(stakeEntryData.parsed.pool.toString()).to.eq(stakePoolId.toString());
-    expect(stakeEntryData.parsed.mint.toString()).to.eq(
+    expect(stakeEntryData.parsed.receiptMint.toString()).to.eq(
       receiptMintKeypair.publicKey.toString()
     );
   });
@@ -124,7 +124,7 @@ describe("Create stake pool", () => {
     await withStake(transaction, provider.connection, provider.wallet, {
       stakePoolIdentifier: poolIdentifier,
       originalMint: originalMint.publicKey,
-      mint: receiptMintKeypair.publicKey,
+      receiptMint: receiptMintKeypair.publicKey,
     });
 
     const txEnvelope = new TransactionEnvelope(
@@ -212,7 +212,7 @@ describe("Create stake pool", () => {
     await withUnstake(transaction, provider.connection, provider.wallet, {
       stakePoolIdentifier: poolIdentifier,
       originalMint: originalMint.publicKey,
-      mint: receiptMintKeypair.publicKey,
+      receiptMint: receiptMintKeypair.publicKey,
     });
 
     const txEnvelope = new TransactionEnvelope(

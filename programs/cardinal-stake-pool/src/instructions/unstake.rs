@@ -3,7 +3,7 @@ use {
     anchor_lang::prelude::*,
 };
 
-use anchor_spl::token::{self, Mint, Token, TokenAccount};
+use anchor_spl::token::{self, Token, TokenAccount};
 
 use cardinal_token_manager::{self, program::CardinalTokenManager, state::TokenManager};
 
@@ -14,8 +14,6 @@ pub struct UnstakeCtx<'info> {
     #[account(mut, constraint = token_manager.key() == stake_entry.token_manager)]
     token_manager: Box<Account<'info, TokenManager>>,
 
-    mint: Box<Account<'info, Mint>>,
-
     // stake_entry token accounts
     #[account(mut, constraint =
         stake_entry_original_mint_token_account.amount > 0
@@ -25,7 +23,7 @@ pub struct UnstakeCtx<'info> {
     stake_entry_original_mint_token_account: Box<Account<'info, TokenAccount>>,
     #[account(mut, constraint =
         stake_entry_receipt_mint_token_account.amount > 0
-        && stake_entry_receipt_mint_token_account.mint == stake_entry.mint
+        && stake_entry_receipt_mint_token_account.mint == stake_entry.receipt_mint
         && stake_entry_receipt_mint_token_account.owner == stake_entry.key()
         @ ErrorCode::InvalidStakeEntryMintTokenAccount)]
     stake_entry_receipt_mint_token_account: Box<Account<'info, TokenAccount>>,
@@ -41,7 +39,7 @@ pub struct UnstakeCtx<'info> {
     user_original_mint_token_account: Box<Account<'info, TokenAccount>>,
     #[account(mut, constraint =
         user_receipt_mint_token_account.amount == 0
-        && user_receipt_mint_token_account.mint == mint.key()
+        && user_receipt_mint_token_account.mint == stake_entry.receipt_mint
         && user_receipt_mint_token_account.owner == user.key()
         @ ErrorCode::InvalidUserMintTokenAccount)]
     user_receipt_mint_token_account: Box<Account<'info, TokenAccount>>,

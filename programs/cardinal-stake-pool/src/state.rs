@@ -12,7 +12,7 @@ pub struct StakeEntry {
     pub pool: Pubkey,
     pub token_manager: Pubkey,
     pub original_mint: Pubkey,
-    pub mint: Pubkey,
+    pub receipt_mint: Pubkey,
     pub total_stake_seconds: i64,
     pub last_staked_at: i64,
     pub last_staker: Pubkey,

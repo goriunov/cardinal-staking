@@ -159,7 +159,6 @@ export const unstake = (
   params: {
     stakeEntryId: PublicKey;
     tokenManagerId: PublicKey;
-    mint: PublicKey;
     stakeEntryOriginalMintTokenAccount: PublicKey;
     stakeEntryMintTokenAccount: PublicKey;
     user: PublicKey;
@@ -179,7 +178,6 @@ export const unstake = (
     accounts: {
       stakeEntry: params.stakeEntryId,
       tokenManager: params.tokenManagerId,
-      mint: params.mint,
       stakeEntryOriginalMintTokenAccount:
         params.stakeEntryOriginalMintTokenAccount,
       stakeEntryReceiptMintTokenAccount: params.stakeEntryMintTokenAccount,

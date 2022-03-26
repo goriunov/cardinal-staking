@@ -66,7 +66,7 @@ pub fn handler(ctx: Context<InitEntryCtx>, ix: InitEntryIx) -> Result<()> {
     stake_entry.bump = *ctx.bumps.get("stake_entry").unwrap();
     stake_entry.pool = stake_pool.key();
     stake_entry.original_mint = ctx.accounts.original_mint.key();
-    stake_entry.mint = ctx.accounts.receipt_mint.key();
+    stake_entry.receipt_mint = ctx.accounts.receipt_mint.key();
 
     let stake_entry_seed = &[STAKE_ENTRY_PREFIX.as_bytes(), stake_entry.pool.as_ref(), stake_entry.original_mint.as_ref(), &[stake_entry.bump]];
     let stake_entry_signer = &[&stake_entry_seed[..]];

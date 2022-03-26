@@ -93,15 +93,14 @@ export const withStake = async (
   params: {
     stakePoolIdentifier: BN;
     originalMint: web3.PublicKey;
-    mint: web3.PublicKey;
-    claimReicipt?: web3.PublicKey;
+    receiptMint: web3.PublicKey;
   }
 ): Promise<[web3.Transaction, web3.PublicKey]> => {
   const [[stakeEntryId], [tokenManagerId], [mintCounterId]] = await Promise.all(
     [
       findStakeEntryIdForPool(params.stakePoolIdentifier, params.originalMint),
-      findTokenManagerAddress(params.mint),
-      findMintCounterId(params.mint),
+      findTokenManagerAddress(params.receiptMint),
+      findMintCounterId(params.receiptMint),
     ]
   );
 
@@ -117,7 +116,7 @@ export const withStake = async (
   const userMintTokenAccount = await withFindOrInitAssociatedTokenAccount(
     transaction,
     connection,
-    params.mint,
+    params.receiptMint,
     wallet.publicKey,
     wallet.publicKey
   );
@@ -135,7 +134,7 @@ export const withStake = async (
   const stakeEntryMintTokenAccount = await withFindOrInitAssociatedTokenAccount(
     transaction,
     connection,
-    params.mint,
+    params.receiptMint,
     stakeEntryId,
     wallet.publicKey,
     true
@@ -144,7 +143,7 @@ export const withStake = async (
   const tokenManagerMintAccount = await withFindOrInitAssociatedTokenAccount(
     transaction,
     connection,
-    params.mint,
+    params.receiptMint,
     tokenManagerId,
     wallet.publicKey,
     true
@@ -157,7 +156,7 @@ export const withStake = async (
       originalMintId: params.originalMint,
       tokenManagerId: tokenManagerId,
       mintCounterId: mintCounterId,
-      receiptMintId: params.mint,
+      receiptMintId: params.receiptMint,
       stakeEntryOriginalMintTokenAccountId: stakeEntryOriginalMintTokenAccount,
       stakeEntryReceiptMintTokenAccountId: stakeEntryMintTokenAccount,
       user: wallet.publicKey,
@@ -178,12 +177,12 @@ export const withUnstake = async (
   params: {
     stakePoolIdentifier: BN;
     originalMint: web3.PublicKey;
-    mint: web3.PublicKey;
+    receiptMint: web3.PublicKey;
   }
 ): Promise<[web3.Transaction, web3.PublicKey]> => {
   const [[stakeEntryId], [tokenManagerId]] = await Promise.all([
     findStakeEntryIdForPool(params.stakePoolIdentifier, params.originalMint),
-    findTokenManagerAddress(params.mint),
+    findTokenManagerAddress(params.receiptMint),
   ]);
 
   const stakeEntryOriginalMintTokenAccount =
@@ -199,7 +198,7 @@ export const withUnstake = async (
   const stakeEntryMintTokenAccount = await withFindOrInitAssociatedTokenAccount(
     transaction,
     connection,
-    params.mint,
+    params.receiptMint,
     stakeEntryId,
     wallet.publicKey,
     true
@@ -217,7 +216,7 @@ export const withUnstake = async (
   const userMintTokenAccount = await withFindOrInitAssociatedTokenAccount(
     transaction,
     connection,
-    params.mint,
+    params.receiptMint,
     wallet.publicKey,
     wallet.publicKey
   );
@@ -225,19 +224,18 @@ export const withUnstake = async (
   const tokenManagerMintAccount = await withFindOrInitAssociatedTokenAccount(
     transaction,
     connection,
-    params.mint,
+    params.receiptMint,
     tokenManagerId,
     wallet.publicKey,
     true
   );
 
-  await withInvalidate(transaction, connection, wallet, params.mint);
+  await withInvalidate(transaction, connection, wallet, params.receiptMint);
 
   transaction.add(
     unstake(connection, wallet, {
       stakeEntryId: stakeEntryId,
       tokenManagerId: tokenManagerId,
-      mint: params.mint,
       stakeEntryOriginalMintTokenAccount: stakeEntryOriginalMintTokenAccount,
       stakeEntryMintTokenAccount: stakeEntryMintTokenAccount,
       user: wallet.publicKey,

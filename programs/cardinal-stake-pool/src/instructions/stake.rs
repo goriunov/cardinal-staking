@@ -19,7 +19,7 @@ pub struct StakeCtx<'info> {
 
     #[account(constraint = original_mint.key() == stake_entry.original_mint @ ErrorCode::InvalidOriginalMint)]
     original_mint: Box<Account<'info, Mint>>,
-    #[account(mut, constraint = receipt_mint.key() == stake_entry.mint @ ErrorCode::InvalidTokenManagerMint)]
+    #[account(mut, constraint = receipt_mint.key() == stake_entry.receipt_mint @ ErrorCode::InvalidTokenManagerMint)]
     receipt_mint: Box<Account<'info, Mint>>,
 
     // stake_entry token accounts
@@ -31,7 +31,7 @@ pub struct StakeCtx<'info> {
     stake_entry_original_mint_token_account: Box<Account<'info, TokenAccount>>,
     #[account(mut, constraint =
         stake_entry_receipt_mint_token_account.amount > 0
-        && stake_entry_receipt_mint_token_account.mint == stake_entry.mint
+        && stake_entry_receipt_mint_token_account.mint == stake_entry.receipt_mint
         && stake_entry_receipt_mint_token_account.owner == stake_entry.key()
         @ ErrorCode::InvalidStakeEntryMintTokenAccount)]
     stake_entry_receipt_mint_token_account: Box<Account<'info, TokenAccount>>,
