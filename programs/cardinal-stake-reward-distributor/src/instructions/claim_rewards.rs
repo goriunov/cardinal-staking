@@ -58,7 +58,7 @@ pub fn handler(ctx: Context<ClaimRewardsCtx>) -> Result<()> {
     let max_supply = reward_distributor.max_supply;
 
     let reward_time_received = rewards_distributed / reward_amount * reward_duration_seconds;
-    if reward_time_received <= ctx.accounts.stake_entry.total_stake_seconds as u64 && (max_supply == None || reward_distributor.rewards_issued < max_supply) {
+    if reward_time_received <= ctx.accounts.stake_entry.total_stake_seconds as u64 && (max_supply == None || reward_distributor.rewards_issued < max_supply.unwrap()) {
         // mint to the user = reward_time_received / reward_duration_seconds * reward_amount
         let cpi_accounts = token::MintTo {
             mint: ctx.accounts.reward_mint.to_account_info(),

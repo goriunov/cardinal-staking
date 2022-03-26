@@ -4,15 +4,13 @@ use {
         prelude::*,
         solana_program::program::{invoke, invoke_signed},
     },
+    anchor_spl::{
+        associated_token::{self, AssociatedToken},
+        token::{self, Mint, Token},
+    },
+    cardinal_token_manager::{self, program::CardinalTokenManager},
     solana_program::{program_pack::Pack, system_instruction::create_account},
 };
-
-use anchor_spl::{
-    associated_token::{self, AssociatedToken},
-    token::{self, Mint, Token},
-};
-
-use cardinal_token_manager::{self, program::CardinalTokenManager};
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct InitEntryIx {
