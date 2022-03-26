@@ -10,7 +10,6 @@ pub const STAKE_POOL_SIZE: usize = 8 + std::mem::size_of::<StakePool>() + 8;
 pub struct StakeEntry {
     pub bump: u8,
     pub pool: Pubkey,
-    pub token_manager: Pubkey,
     pub original_mint: Pubkey,
     pub receipt_mint: Pubkey,
     pub total_stake_seconds: i64,

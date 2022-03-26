@@ -11,7 +11,7 @@ use cardinal_token_manager::{self, program::CardinalTokenManager, state::TokenMa
 pub struct UnstakeCtx<'info> {
     #[account(mut)]
     stake_entry: Box<Account<'info, StakeEntry>>,
-    #[account(mut, constraint = token_manager.key() == stake_entry.token_manager)]
+    #[account(mut)]
     token_manager: Box<Account<'info, TokenManager>>,
 
     // stake_entry token accounts
