@@ -148,8 +148,8 @@ pub fn handler(ctx: Context<InitEntryCtx>, ix: InitEntryIx) -> Result<()> {
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(stake_entry_signer);
     token::mint_to(cpi_context, 1)?;
 
-    // init mint  manager
-    let certificate_program = ctx.accounts.token_manager_program.to_account_info();
+    // init token  manager
+    let token_manager_program = ctx.accounts.token_manager_program.to_account_info();
     let cpi_accounts = cardinal_token_manager::cpi::accounts::CreateMintManagerCtx {
         mint_manager: ctx.accounts.mint_manager.to_account_info(),
         mint: ctx.accounts.mint.to_account_info(),
@@ -158,7 +158,7 @@ pub fn handler(ctx: Context<InitEntryCtx>, ix: InitEntryIx) -> Result<()> {
         token_program: ctx.accounts.token_program.to_account_info(),
         system_program: ctx.accounts.system_program.to_account_info(),
     };
-    let cpi_ctx = CpiContext::new(certificate_program, cpi_accounts).with_signer(stake_entry_signer);
+    let cpi_ctx = CpiContext::new(token_manager_program, cpi_accounts).with_signer(stake_entry_signer);
     cardinal_token_manager::cpi::create_mint_manager(cpi_ctx)?;
 
     return Ok(());
