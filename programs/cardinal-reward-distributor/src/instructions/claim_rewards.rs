@@ -6,28 +6,20 @@ use {
 };
 
 #[derive(Accounts)]
-#[instruction(mint: Pubkey)]
 pub struct ClaimRewardsCtx<'info> {
-    #[account(
-        init_if_needed,
-        payer = user,
-        space = REWARD_ENTRY_SIZE,
-        // TODO i think this makes more sense as the reward distributor but it could be the pool
-        seeds = [REWARD_ENTRY_SEED.as_bytes(), reward_distributor.key().as_ref(), mint.as_ref()],
-        bump,
-    )]
+    #[account(mut)]
     reward_entry: Box<Account<'info, RewardEntry>>,
     #[account(constraint = reward_distributor.stake_pool == stake_pool.key())]
     reward_distributor: Box<Account<'info, RewardDistributor>>,
 
-    #[account(constraint = stake_entry.original_mint == mint)]
+    #[account(constraint = stake_entry.original_mint == reward_entry.mint)]
     stake_entry: Box<Account<'info, StakeEntry>>,
     #[account(constraint = stake_pool.key() == stake_entry.pool)]
     stake_pool: Box<Account<'info, StakePool>>,
 
     #[account(mut, constraint =
         mint_token_account.amount == 1
-        && mint_token_account.mint == mint
+        && mint_token_account.mint == reward_entry.mint
         && mint_token_account.owner == user.key()
         @ ErrorCode::InvalidTokenAccount)]
     mint_token_account: Box<Account<'info, TokenAccount>>,
@@ -44,7 +36,7 @@ pub struct ClaimRewardsCtx<'info> {
     system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<ClaimRewardsCtx>, _mint: Pubkey) -> Result<()> {
+pub fn handler(ctx: Context<ClaimRewardsCtx>) -> Result<()> {
     let reward_entry = &mut ctx.accounts.reward_entry;
     reward_entry.bump = *ctx.bumps.get("reward_entry").unwrap();
     let rewards_distributed = reward_entry.rewards_distributed;

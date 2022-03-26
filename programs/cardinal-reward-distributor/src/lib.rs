@@ -14,7 +14,11 @@ pub mod cardinal_reward_distributor {
         init_reward_distributor::handler(ctx, ix)
     }
 
-    pub fn claim_rewards(ctx: Context<ClaimRewardsCtx>, mint: Pubkey) -> Result<()> {
-        claim_rewards::handler(ctx, mint)
+    pub fn init_reward_entry(ctx: Context<InitRewardEntryCtx>, ix: InitRewardEntryIx) -> Result<()> {
+        init_reward_entry::handler(ctx, ix)
+    }
+
+    pub fn claim_rewards(ctx: Context<ClaimRewardsCtx>) -> Result<()> {
+        claim_rewards::handler(ctx)
     }
 }

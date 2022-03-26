@@ -271,10 +271,6 @@ export type CardinalStakePool = {
             type: "publicKey";
           },
           {
-            name: "tokenManager";
-            type: "publicKey";
-          },
-          {
             name: "originalMint";
             type: "publicKey";
           },
@@ -661,10 +657,6 @@ export const IDL: CardinalStakePool = {
           },
           {
             name: "pool",
-            type: "publicKey",
-          },
-          {
-            name: "tokenManager",
             type: "publicKey",
           },
           {

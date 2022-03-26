@@ -52,6 +52,41 @@ export const initRewardDistributor = (
   );
 };
 
+export const initRewardEntry = async (
+  connection: Connection,
+  wallet: Wallet,
+  params: {
+    mint: PublicKey;
+    rewardDistributor: PublicKey;
+    multiplier: BN;
+  }
+): Promise<TransactionInstruction> => {
+  const provider = new Provider(connection, wallet, {});
+  const rewardDistributorProgram = new Program<REWARD_DISTRIBUTOR_PROGRAM>(
+    REWARD_DISTRIBUTOR_IDL,
+    REWARD_DISTRIBUTOR_ADDRESS,
+    provider
+  );
+  const [rewardEntryId] = await findRewardEntryId(
+    params.rewardDistributor,
+    params.mint
+  );
+  return rewardDistributorProgram.instruction.initRewardEntry(
+    {
+      mint: params.mint,
+      multipler: params.multiplier,
+    },
+    {
+      accounts: {
+        rewardEntry: rewardEntryId,
+        rewardDistributor: params.rewardDistributor,
+        payer: wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+      },
+    }
+  );
+};
+
 export const claimRewards = async (
   connection: Connection,
   wallet: Wallet,
@@ -78,21 +113,18 @@ export const claimRewards = async (
     findStakeEntryId(params.stakePoolId, params.originalMint),
   ]);
 
-  return rewardDistributorProgram.instruction.claimRewards(
-    params.originalMint,
-    {
-      accounts: {
-        rewardEntry: rewardEntryId,
-        rewardDistributor: rewardDistributorId,
-        stakeEntry: stakeEntryId,
-        stakePool: params.stakePoolId,
-        mintTokenAccount: params.mintTokenAccount,
-        rewardMint: params.rewardMintId,
-        userRewardMintTokenAccount: params.rewardMintTokenAccountId,
-        user: wallet.publicKey,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        systemProgram: SystemProgram.programId,
-      },
-    }
-  );
+  return rewardDistributorProgram.instruction.claimRewards({
+    accounts: {
+      rewardEntry: rewardEntryId,
+      rewardDistributor: rewardDistributorId,
+      stakeEntry: stakeEntryId,
+      stakePool: params.stakePoolId,
+      mintTokenAccount: params.mintTokenAccount,
+      rewardMint: params.rewardMintId,
+      userRewardMintTokenAccount: params.rewardMintTokenAccountId,
+      user: wallet.publicKey,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      systemProgram: SystemProgram.programId,
+    },
+  });
 };

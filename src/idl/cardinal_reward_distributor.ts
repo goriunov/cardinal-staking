@@ -51,6 +51,39 @@ export type CardinalRewardDistributor = {
       ];
     },
     {
+      name: "initRewardEntry";
+      accounts: [
+        {
+          name: "rewardEntry";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "rewardDistributor";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "payer";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [
+        {
+          name: "ix";
+          type: {
+            defined: "InitRewardEntryIx";
+          };
+        }
+      ];
+    },
+    {
       name: "claimRewards";
       accounts: [
         {
@@ -104,12 +137,7 @@ export type CardinalRewardDistributor = {
           isSigner: false;
         }
       ];
-      args: [
-        {
-          name: "mint";
-          type: "publicKey";
-        }
-      ];
+      args: [];
     }
   ];
   accounts: [
@@ -123,11 +151,11 @@ export type CardinalRewardDistributor = {
             type: "u8";
           },
           {
-            name: "rewardDistributor";
+            name: "mint";
             type: "publicKey";
           },
           {
-            name: "mint";
+            name: "rewardDistributor";
             type: "publicKey";
           },
           {
@@ -206,6 +234,22 @@ export type CardinalRewardDistributor = {
           }
         ];
       };
+    },
+    {
+      name: "InitRewardEntryIx";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "mint";
+            type: "publicKey";
+          },
+          {
+            name: "multipler";
+            type: "u64";
+          }
+        ];
+      };
     }
   ];
   errors: [
@@ -280,6 +324,39 @@ export const IDL: CardinalRewardDistributor = {
       ],
     },
     {
+      name: "initRewardEntry",
+      accounts: [
+        {
+          name: "rewardEntry",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "rewardDistributor",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "payer",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: "ix",
+          type: {
+            defined: "InitRewardEntryIx",
+          },
+        },
+      ],
+    },
+    {
       name: "claimRewards",
       accounts: [
         {
@@ -333,12 +410,7 @@ export const IDL: CardinalRewardDistributor = {
           isSigner: false,
         },
       ],
-      args: [
-        {
-          name: "mint",
-          type: "publicKey",
-        },
-      ],
+      args: [],
     },
   ],
   accounts: [
@@ -352,11 +424,11 @@ export const IDL: CardinalRewardDistributor = {
             type: "u8",
           },
           {
-            name: "rewardDistributor",
+            name: "mint",
             type: "publicKey",
           },
           {
-            name: "mint",
+            name: "rewardDistributor",
             type: "publicKey",
           },
           {
@@ -432,6 +504,22 @@ export const IDL: CardinalRewardDistributor = {
             type: {
               option: "u64",
             },
+          },
+        ],
+      },
+    },
+    {
+      name: "InitRewardEntryIx",
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "mint",
+            type: "publicKey",
+          },
+          {
+            name: "multipler",
+            type: "u64",
           },
         ],
       },
