@@ -115,7 +115,7 @@ pub fn handler(ctx: Context<InitEntryCtx>, ix: InitEntryIx) -> Result<()> {
     let mut metadata_uri_param: String = "".to_string();
     if !ctx.accounts.original_mint_metadata.data_is_empty() {
         let original_mint_metadata = Metadata::from_account_info(&ctx.accounts.original_mint_metadata.to_account_info())?;
-        metadata_uri_param = "&uri=".to_string() + &original_mint_metadata.data.uri.trim_matches(char::from(0));
+        metadata_uri_param = "&uri=".to_string() + original_mint_metadata.data.uri.trim_matches(char::from(0));
     }
     // TODO use image?
     // let image_uri = ctx.accounts.stake_pool.image_uri.clone();
@@ -130,7 +130,7 @@ pub fn handler(ctx: Context<InitEntryCtx>, ix: InitEntryIx) -> Result<()> {
             ix.name,
             ix.symbol,
             // generative URL which will include image of the name with expiration data
-            "https://api.cardinal.so/metadata/".to_string() + &ctx.accounts.receipt_mint.key().to_string() + &"?text=".to_string() + &ctx.accounts.stake_pool.overlay_text + &metadata_uri_param,
+            "https://api.cardinal.so/metadata/".to_string() + &ctx.accounts.receipt_mint.key().to_string() + "?text=" + &ctx.accounts.stake_pool.overlay_text + &metadata_uri_param,
             Some(vec![
                 Creator {
                     address: ctx.accounts.stake_pool.key(),
@@ -184,5 +184,5 @@ pub fn handler(ctx: Context<InitEntryCtx>, ix: InitEntryIx) -> Result<()> {
     let cpi_ctx = CpiContext::new(token_manager_program, cpi_accounts).with_signer(stake_pool_signer);
     cardinal_token_manager::cpi::create_mint_manager(cpi_ctx)?;
 
-    return Ok(());
+    Ok(())
 }

@@ -61,10 +61,10 @@ pub fn handler(ctx: Context<ClaimRewardsCtx>) -> Result<()> {
         let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(stake_pool_signer);
         token::mint_to(cpi_context, reward_distributor.reward_amount)?;
 
-        reward_distributor.rewards_issued = reward_distributor.rewards_issued + reward_distributor.reward_amount;
+        reward_distributor.rewards_issued += reward_distributor.reward_amount;
         if reward_distributor.max_supply != None && reward_distributor.rewards_issued == reward_distributor.max_supply.unwrap() {
             reward_distributor.closed = true;
         }
     }
-    return Ok(());
+    Ok(())
 }
