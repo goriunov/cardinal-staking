@@ -28,7 +28,7 @@ describe("Create stake pool", () => {
   const symbol = "symbol";
   const textOverlay = "staking";
   let originalMint: splToken.Token;
-  const mint = web3.Keypair.generate();
+  const receiptMintKeypair = web3.Keypair.generate();
   const originalMintAuthority = web3.Keypair.generate();
 
   before(async () => {
@@ -75,7 +75,7 @@ describe("Create stake pool", () => {
     const transaction = new web3.Transaction();
 
     await withCreateEntry(transaction, provider.connection, provider.wallet, {
-      mint: mint,
+      receiptMintKeypair: receiptMintKeypair,
       stakePoolIdentifier: poolIdentifier,
       originalMint: originalMint.publicKey,
       name: entryName,
@@ -90,7 +90,7 @@ describe("Create stake pool", () => {
         opts: provider.opts,
       }),
       [...transaction.instructions],
-      [mint]
+      [receiptMintKeypair]
     );
 
     await expectTXTable(txEnvelope, "test", {
@@ -113,7 +113,7 @@ describe("Create stake pool", () => {
     );
     expect(stakeEntryData.parsed.pool.toString()).to.eq(stakePoolId.toString());
     expect(stakeEntryData.parsed.mint.toString()).to.eq(
-      mint.publicKey.toString()
+      receiptMintKeypair.publicKey.toString()
     );
   });
 
@@ -124,7 +124,7 @@ describe("Create stake pool", () => {
     await withStake(transaction, provider.connection, provider.wallet, {
       stakePoolIdentifier: poolIdentifier,
       originalMint: originalMint.publicKey,
-      mint: mint.publicKey,
+      mint: receiptMintKeypair.publicKey,
     });
 
     const txEnvelope = new TransactionEnvelope(
@@ -156,7 +156,7 @@ describe("Create stake pool", () => {
     );
 
     const userMintTokenAccountId = await getAta(
-      mint.publicKey,
+      receiptMintKeypair.publicKey,
       provider.wallet.publicKey,
       true
     );
@@ -168,7 +168,7 @@ describe("Create stake pool", () => {
     );
 
     const stakeEntryMintTokenAccountId = await getAta(
-      mint.publicKey,
+      receiptMintKeypair.publicKey,
       stakeEntryData.pubkey,
       true
     );
@@ -180,7 +180,7 @@ describe("Create stake pool", () => {
 
     const checkMint = new splToken.Token(
       provider.connection,
-      mint.publicKey,
+      receiptMintKeypair.publicKey,
       splToken.TOKEN_PROGRAM_ID,
       web3.Keypair.generate()
     );
@@ -212,7 +212,7 @@ describe("Create stake pool", () => {
     await withUnstake(transaction, provider.connection, provider.wallet, {
       stakePoolIdentifier: poolIdentifier,
       originalMint: originalMint.publicKey,
-      mint: mint.publicKey,
+      mint: receiptMintKeypair.publicKey,
     });
 
     const txEnvelope = new TransactionEnvelope(
@@ -244,7 +244,7 @@ describe("Create stake pool", () => {
 
     const checkMint = new splToken.Token(
       provider.connection,
-      mint.publicKey,
+      receiptMintKeypair.publicKey,
       splToken.TOKEN_PROGRAM_ID,
       web3.Keypair.generate()
     );
@@ -256,7 +256,7 @@ describe("Create stake pool", () => {
     );
 
     const userMintTokenAccountId = await getAta(
-      mint.publicKey,
+      receiptMintKeypair.publicKey,
       provider.wallet.publicKey,
       true
     );
@@ -268,7 +268,7 @@ describe("Create stake pool", () => {
     );
 
     const stakeEntryMintTokenAccountId = await getAta(
-      mint.publicKey,
+      receiptMintKeypair.publicKey,
       stakeEntryData.pubkey,
       true
     );

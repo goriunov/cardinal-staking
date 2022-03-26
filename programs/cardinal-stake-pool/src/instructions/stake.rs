@@ -30,11 +30,11 @@ pub struct StakeCtx<'info> {
         @ ErrorCode::InvalidStakeEntryOriginalMintTokenAccount)]
     stake_entry_original_mint_token_account: Box<Account<'info, TokenAccount>>,
     #[account(mut, constraint =
-        stake_entry_mint_token_account.amount > 0
-        && stake_entry_mint_token_account.mint == stake_entry.mint
-        && stake_entry_mint_token_account.owner == stake_entry.key()
+        stake_entry_receipt_mint_token_account.amount > 0
+        && stake_entry_receipt_mint_token_account.mint == stake_entry.mint
+        && stake_entry_receipt_mint_token_account.owner == stake_entry.key()
         @ ErrorCode::InvalidStakeEntryMintTokenAccount)]
-    stake_entry_mint_token_account: Box<Account<'info, TokenAccount>>,
+    stake_entry_receipt_mint_token_account: Box<Account<'info, TokenAccount>>,
 
     // user
     #[account(mut)]
@@ -46,11 +46,11 @@ pub struct StakeCtx<'info> {
         @ ErrorCode::InvalidUserOriginalMintTokenAccount)]
     user_original_mint_token_account: Box<Account<'info, TokenAccount>>,
     #[account(mut, constraint =
-        user_mint_token_account.amount == 0
-        && user_mint_token_account.mint == mint.key()
-        && user_mint_token_account.owner == user.key()
+        user_receipt_mint_token_account.amount == 0
+        && user_receipt_mint_token_account.mint == mint.key()
+        && user_receipt_mint_token_account.owner == user.key()
         @ ErrorCode::InvalidUserMintTokenAccount)]
-    user_mint_token_account: Box<Account<'info, TokenAccount>>,
+    user_receipt_mint_token_account: Box<Account<'info, TokenAccount>>,
 
     #[account(mut)]
     token_manager_mint_account: Box<Account<'info, TokenAccount>>,
@@ -92,7 +92,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         mint_counter: ctx.accounts.mint_counter.to_account_info(),
         issuer: stake_entry.to_account_info(),
         payer: ctx.accounts.user.to_account_info(),
-        issuer_token_account: ctx.accounts.stake_entry_mint_token_account.to_account_info(),
+        issuer_token_account: ctx.accounts.stake_entry_receipt_mint_token_account.to_account_info(),
         system_program: ctx.accounts.system_program.to_account_info(),
     };
     let cpi_ctx = CpiContext::new(ctx.accounts.token_manager_program.to_account_info(), cpi_accounts).with_signer(stake_entry_signer);
@@ -111,7 +111,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         token_manager: token_manager.to_account_info(),
         token_manager_token_account: ctx.accounts.token_manager_mint_account.to_account_info(),
         issuer: stake_entry.to_account_info(),
-        issuer_token_account: ctx.accounts.stake_entry_mint_token_account.to_account_info(),
+        issuer_token_account: ctx.accounts.stake_entry_receipt_mint_token_account.to_account_info(),
         payer: ctx.accounts.user.to_account_info(),
         token_program: ctx.accounts.token_program.to_account_info(),
         system_program: ctx.accounts.system_program.to_account_info(),
@@ -132,7 +132,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         token_manager_token_account: ctx.accounts.token_manager_mint_account.to_account_info(),
         mint: ctx.accounts.mint.to_account_info(),
         recipient: ctx.accounts.user.to_account_info(),
-        recipient_token_account: ctx.accounts.user_mint_token_account.to_account_info(),
+        recipient_token_account: ctx.accounts.user_receipt_mint_token_account.to_account_info(),
         token_program: ctx.accounts.token_program.to_account_info(),
     };
     let remaining_accounts = ctx.remaining_accounts.to_vec();

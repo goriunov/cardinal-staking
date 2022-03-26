@@ -40,7 +40,7 @@ export const withCreateEntry = async (
   connection: web3.Connection,
   wallet: Wallet,
   params: {
-    mint: web3.Keypair;
+    receiptMintKeypair: web3.Keypair;
     stakePoolIdentifier: BN;
     originalMint: web3.PublicKey;
     name: string;
@@ -51,11 +51,11 @@ export const withCreateEntry = async (
   const [[stakePoolId], [stakeEntryId], [mintManager]] = await Promise.all([
     findStakePoolId(params.stakePoolIdentifier),
     findStakeEntryIdForPool(params.stakePoolIdentifier, params.originalMint),
-    findMintManagerId(params.mint.publicKey),
+    findMintManagerId(params.receiptMintKeypair.publicKey),
   ]);
 
   const mintTokenAccount = await findAta(
-    params.mint.publicKey,
+    params.receiptMintKeypair.publicKey,
     stakeEntryId,
     true
   );
@@ -64,7 +64,7 @@ export const withCreateEntry = async (
     [
       Buffer.from(metaplex.MetadataProgram.PREFIX),
       metaplex.MetadataProgram.PUBKEY.toBuffer(),
-      params.mint.publicKey.toBuffer(),
+      params.receiptMintKeypair.publicKey.toBuffer(),
     ],
     metaplex.MetadataProgram.PUBKEY
   );
@@ -73,17 +73,17 @@ export const withCreateEntry = async (
     initStakeEntry(connection, wallet, {
       stakePoolId: stakePoolId,
       stakeEntryId: stakeEntryId,
-      originalMint: params.originalMint,
-      mintTokenAccount: mintTokenAccount,
-      mintMetadata: mintMetadataId,
-      mint: params.mint.publicKey,
+      originalMintId: params.originalMint,
+      stakeEntryReceiptMintTokenAccountId: mintTokenAccount,
+      receiptMintMetadata: mintMetadataId,
+      receiptMintId: params.receiptMintKeypair.publicKey,
       mintManager: mintManager,
       name: params.name,
       symbol: params.symbol,
       textOverlay: params.textOverlay,
     })
   );
-  return [transaction, stakeEntryId, params.mint];
+  return [transaction, stakeEntryId, params.receiptMintKeypair];
 };
 
 export const withStake = async (
@@ -154,18 +154,17 @@ export const withStake = async (
     await stake(connection, wallet, {
       stakeEntryId: stakeEntryId,
       stakePoolIdentifier: params.stakePoolIdentifier,
-      originalMint: params.originalMint,
+      originalMintId: params.originalMint,
       tokenManagerId: tokenManagerId,
       mintCounterId: mintCounterId,
-      mint: params.mint,
-      stakeEntryOriginalMintTokenAccount: stakeEntryOriginalMintTokenAccount,
-      stakeEntryMintTokenAccount: stakeEntryMintTokenAccount,
+      mintId: params.mint,
+      stakeEntryOriginalMintTokenAccountId: stakeEntryOriginalMintTokenAccount,
+      stakeEntryReceiptMintTokenAccountId: stakeEntryMintTokenAccount,
       user: wallet.publicKey,
-      userOriginalMintTokenAccount: userOriginalMintTokenAccount,
-      userMintTokenAccount: userMintTokenAccount,
-      tokenManagerMintAccount: tokenManagerMintAccount,
+      userOriginalMintTokenAccountId: userOriginalMintTokenAccount,
+      userReceiptMintTokenAccountId: userMintTokenAccount,
+      tokenManagerMintAccountId: tokenManagerMintAccount,
       tokenManagerKind: TokenManagerKind.Managed,
-      claimReceipt: params.claimReicipt,
     })
   );
 

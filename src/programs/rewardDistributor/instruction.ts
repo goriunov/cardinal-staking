@@ -86,7 +86,7 @@ export const claimRewards = async (
         rewardDistributor: rewardDistributorId,
         stakeEntry: stakeEntryId,
         stakePool: params.stakePoolId,
-        tokenAccount: params.mintTokenAccount,
+        mintTokenAccount: params.mintTokenAccount,
         rewardMint: params.rewardMintId,
         userRewardMintTokenAccount: params.rewardMintTokenAccountId,
         user: wallet.publicKey,

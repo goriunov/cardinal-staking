@@ -52,10 +52,10 @@ export const initStakeEntry = (
   params: {
     stakePoolId: PublicKey;
     stakeEntryId: PublicKey;
-    originalMint: PublicKey;
-    mintTokenAccount: PublicKey;
-    mintMetadata: PublicKey;
-    mint: PublicKey;
+    originalMintId: PublicKey;
+    stakeEntryReceiptMintTokenAccountId: PublicKey;
+    receiptMintMetadata: PublicKey;
+    receiptMintId: PublicKey;
     mintManager: PublicKey;
     name: string;
     symbol: string;
@@ -79,11 +79,12 @@ export const initStakeEntry = (
       accounts: {
         stakeEntry: params.stakeEntryId,
         stakePool: params.stakePoolId,
-        originalMint: params.originalMint,
-        mint: params.mint,
+        originalMint: params.originalMintId,
+        receiptMint: params.receiptMintId,
         mintManager: params.mintManager,
-        mintTokenAccount: params.mintTokenAccount,
-        mintMetadata: params.mintMetadata,
+        stakeEntryReceiptMintTokenAccount:
+          params.stakeEntryReceiptMintTokenAccountId,
+        receiptMintMetadata: params.receiptMintMetadata,
         payer: wallet.publicKey,
         rent: SYSVAR_RENT_PUBKEY,
         tokenProgram: TOKEN_PROGRAM_ID,
@@ -104,16 +105,15 @@ export const stake = async (
     tokenManagerId: PublicKey;
     mintCounterId: PublicKey;
     stakePoolIdentifier: BN;
-    originalMint: PublicKey;
-    mint: PublicKey;
-    stakeEntryOriginalMintTokenAccount: PublicKey;
-    stakeEntryMintTokenAccount: PublicKey;
+    originalMintId: PublicKey;
+    mintId: PublicKey;
+    stakeEntryOriginalMintTokenAccountId: PublicKey;
+    stakeEntryReceiptMintTokenAccountId: PublicKey;
     user: PublicKey;
-    userOriginalMintTokenAccount: PublicKey;
-    userMintTokenAccount: PublicKey;
-    tokenManagerMintAccount: PublicKey;
+    userOriginalMintTokenAccountId: PublicKey;
+    userReceiptMintTokenAccountId: PublicKey;
+    tokenManagerMintAccountId: PublicKey;
     tokenManagerKind: TokenManagerKind;
-    claimReceipt: PublicKey | undefined;
   }
 ): Promise<TransactionInstruction> => {
   const provider = new Provider(connection, wallet, {});
@@ -124,36 +124,32 @@ export const stake = async (
   );
 
   const remainingAccounts = await getRemainingAccountsForKind(
-    params.mint,
+    params.mintId,
     params.tokenManagerKind
   );
 
   return stakePoolProgram.instruction.stake({
     accounts: {
       stakeEntry: params.stakeEntryId,
-      originalMint: params.originalMint,
-      mint: params.mint,
+      originalMint: params.originalMintId,
+      mint: params.mintId,
       tokenManager: params.tokenManagerId,
       mintCounter: params.mintCounterId,
       stakeEntryOriginalMintTokenAccount:
-        params.stakeEntryOriginalMintTokenAccount,
-      stakeEntryMintTokenAccount: params.stakeEntryMintTokenAccount,
+        params.stakeEntryOriginalMintTokenAccountId,
+      stakeEntryReceiptMintTokenAccount:
+        params.stakeEntryReceiptMintTokenAccountId,
       user: params.user,
-      userOriginalMintTokenAccount: params.userOriginalMintTokenAccount,
-      userMintTokenAccount: params.userMintTokenAccount,
-      tokenManagerMintAccount: params.tokenManagerMintAccount,
+      userOriginalMintTokenAccount: params.userOriginalMintTokenAccountId,
+      userReceiptMintTokenAccount: params.userReceiptMintTokenAccountId,
+      tokenManagerMintAccount: params.tokenManagerMintAccountId,
       tokenProgram: TOKEN_PROGRAM_ID,
       tokenManagerProgram: TOKEN_MANAGER_ADDRESS,
       associatedToken: ASSOCIATED_TOKEN_PROGRAM_ID,
       rent: SYSVAR_RENT_PUBKEY,
       systemProgram: SystemProgram.programId,
     },
-    remainingAccounts: params.claimReceipt
-      ? [
-          ...remainingAccounts,
-          { pubkey: params.claimReceipt, isSigner: false, isWritable: true },
-        ]
-      : remainingAccounts,
+    remainingAccounts: remainingAccounts,
   });
 };
 
