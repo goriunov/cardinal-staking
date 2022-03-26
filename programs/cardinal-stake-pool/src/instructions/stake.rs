@@ -1,4 +1,4 @@
-use solana_program::log::sol_log_compute_units;
+
 
 use {
     crate::{errors::ErrorCode, state::*},
@@ -85,13 +85,13 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     let stake_entry_signer = &[&stake_entry_seed[..]];
 
     // check allowlist
-    if ctx.accounts.stake_pool.allowed_creators.len() > 0 || ctx.accounts.stake_pool.allowed_collections.len() > 0 {
+    if !ctx.accounts.stake_pool.allowed_creators.is_empty() || !ctx.accounts.stake_pool.allowed_collections.is_empty() {
         if ctx.accounts.original_mint_metadata.data_is_empty() {
             return Err(error!(ErrorCode::NoMintMetadata));
         }
         let original_mint_metadata = Metadata::from_account_info(&ctx.accounts.original_mint_metadata.to_account_info())?;
         let mut allowed = false;
-        if ctx.accounts.stake_pool.allowed_creators.len() > 0 && original_mint_metadata.data.creators != None {
+        if !ctx.accounts.stake_pool.allowed_creators.is_empty() && original_mint_metadata.data.creators != None {
             let creators = original_mint_metadata.data.creators.unwrap();
             let find = creators.iter().find(|c| ctx.accounts.stake_pool.allowed_creators.contains(&c.address));
             if find != None {
@@ -99,7 +99,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             };
         }
         let original_mint_metadata = Metadata::from_account_info(&ctx.accounts.original_mint_metadata.to_account_info())?;
-        if ctx.accounts.stake_pool.allowed_collections.len() > 0
+        if !ctx.accounts.stake_pool.allowed_collections.is_empty()
             && original_mint_metadata.collection != None
             && ctx.accounts.stake_pool.allowed_collections.contains(&original_mint_metadata.collection.unwrap().key)
         {
@@ -174,5 +174,5 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     // update stake entry
     stake_entry.last_staked_at = Clock::get().unwrap().unix_timestamp;
     stake_entry.last_staker = ctx.accounts.user.key();
-    return Ok(());
+    Ok(())
 }

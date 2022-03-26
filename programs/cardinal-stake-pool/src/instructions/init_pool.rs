@@ -35,5 +35,5 @@ pub fn handler(ctx: Context<InitPoolCtx>, ix: InitPoolIx) -> Result<()> {
     stake_pool.overlay_text = ix.overlay_text;
     stake_pool.image_uri = ix.image_uri;
 
-    return Ok(());
+    Ok(())
 }
