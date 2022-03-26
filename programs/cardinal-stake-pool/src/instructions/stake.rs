@@ -19,8 +19,8 @@ pub struct StakeCtx<'info> {
 
     #[account(constraint = original_mint.key() == stake_entry.original_mint @ ErrorCode::InvalidOriginalMint)]
     original_mint: Box<Account<'info, Mint>>,
-    #[account(mut, constraint = mint.key() == stake_entry.mint @ ErrorCode::InvalidTokenManagerMint)]
-    mint: Box<Account<'info, Mint>>,
+    #[account(mut, constraint = receipt_mint.key() == stake_entry.mint @ ErrorCode::InvalidTokenManagerMint)]
+    receipt_mint: Box<Account<'info, Mint>>,
 
     // stake_entry token accounts
     #[account(mut, constraint =
@@ -47,7 +47,7 @@ pub struct StakeCtx<'info> {
     user_original_mint_token_account: Box<Account<'info, TokenAccount>>,
     #[account(mut, constraint =
         user_receipt_mint_token_account.amount == 0
-        && user_receipt_mint_token_account.mint == mint.key()
+        && user_receipt_mint_token_account.mint == receipt_mint.key()
         && user_receipt_mint_token_account.owner == user.key()
         @ ErrorCode::InvalidUserMintTokenAccount)]
     user_receipt_mint_token_account: Box<Account<'info, TokenAccount>>,
@@ -96,9 +96,10 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         system_program: ctx.accounts.system_program.to_account_info(),
     };
     let cpi_ctx = CpiContext::new(ctx.accounts.token_manager_program.to_account_info(), cpi_accounts).with_signer(stake_entry_signer);
-    cardinal_token_manager::cpi::init(cpi_ctx, ctx.accounts.mint.key(), 1)?;
+    cardinal_token_manager::cpi::init(cpi_ctx, ctx.accounts.receipt_mint.key(), 1)?;
     let token_manager = &mut (Account::<TokenManager>::try_from(&ctx.accounts.token_manager)?);
 
+    // add invalidator
     let cpi_accounts = cardinal_token_manager::cpi::accounts::AddInvalidatorCtx {
         token_manager: token_manager.to_account_info(),
         issuer: stake_entry.to_account_info(),
@@ -130,7 +131,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     let cpi_accounts = cardinal_token_manager::cpi::accounts::ClaimCtx {
         token_manager: token_manager.to_account_info(),
         token_manager_token_account: ctx.accounts.token_manager_mint_account.to_account_info(),
-        mint: ctx.accounts.mint.to_account_info(),
+        mint: ctx.accounts.receipt_mint.to_account_info(),
         recipient: ctx.accounts.user.to_account_info(),
         recipient_token_account: ctx.accounts.user_receipt_mint_token_account.to_account_info(),
         token_program: ctx.accounts.token_program.to_account_info(),

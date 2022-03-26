@@ -106,7 +106,7 @@ export const stake = async (
     mintCounterId: PublicKey;
     stakePoolIdentifier: BN;
     originalMintId: PublicKey;
-    mintId: PublicKey;
+    receiptMintId: PublicKey;
     stakeEntryOriginalMintTokenAccountId: PublicKey;
     stakeEntryReceiptMintTokenAccountId: PublicKey;
     user: PublicKey;
@@ -124,7 +124,7 @@ export const stake = async (
   );
 
   const remainingAccounts = await getRemainingAccountsForKind(
-    params.mintId,
+    params.receiptMintId,
     params.tokenManagerKind
   );
 
@@ -132,7 +132,7 @@ export const stake = async (
     accounts: {
       stakeEntry: params.stakeEntryId,
       originalMint: params.originalMintId,
-      mint: params.mintId,
+      receiptMint: params.receiptMintId,
       tokenManager: params.tokenManagerId,
       mintCounter: params.mintCounterId,
       stakeEntryOriginalMintTokenAccount:
@@ -182,10 +182,10 @@ export const unstake = (
       mint: params.mint,
       stakeEntryOriginalMintTokenAccount:
         params.stakeEntryOriginalMintTokenAccount,
-      stakeEntryMintTokenAccount: params.stakeEntryMintTokenAccount,
+      stakeEntryReceiptMintTokenAccount: params.stakeEntryMintTokenAccount,
       user: params.user,
       userOriginalMintTokenAccount: params.userOriginalMintTokenAccount,
-      userMintTokenAccount: params.userMintTokenAccount,
+      userReceiptMintTokenAccount: params.userMintTokenAccount,
       tokenManagerMintAccount: params.tokenManagerMintAccount,
       tokenProgram: TOKEN_PROGRAM_ID,
       tokenManagerProgram: TOKEN_MANAGER_ADDRESS,

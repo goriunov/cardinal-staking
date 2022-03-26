@@ -24,11 +24,11 @@ pub struct UnstakeCtx<'info> {
         @ ErrorCode::InvalidStakeEntryOriginalMintTokenAccount)]
     stake_entry_original_mint_token_account: Box<Account<'info, TokenAccount>>,
     #[account(mut, constraint =
-        stake_entry_mint_token_account.amount > 0
-        && stake_entry_mint_token_account.mint == stake_entry.mint
-        && stake_entry_mint_token_account.owner == stake_entry.key()
+        stake_entry_receipt_mint_token_account.amount > 0
+        && stake_entry_receipt_mint_token_account.mint == stake_entry.mint
+        && stake_entry_receipt_mint_token_account.owner == stake_entry.key()
         @ ErrorCode::InvalidStakeEntryMintTokenAccount)]
-    stake_entry_mint_token_account: Box<Account<'info, TokenAccount>>,
+    stake_entry_receipt_mint_token_account: Box<Account<'info, TokenAccount>>,
 
     // user
     #[account(mut, constraint = user.key() == stake_entry.last_staker @ ErrorCode::InvalidUnstakeUser)]
@@ -40,11 +40,11 @@ pub struct UnstakeCtx<'info> {
         @ ErrorCode::InvalidUserOriginalMintTokenAccount)]
     user_original_mint_token_account: Box<Account<'info, TokenAccount>>,
     #[account(mut, constraint =
-        user_mint_token_account.amount == 0
-        && user_mint_token_account.mint == mint.key()
-        && user_mint_token_account.owner == user.key()
+        user_receipt_mint_token_account.amount == 0
+        && user_receipt_mint_token_account.mint == mint.key()
+        && user_receipt_mint_token_account.owner == user.key()
         @ ErrorCode::InvalidUserMintTokenAccount)]
-    user_mint_token_account: Box<Account<'info, TokenAccount>>,
+    user_receipt_mint_token_account: Box<Account<'info, TokenAccount>>,
     #[account(mut)]
     token_manager_mint_account: Box<Account<'info, TokenAccount>>,
 

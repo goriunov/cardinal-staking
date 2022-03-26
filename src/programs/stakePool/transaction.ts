@@ -157,7 +157,7 @@ export const withStake = async (
       originalMintId: params.originalMint,
       tokenManagerId: tokenManagerId,
       mintCounterId: mintCounterId,
-      mintId: params.mint,
+      receiptMintId: params.mint,
       stakeEntryOriginalMintTokenAccountId: stakeEntryOriginalMintTokenAccount,
       stakeEntryReceiptMintTokenAccountId: stakeEntryMintTokenAccount,
       user: wallet.publicKey,
