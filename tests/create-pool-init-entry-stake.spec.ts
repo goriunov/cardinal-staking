@@ -1,28 +1,26 @@
-// import type * as splToken from "@solana/spl-token";
-import * as web3 from "@solana/web3.js";
-import * as splToken from "@solana/spl-token";
 import { BN } from "@project-serum/anchor";
-import {
-  withCreateEntry,
-  withCreatePool,
-  withStake,
-  withUnstake,
-  // withStake,
-} from "../src/programs/stakePool/transaction";
 import { expectTXTable } from "@saberhq/chai-solana";
 import { SolanaProvider, TransactionEnvelope } from "@saberhq/solana-contrib";
-
-import { createMint } from "./utils";
+import * as splToken from "@solana/spl-token";
+import * as web3 from "@solana/web3.js";
 import { expect } from "chai";
-import { getProvider } from "./workspace";
+
 import {
   getStakeEntry,
   getStakePool,
 } from "../src/programs/stakePool/accounts";
 import {
-  findStakeEntryId,
+  findStakeEntryIdForPool,
   findStakePoolId,
 } from "../src/programs/stakePool/pda";
+import {
+  withCreateEntry,
+  withCreatePool,
+  withStake,
+  withUnstake,
+} from "../src/programs/stakePool/transaction";
+import { createMint } from "./utils";
+import { getProvider } from "./workspace";
 
 describe("Create stake pool", () => {
   const poolIdentifier = new BN(getRandomInt(1000));
@@ -49,6 +47,7 @@ describe("Create stake pool", () => {
     await withCreatePool(transaction, provider.connection, provider.wallet, {
       identifier: poolIdentifier,
     });
+
     const txEnvelope = new TransactionEnvelope(
       SolanaProvider.init({
         connection: provider.connection,
@@ -63,7 +62,7 @@ describe("Create stake pool", () => {
       formatLogs: true,
     }).to.be.fulfilled;
 
-    let [stakePoolId] = await findStakePoolId(poolIdentifier);
+    const [stakePoolId] = await findStakePoolId(poolIdentifier);
     const stakePoolData = await getStakePool(provider.connection, stakePoolId);
 
     expect(stakePoolData.parsed.identifier.toNumber()).to.eq(
@@ -101,7 +100,7 @@ describe("Create stake pool", () => {
 
     const [[stakePoolId], [stakeEntryId]] = await Promise.all([
       findStakePoolId(poolIdentifier),
-      findStakeEntryId(poolIdentifier, originalMint.publicKey),
+      findStakeEntryIdForPool(poolIdentifier, originalMint.publicKey),
     ]);
 
     const stakeEntryData = await getStakeEntry(
@@ -141,7 +140,7 @@ describe("Create stake pool", () => {
       formatLogs: true,
     }).to.be.fulfilled;
 
-    let [stakeEntryId] = await findStakeEntryId(
+    const [stakeEntryId] = await findStakeEntryIdForPool(
       poolIdentifier,
       originalMint.publicKey
     );
@@ -183,8 +182,7 @@ describe("Create stake pool", () => {
       provider.connection,
       mint.publicKey,
       splToken.TOKEN_PROGRAM_ID,
-      // @ts-ignore
-      null
+      web3.Keypair.generate()
     );
 
     const checkUserMintTokenAccount = await checkMint.getAccountInfo(
@@ -230,7 +228,7 @@ describe("Create stake pool", () => {
       formatLogs: true,
     }).to.be.fulfilled;
 
-    let [stakeEntryId] = await findStakeEntryId(
+    const [stakeEntryId] = await findStakeEntryIdForPool(
       poolIdentifier,
       originalMint.publicKey
     );
@@ -248,8 +246,7 @@ describe("Create stake pool", () => {
       provider.connection,
       mint.publicKey,
       splToken.TOKEN_PROGRAM_ID,
-      // @ts-ignore
-      null
+      web3.Keypair.generate()
     );
 
     const userOriginalMintTokenAccountId = await getAta(

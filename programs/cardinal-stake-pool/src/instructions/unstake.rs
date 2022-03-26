@@ -15,6 +15,7 @@ pub struct UnstakeCtx<'info> {
     token_manager: Box<Account<'info, TokenManager>>,
 
     mint: Box<Account<'info, Mint>>,
+
     // stake_entry token accounts
     #[account(mut, constraint =
         stake_entry_original_mint_token_account.amount > 0

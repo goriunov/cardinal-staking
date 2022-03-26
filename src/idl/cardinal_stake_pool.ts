@@ -1,5 +1,5 @@
 export type CardinalStakePool = {
-  version: "0.0.0";
+  version: "0.1.0";
   name: "cardinal_stake_pool";
   instructions: [
     {
@@ -45,11 +45,16 @@ export type CardinalStakePool = {
         },
         {
           name: "originalMint";
-          isMut: true;
+          isMut: false;
           isSigner: false;
         },
         {
           name: "mint";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "mintManager";
           isMut: true;
           isSigner: false;
         },
@@ -79,6 +84,16 @@ export type CardinalStakePool = {
           isSigner: false;
         },
         {
+          name: "tokenManagerProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "associatedToken";
+          isMut: false;
+          isSigner: false;
+        },
+        {
           name: "tokenMetadataProgram";
           isMut: false;
           isSigner: false;
@@ -103,11 +118,6 @@ export type CardinalStakePool = {
       accounts: [
         {
           name: "stakeEntry";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "tokenManager";
           isMut: true;
           isSigner: false;
         },
@@ -147,7 +157,17 @@ export type CardinalStakePool = {
           isSigner: false;
         },
         {
-          name: "tokenManagerTokenAccount";
+          name: "tokenManagerMintAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "tokenManager";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "mintCounter";
           isMut: true;
           isSigner: false;
         },
@@ -188,19 +208,57 @@ export type CardinalStakePool = {
           isSigner: false;
         },
         {
-          name: "systemProgram";
+          name: "tokenManager";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "mint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "stakeEntryOriginalMintTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "stakeEntryMintTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "user";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "userOriginalMintTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "userMintTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "tokenManagerMintAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "tokenManagerProgram";
           isMut: false;
           isSigner: false;
         }
       ];
-      args: [
-        {
-          name: "ix";
-          type: {
-            defined: "UnstakeIx";
-          };
-        }
-      ];
+      args: [];
     }
   ];
   accounts: [
@@ -212,6 +270,10 @@ export type CardinalStakePool = {
           {
             name: "bump";
             type: "u8";
+          },
+          {
+            name: "pool";
+            type: "publicKey";
           },
           {
             name: "tokenManager";
@@ -293,50 +355,49 @@ export type CardinalStakePool = {
           }
         ];
       };
+    }
+  ];
+  errors: [
+    {
+      code: 6000;
+      name: "InvalidOriginalMint";
+      msg: "Original mint is invalid";
     },
     {
-      name: "UnstakeIx";
-      type: {
-        kind: "struct";
-        fields: [
-          {
-            name: "bump";
-            type: "u8";
-          }
-        ];
-      };
+      code: 6001;
+      name: "InvalidTokenManagerMint";
+      msg: "Token Manager mint is invalid";
     },
     {
-      name: "ErrorCode";
-      type: {
-        kind: "enum";
-        variants: [
-          {
-            name: "InvalidOriginalMint";
-          },
-          {
-            name: "InvalidTokenManagerMint";
-          },
-          {
-            name: "InvalidUserOriginalMintTokenAccount";
-          },
-          {
-            name: "InvalidUserTokenManagerMintTokenAccount";
-          },
-          {
-            name: "InvalidStakeEntryOriginalMintTokenAccount";
-          },
-          {
-            name: "InvalidStakeEntryTokenManagerMintTokenAccount";
-          }
-        ];
-      };
+      code: 6002;
+      name: "InvalidUserOriginalMintTokenAccount";
+      msg: "Invalid user original mint token account";
+    },
+    {
+      code: 6003;
+      name: "InvalidUserMintTokenAccount";
+      msg: "Invalid user token manager mint account";
+    },
+    {
+      code: 6004;
+      name: "InvalidStakeEntryOriginalMintTokenAccount";
+      msg: "Invalid stake entry original mint token account";
+    },
+    {
+      code: 6005;
+      name: "InvalidStakeEntryMintTokenAccount";
+      msg: "Invalid stake entry token manager mint token account";
+    },
+    {
+      code: 6006;
+      name: "InvalidUnstakeUser";
+      msg: "Invalid unstake user only last staker can unstake";
     }
   ];
 };
 
 export const IDL: CardinalStakePool = {
-  version: "0.0.0",
+  version: "0.1.0",
   name: "cardinal_stake_pool",
   instructions: [
     {
@@ -382,11 +443,16 @@ export const IDL: CardinalStakePool = {
         },
         {
           name: "originalMint",
-          isMut: true,
+          isMut: false,
           isSigner: false,
         },
         {
           name: "mint",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "mintManager",
           isMut: true,
           isSigner: false,
         },
@@ -416,6 +482,16 @@ export const IDL: CardinalStakePool = {
           isSigner: false,
         },
         {
+          name: "tokenManagerProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "associatedToken",
+          isMut: false,
+          isSigner: false,
+        },
+        {
           name: "tokenMetadataProgram",
           isMut: false,
           isSigner: false,
@@ -440,11 +516,6 @@ export const IDL: CardinalStakePool = {
       accounts: [
         {
           name: "stakeEntry",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "tokenManager",
           isMut: true,
           isSigner: false,
         },
@@ -484,7 +555,17 @@ export const IDL: CardinalStakePool = {
           isSigner: false,
         },
         {
-          name: "tokenManagerTokenAccount",
+          name: "tokenManagerMintAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "tokenManager",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "mintCounter",
           isMut: true,
           isSigner: false,
         },
@@ -525,19 +606,57 @@ export const IDL: CardinalStakePool = {
           isSigner: false,
         },
         {
-          name: "systemProgram",
+          name: "tokenManager",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "mint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "stakeEntryOriginalMintTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "stakeEntryMintTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "user",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "userOriginalMintTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "userMintTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "tokenManagerMintAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "tokenManagerProgram",
           isMut: false,
           isSigner: false,
         },
       ],
-      args: [
-        {
-          name: "ix",
-          type: {
-            defined: "UnstakeIx",
-          },
-        },
-      ],
+      args: [],
     },
   ],
   accounts: [
@@ -549,6 +668,10 @@ export const IDL: CardinalStakePool = {
           {
             name: "bump",
             type: "u8",
+          },
+          {
+            name: "pool",
+            type: "publicKey",
           },
           {
             name: "tokenManager",
@@ -631,43 +754,42 @@ export const IDL: CardinalStakePool = {
         ],
       },
     },
+  ],
+  errors: [
     {
-      name: "UnstakeIx",
-      type: {
-        kind: "struct",
-        fields: [
-          {
-            name: "bump",
-            type: "u8",
-          },
-        ],
-      },
+      code: 6000,
+      name: "InvalidOriginalMint",
+      msg: "Original mint is invalid",
     },
     {
-      name: "ErrorCode",
-      type: {
-        kind: "enum",
-        variants: [
-          {
-            name: "InvalidOriginalMint",
-          },
-          {
-            name: "InvalidTokenManagerMint",
-          },
-          {
-            name: "InvalidUserOriginalMintTokenAccount",
-          },
-          {
-            name: "InvalidUserTokenManagerMintTokenAccount",
-          },
-          {
-            name: "InvalidStakeEntryOriginalMintTokenAccount",
-          },
-          {
-            name: "InvalidStakeEntryTokenManagerMintTokenAccount",
-          },
-        ],
-      },
+      code: 6001,
+      name: "InvalidTokenManagerMint",
+      msg: "Token Manager mint is invalid",
+    },
+    {
+      code: 6002,
+      name: "InvalidUserOriginalMintTokenAccount",
+      msg: "Invalid user original mint token account",
+    },
+    {
+      code: 6003,
+      name: "InvalidUserMintTokenAccount",
+      msg: "Invalid user token manager mint account",
+    },
+    {
+      code: 6004,
+      name: "InvalidStakeEntryOriginalMintTokenAccount",
+      msg: "Invalid stake entry original mint token account",
+    },
+    {
+      code: 6005,
+      name: "InvalidStakeEntryMintTokenAccount",
+      msg: "Invalid stake entry token manager mint token account",
+    },
+    {
+      code: 6006,
+      name: "InvalidUnstakeUser",
+      msg: "Invalid unstake user only last staker can unstake",
     },
   ],
 };

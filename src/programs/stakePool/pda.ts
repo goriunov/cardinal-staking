@@ -21,14 +21,25 @@ export const findStakePoolId = async (
 };
 
 /**
+ * Convenience method to find the stake entry id for pool identifier
+ * @returns
+ */
+export const findStakeEntryIdForPool = async (
+  stakePoolIdentifier: BN,
+  originalMintId: web3.PublicKey
+): Promise<[web3.PublicKey, number]> => {
+  const [stakePoolId] = await findStakePoolId(stakePoolIdentifier);
+  return findStakeEntryId(stakePoolId, originalMintId);
+};
+
+/**
  * Finds the stake entry id.
  * @returns
  */
 export const findStakeEntryId = async (
-  stakePoolIdentifier: BN,
+  stakePoolId: web3.PublicKey,
   originalMintId: web3.PublicKey
 ): Promise<[web3.PublicKey, number]> => {
-  let [stakePoolId] = await findStakePoolId(stakePoolIdentifier);
   return web3.PublicKey.findProgramAddress(
     [
       utils.bytes.utf8.encode(STAKE_ENTRY_SEED),

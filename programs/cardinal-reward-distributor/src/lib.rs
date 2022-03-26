@@ -7,14 +7,14 @@ use {anchor_lang::prelude::*, instructions::*};
 declare_id!("rwdNPNPS6zNvtF6FMvaxPRjzu2eC51mXaDT9rmWsojp");
 
 #[program]
-pub mod cardinal_stake_pool {
+pub mod cardinal_reward_distributor {
     use super::*;
 
     pub fn init_reward_distributor(ctx: Context<InitRewardDistributorCtx>, ix: InitRewardDistributorIx) -> Result<()> {
         init_reward_distributor::handler(ctx, ix)
     }
 
-    pub fn claim_rewards(ctx: Context<ClaimRewardsCtx>) -> Result<()> {
-        claim_rewards::handler(ctx)
+    pub fn claim_rewards(ctx: Context<ClaimRewardsCtx>, mint: Pubkey) -> Result<()> {
+        claim_rewards::handler(ctx, mint)
     }
 }

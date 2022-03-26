@@ -1,5 +1,5 @@
 [package]
-name = "cardinal-stake-reward-distributor"
+name = "cardinal-reward-distributor"
 version = "0.1.0"
 description = "Cardinal reward distributor"
 edition = "2021"
@@ -11,7 +11,7 @@ keywords = ["solana", "cardinal", "stake", "pool"]
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "cardinal_stake_pool"
+name = "cardinal_reward_distributor"
 
 [features]
 no-entrypoint = []
@@ -24,9 +24,7 @@ anchor-lang = { version = "0.22.0", features = ["init-if-needed"] }
 anchor-spl = "0.22.0"
 solana-program = "1.8.1"
 spl-token = { version = "3.1.1", features = ["no-entrypoint"] }
-metaplex-token-metadata = { version = "0.0.1", features = [ "no-entrypoint" ] }
 cardinal-stake-pool = { version = "^0.1.0", path = "../cardinal-stake-pool", features = ["cpi"] }
-cardinal-token-manager = { version = "^0.2.21", features = ["cpi"] }
 
 [dev-dependencies]
 proptest = { version = "1.0" }

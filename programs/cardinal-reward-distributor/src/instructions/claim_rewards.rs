@@ -26,11 +26,11 @@ pub struct ClaimRewardsCtx<'info> {
     stake_pool: Box<Account<'info, StakePool>>,
 
     #[account(mut, constraint =
-        token_account.amount == 1
-        && token_account.mint == mint
-        && token_account.owner == user.key()
+        mint_token_account.amount == 1
+        && mint_token_account.mint == mint
+        && mint_token_account.owner == user.key()
         @ ErrorCode::InvalidTokenAccount)]
-    token_account: Box<Account<'info, TokenAccount>>,
+    mint_token_account: Box<Account<'info, TokenAccount>>,
 
     #[account(mut, constraint = reward_mint.key() == reward_distributor.reward_mint @ ErrorCode::InvalidRewardMint)]
     reward_mint: Box<Account<'info, Mint>>,
@@ -44,7 +44,7 @@ pub struct ClaimRewardsCtx<'info> {
     system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<ClaimRewardsCtx>) -> Result<()> {
+pub fn handler(ctx: Context<ClaimRewardsCtx>, _mint: Pubkey) -> Result<()> {
     let reward_entry = &mut ctx.accounts.reward_entry;
     reward_entry.bump = *ctx.bumps.get("reward_entry").unwrap();
     let rewards_distributed = reward_entry.rewards_distributed;

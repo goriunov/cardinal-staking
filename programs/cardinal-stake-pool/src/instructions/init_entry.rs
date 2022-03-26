@@ -9,6 +9,7 @@ use {
         token::{self, Mint, Token},
     },
     cardinal_token_manager::{self, program::CardinalTokenManager},
+    mpl_token_metadata::{self, instruction::create_metadata_accounts_v2},
     solana_program::{program_pack::Pack, system_instruction::create_account},
 };
 
@@ -18,8 +19,6 @@ pub struct InitEntryIx {
     symbol: String,
     text_overlay: String,
 }
-
-use metaplex_token_metadata::instruction::create_metadata_accounts;
 
 #[derive(Accounts)]
 #[instruction(ix: InitEntryIx)]
@@ -38,11 +37,14 @@ pub struct InitEntryCtx<'info> {
     original_mint: Box<Account<'info, Mint>>,
     #[account(mut)]
     mint: Signer<'info>,
-    #[account(mut)]
-    mint_manager: AccountInfo<'info>,
 
+    /// CHECK: This is not dangerous because we don't read or write from this account
+    #[account(mut)]
+    mint_manager: UncheckedAccount<'info>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
     mint_token_account: UncheckedAccount<'info>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
     mint_metadata: UncheckedAccount<'info>,
 
@@ -52,6 +54,8 @@ pub struct InitEntryCtx<'info> {
     token_program: Program<'info, Token>,
     token_manager_program: Program<'info, CardinalTokenManager>,
     associated_token: Program<'info, AssociatedToken>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
+    #[account(address = mpl_token_metadata::id())]
     token_metadata_program: UncheckedAccount<'info>,
     system_program: Program<'info, System>,
 }
@@ -104,7 +108,7 @@ pub fn handler(ctx: Context<InitEntryCtx>, ix: InitEntryIx) -> Result<()> {
 
     // create metadata
     invoke_signed(
-        &create_metadata_accounts(
+        &create_metadata_accounts_v2(
             *ctx.accounts.token_metadata_program.key,
             *ctx.accounts.mint_metadata.key,
             *ctx.accounts.mint.key,
@@ -119,6 +123,8 @@ pub fn handler(ctx: Context<InitEntryCtx>, ix: InitEntryIx) -> Result<()> {
             1,
             true,
             true,
+            None,
+            None,
         ),
         &[
             ctx.accounts.mint_metadata.to_account_info(),
@@ -142,7 +148,7 @@ pub fn handler(ctx: Context<InitEntryCtx>, ix: InitEntryIx) -> Result<()> {
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(stake_entry_signer);
     token::mint_to(cpi_context, 1)?;
 
-    // init certificate  manager
+    // init mint  manager
     let certificate_program = ctx.accounts.token_manager_program.to_account_info();
     let cpi_accounts = cardinal_token_manager::cpi::accounts::CreateMintManagerCtx {
         mint_manager: ctx.accounts.mint_manager.to_account_info(),

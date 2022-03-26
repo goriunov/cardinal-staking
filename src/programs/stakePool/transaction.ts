@@ -1,21 +1,21 @@
-import { BN } from "@project-serum/anchor";
-import type { Wallet } from "@saberhq/solana-contrib";
-import * as web3 from "@solana/web3.js";
-import * as metaplex from "@metaplex-foundation/mpl-token-metadata";
-
-import { initStakeEntry, initStakePool, stake, unstake } from "./instruction";
-import { findStakeEntryId, findStakePoolId } from "./pda";
 import {
   findAta,
   withFindOrInitAssociatedTokenAccount,
 } from "@cardinal/common";
+import { withInvalidate } from "@cardinal/token-manager";
+import { TokenManagerKind } from "@cardinal/token-manager/dist/cjs/programs/tokenManager";
 import {
   findMintCounterId,
   findMintManagerId,
   findTokenManagerAddress,
 } from "@cardinal/token-manager/dist/cjs/programs/tokenManager/pda";
-import { TokenManagerKind } from "@cardinal/token-manager/dist/cjs/programs/tokenManager";
-import { withInvalidate } from "@cardinal/token-manager";
+import * as metaplex from "@metaplex-foundation/mpl-token-metadata";
+import type { BN } from "@project-serum/anchor";
+import type { Wallet } from "@saberhq/solana-contrib";
+import * as web3 from "@solana/web3.js";
+
+import { initStakeEntry, initStakePool, stake, unstake } from "./instruction";
+import { findStakeEntryIdForPool, findStakePoolId } from "./pda";
 
 export const withCreatePool = async (
   transaction: web3.Transaction,
@@ -43,14 +43,14 @@ export const withCreateEntry = async (
     mint: web3.Keypair;
     stakePoolIdentifier: BN;
     originalMint: web3.PublicKey;
-    name: String;
-    symbol: String;
+    name: string;
+    symbol: string;
     textOverlay: string;
   }
 ): Promise<[web3.Transaction, web3.PublicKey, web3.Keypair]> => {
   const [[stakePoolId], [stakeEntryId], [mintManager]] = await Promise.all([
     findStakePoolId(params.stakePoolIdentifier),
-    findStakeEntryId(params.stakePoolIdentifier, params.originalMint),
+    findStakeEntryIdForPool(params.stakePoolIdentifier, params.originalMint),
     findMintManagerId(params.mint.publicKey),
   ]);
 
@@ -99,7 +99,7 @@ export const withStake = async (
 ): Promise<[web3.Transaction, web3.PublicKey]> => {
   const [[stakeEntryId], [tokenManagerId], [mintCounterId]] = await Promise.all(
     [
-      findStakeEntryId(params.stakePoolIdentifier, params.originalMint),
+      findStakeEntryIdForPool(params.stakePoolIdentifier, params.originalMint),
       findTokenManagerAddress(params.mint),
       findMintCounterId(params.mint),
     ]
@@ -183,7 +183,7 @@ export const withUnstake = async (
   }
 ): Promise<[web3.Transaction, web3.PublicKey]> => {
   const [[stakeEntryId], [tokenManagerId]] = await Promise.all([
-    findStakeEntryId(params.stakePoolIdentifier, params.originalMint),
+    findStakeEntryIdForPool(params.stakePoolIdentifier, params.originalMint),
     findTokenManagerAddress(params.mint),
   ]);
 
@@ -235,7 +235,7 @@ export const withUnstake = async (
   await withInvalidate(transaction, connection, wallet, params.mint);
 
   transaction.add(
-    await unstake(connection, wallet, {
+    unstake(connection, wallet, {
       stakeEntryId: stakeEntryId,
       tokenManagerId: tokenManagerId,
       mint: params.mint,

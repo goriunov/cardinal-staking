@@ -1,17 +1,15 @@
 use {
     crate::{errors::ErrorCode, state::*},
     anchor_lang::prelude::*,
-};
-
-use anchor_spl::{
-    associated_token::AssociatedToken,
-    token::{self, Mint, Token, TokenAccount},
-};
-
-use cardinal_token_manager::{
-    self,
-    program::CardinalTokenManager,
-    state::{InvalidationType, TokenManager, TokenManagerKind, TokenManagerState},
+    anchor_spl::{
+        associated_token::AssociatedToken,
+        token::{self, Mint, Token, TokenAccount},
+    },
+    cardinal_token_manager::{
+        self,
+        program::CardinalTokenManager,
+        state::{InvalidationType, TokenManager, TokenManagerKind, TokenManagerState},
+    },
 };
 
 #[derive(Accounts)]
@@ -23,10 +21,6 @@ pub struct StakeCtx<'info> {
     original_mint: Box<Account<'info, Mint>>,
     #[account(mut, constraint = mint.key() == stake_entry.mint @ ErrorCode::InvalidTokenManagerMint)]
     mint: Box<Account<'info, Mint>>,
-    #[account(mut)]
-    token_manager: UncheckedAccount<'info>,
-    #[account(mut)]
-    mint_counter: UncheckedAccount<'info>,
 
     // stake_entry token accounts
     #[account(mut, constraint =
@@ -60,6 +54,13 @@ pub struct StakeCtx<'info> {
 
     #[account(mut)]
     token_manager_mint_account: Box<Account<'info, TokenAccount>>,
+
+    /// CHECK: This is not dangerous because we don't read or write from this account
+    #[account(mut)]
+    token_manager: UncheckedAccount<'info>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
+    #[account(mut)]
+    mint_counter: UncheckedAccount<'info>,
 
     // programs
     token_program: Program<'info, Token>,

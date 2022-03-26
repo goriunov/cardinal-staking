@@ -30,7 +30,7 @@ pub struct InitRewardDistributorCtx<'info> {
     freeze_authority: Signer<'info>,
     #[account(mut)]
     payer: Signer<'info>,
-    pub token_program: Program<'info, Token>,
+    token_program: Program<'info, Token>,
     system_program: Program<'info, System>,
 }
 

@@ -1,14 +1,14 @@
 import { Program, Provider } from "@project-serum/anchor";
-import type * as web3 from "@solana/web3.js";
+import type { Connection, PublicKey } from "@solana/web3.js";
 
 import type { AccountData } from "../../utils";
 import type { STAKE_POOL_PROGRAM, StakePoolData } from ".";
 import { STAKE_POOL_ADDRESS, STAKE_POOL_IDL } from ".";
-import { StakeEntryData } from "./constants";
+import type { StakeEntryData } from "./constants";
 
 export const getStakePool = async (
-  connection: web3.Connection,
-  stakePoolId: web3.PublicKey
+  connection: Connection,
+  stakePoolId: PublicKey
 ): Promise<AccountData<StakePoolData>> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -26,9 +26,31 @@ export const getStakePool = async (
   };
 };
 
+export const getStakePools = async (
+  connection: Connection,
+  stakePoolIds: PublicKey[]
+): Promise<AccountData<StakePoolData>[]> => {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  const provider = new Provider(connection, null, {});
+  const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
+    STAKE_POOL_IDL,
+    STAKE_POOL_ADDRESS,
+    provider
+  );
+
+  const stakePools = (await stakePoolProgram.account.stakePool.fetchMultiple(
+    stakePoolIds
+  )) as StakePoolData[];
+  return stakePools.map((tm, i) => ({
+    parsed: tm,
+    pubkey: stakePoolIds[i]!,
+  }));
+};
+
 export const getStakeEntry = async (
-  connection: web3.Connection,
-  stakeEntryId: web3.PublicKey
+  connection: Connection,
+  stakeEntryId: PublicKey
 ): Promise<AccountData<StakeEntryData>> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -44,4 +66,26 @@ export const getStakeEntry = async (
     parsed,
     pubkey: stakeEntryId,
   };
+};
+
+export const getStakeEntries = async (
+  connection: Connection,
+  stakeEntryIds: PublicKey[]
+): Promise<AccountData<StakeEntryData>[]> => {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  const provider = new Provider(connection, null, {});
+  const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
+    STAKE_POOL_IDL,
+    STAKE_POOL_ADDRESS,
+    provider
+  );
+
+  const stakeEntries = (await stakePoolProgram.account.stakeEntry.fetchMultiple(
+    stakeEntryIds
+  )) as StakePoolData[];
+  return stakeEntries.map((tm, i) => ({
+    parsed: tm,
+    pubkey: stakeEntryIds[i]!,
+  }));
 };
