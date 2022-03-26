@@ -20,6 +20,31 @@ env:
   RUST_TOOLCHAIN: nightly-2021-12-10
 
 jobs:
+  rust-clippy:
+    strategy:
+      matrix:
+        rust: ["1.59"]
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Use Rust ${{ matrix.rust }}
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          components: clippy
+
+      - name: Run Clippy
+        uses: actions-rs/clippy-check@v1
+        with:
+          name: Run Clippy
+          token: ${{ secrets.GITHUB_TOKEN }}
+          toolchain: ${{ matrix.rust }}
+          use-cross: false
+          args: --all-features --no-deps --manifest-path ./program/Cargo.toml -- --deny=warnings
   test:
     runs-on: ubuntu-latest
     name: Publish test results
