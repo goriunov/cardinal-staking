@@ -2,7 +2,7 @@
 
 TEST_KEY := $(shell solana-keygen pubkey ./tests/test-key.json)
 
-all: install start build test stop
+all: install start test-keys build deploy test clean-test-keys stop
 
 install:
 	yarn install
@@ -13,12 +13,23 @@ start:
 	solana-keygen pubkey ./tests/test-key.json
 	solana airdrop 1000 $(TEST_KEY) --url http://localhost:8899
 
+test-keys:
+	cp -r tests/test-keypairs/* target/deploy
+	LC_ALL=C find programs src -type f -exec sed -i '' -e "s/stkBL96RZkjY5ine4TvPihGqW8UHJfch2cokjAPzV8i/$$(solana-keygen pubkey tests/test-keypairs/cardinal_stake_pool-keypair.json)/g" {} +
+	LC_ALL=C find programs src -type f -exec sed -i '' -e "s/rwdNPNPS6zNvtF6FMvaxPRjzu2eC51mXaDT9rmWsojp/$$(solana-keygen pubkey tests/test-keypairs/cardinal_reward_distributor-keypair.json)/g" {} +
+
 build:
 	anchor build
+
+deploy:
 	anchor deploy --provider.cluster localnet
 
 test:
 	anchor test --skip-local-validator --skip-build --skip-deploy --provider.cluster localnet
+
+clean-test-keys:
+	LC_ALL=C find programs src -type f -exec sed -i '' -e "s/$$(solana-keygen pubkey tests/test-keypairs/cardinal_stake_pool-keypair.json)/stkBL96RZkjY5ine4TvPihGqW8UHJfch2cokjAPzV8i/g" {} +
+	LC_ALL=C find programs src -type f -exec sed -i '' -e "s/$$(solana-keygen pubkey tests/test-keypairs/cardinal_reward_distributor-keypair.json)/rwdNPNPS6zNvtF6FMvaxPRjzu2eC51mXaDT9rmWsojp/g" {} +
 
 stop: validator.PID
 	kill `cat $<` && rm $<
