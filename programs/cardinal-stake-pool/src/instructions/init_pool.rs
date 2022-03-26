@@ -1,7 +1,4 @@
-use {
-    crate::{state::*},
-    anchor_lang::{prelude::*,
-}};
+use {crate::state::*, anchor_lang::prelude::*};
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct InitPoolIx {
@@ -10,7 +7,7 @@ pub struct InitPoolIx {
 
 #[derive(Accounts)]
 #[instruction(ix: InitPoolIx)]
-pub struct InitPoolCtx<'info>{
+pub struct InitPoolCtx<'info> {
     #[account(
         init,
         payer = payer,

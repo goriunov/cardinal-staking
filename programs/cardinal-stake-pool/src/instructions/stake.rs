@@ -1,17 +1,17 @@
 use {
-    crate::{state::*, errors::ErrorCode},
-    anchor_lang::{prelude::*},
+    crate::{errors::ErrorCode, state::*},
+    anchor_lang::prelude::*,
 };
 
 use anchor_spl::{
+    associated_token::AssociatedToken,
     token::{self, Mint, Token, TokenAccount},
-    associated_token::{AssociatedToken}
 };
 
 use cardinal_token_manager::{
     self,
     program::CardinalTokenManager,
-    state::{TokenManager, TokenManagerKind, InvalidationType, TokenManagerState},
+    state::{InvalidationType, TokenManager, TokenManagerKind, TokenManagerState},
 };
 
 #[derive(Accounts)]
@@ -96,9 +96,9 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     };
     let cpi_ctx = CpiContext::new(ctx.accounts.token_manager_program.to_account_info(), cpi_accounts).with_signer(stake_entry_signer);
     cardinal_token_manager::cpi::init(cpi_ctx, ctx.accounts.mint.key(), 1)?;
-    let token_manager = &mut(Account::<TokenManager>::try_from(&ctx.accounts.token_manager)?);
+    let token_manager = &mut (Account::<TokenManager>::try_from(&ctx.accounts.token_manager)?);
 
-    let cpi_accounts = cardinal_token_manager::cpi::accounts::AddInvalidatorCtx{
+    let cpi_accounts = cardinal_token_manager::cpi::accounts::AddInvalidatorCtx {
         token_manager: token_manager.to_account_info(),
         issuer: stake_entry.to_account_info(),
     };
@@ -115,16 +115,15 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         token_program: ctx.accounts.token_program.to_account_info(),
         system_program: ctx.accounts.system_program.to_account_info(),
     };
-    let issue_ix = cardinal_token_manager::instructions::IssueIx{
+    let issue_ix = cardinal_token_manager::instructions::IssueIx {
         amount: 1,
         kind: TokenManagerKind::Managed as u8,
-        invalidation_type: InvalidationType::Return as u8
+        invalidation_type: InvalidationType::Return as u8,
     };
     let cpi_ctx = CpiContext::new(ctx.accounts.token_manager_program.to_account_info(), cpi_accounts).with_signer(stake_entry_signer);
     cardinal_token_manager::cpi::issue(cpi_ctx, issue_ix)?;
     token_manager.state = TokenManagerState::Issued as u8;
     token_manager.state_changed_at = Clock::get().unwrap().unix_timestamp;
-
 
     // token manager claim
     let cpi_accounts = cardinal_token_manager::cpi::accounts::ClaimCtx {
@@ -144,5 +143,5 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     stake_entry.last_staked_at = Clock::get().unwrap().unix_timestamp;
     stake_entry.last_staker = ctx.accounts.user.key();
 
-    return Ok(())
+    return Ok(());
 }

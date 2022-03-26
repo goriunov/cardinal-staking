@@ -1,18 +1,15 @@
 use {
-    crate::{state::*},
-    solana_program::{system_instruction::create_account, program_pack::Pack},
-    anchor_lang::{prelude::*, solana_program::{program::{invoke, invoke_signed}}},
-};
-
-use anchor_spl::{
-    token::{self, Mint, Token},
-    associated_token::{self, AssociatedToken}
-};
-
-use cardinal_token_manager::{
-    self,
-    program::CardinalTokenManager,
-
+    crate::state::*,
+    anchor_lang::{
+        prelude::*,
+        solana_program::program::{invoke, invoke_signed},
+    },
+    anchor_spl::{
+        associated_token::{self, AssociatedToken},
+        token::{self, Mint, Token},
+    },
+    cardinal_token_manager::{self, program::CardinalTokenManager},
+    solana_program::{program_pack::Pack, system_instruction::create_account},
 };
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
@@ -22,7 +19,7 @@ pub struct InitEntryIx {
     text_overlay: String,
 }
 
-use metaplex_token_metadata::{instruction::{create_metadata_accounts}};
+use metaplex_token_metadata::instruction::create_metadata_accounts;
 
 #[derive(Accounts)]
 #[instruction(ix: InitEntryIx)]
@@ -43,7 +40,7 @@ pub struct InitEntryCtx<'info> {
     mint: Signer<'info>,
     #[account(mut)]
     mint_manager: AccountInfo<'info>,
-    
+
     #[account(mut)]
     mint_token_account: UncheckedAccount<'info>,
     #[account(mut)]
@@ -79,10 +76,7 @@ pub fn handler(ctx: Context<InitEntryCtx>, ix: InitEntryIx) -> Result<()> {
             spl_token::state::Mint::LEN as u64,
             &spl_token::id(),
         ),
-        &[
-            ctx.accounts.payer.to_account_info(), 
-            ctx.accounts.mint.to_account_info(),
-        ],
+        &[ctx.accounts.payer.to_account_info(), ctx.accounts.mint.to_account_info()],
     )?;
 
     // Initialize mint
@@ -127,7 +121,7 @@ pub fn handler(ctx: Context<InitEntryCtx>, ix: InitEntryIx) -> Result<()> {
             true,
         ),
         &[
-            ctx.accounts.mint_metadata.to_account_info(), 
+            ctx.accounts.mint_metadata.to_account_info(),
             ctx.accounts.mint.to_account_info(),
             stake_entry.to_account_info(),
             ctx.accounts.payer.to_account_info(),
@@ -137,7 +131,7 @@ pub fn handler(ctx: Context<InitEntryCtx>, ix: InitEntryIx) -> Result<()> {
         ],
         stake_entry_signer,
     )?;
-    
+
     // mint single token to token manager mint token account
     let cpi_accounts = token::MintTo {
         mint: ctx.accounts.mint.to_account_info(),
@@ -151,7 +145,7 @@ pub fn handler(ctx: Context<InitEntryCtx>, ix: InitEntryIx) -> Result<()> {
     // init token  manager
     let token_manager_program = ctx.accounts.token_manager_program.to_account_info();
     let cpi_accounts = cardinal_token_manager::cpi::accounts::CreateMintManagerCtx {
-        mint_manager: ctx.accounts.mint_manager.to_account_info(), 
+        mint_manager: ctx.accounts.mint_manager.to_account_info(),
         mint: ctx.accounts.mint.to_account_info(),
         freeze_authority: stake_entry.to_account_info(),
         payer: ctx.accounts.payer.to_account_info(),
@@ -161,5 +155,5 @@ pub fn handler(ctx: Context<InitEntryCtx>, ix: InitEntryIx) -> Result<()> {
     let cpi_ctx = CpiContext::new(token_manager_program, cpi_accounts).with_signer(stake_entry_signer);
     cardinal_token_manager::cpi::create_mint_manager(cpi_ctx)?;
 
-    return Ok(())
+    return Ok(());
 }
