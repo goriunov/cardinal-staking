@@ -1,6 +1,7 @@
 import {
   CreateMasterEditionV3,
   CreateMetadataV2,
+  Creator,
   DataV2,
   MasterEdition,
   Metadata,
@@ -58,7 +59,13 @@ export const createMasterEditionIxs = async (
         symbol: "TST",
         uri: "http://test/",
         sellerFeeBasisPoints: 10,
-        creators: null,
+        creators: [
+          new Creator({
+            address: tokenCreatorId.toBase58(),
+            verified: true,
+            share: 100,
+          }),
+        ],
         collection: null,
         uses: null,
       }),

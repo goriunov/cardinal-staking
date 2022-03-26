@@ -1,3 +1,5 @@
+use solana_program::log::sol_log_compute_units;
+
 use {
     crate::{errors::ErrorCode, state::*},
     anchor_lang::prelude::*,

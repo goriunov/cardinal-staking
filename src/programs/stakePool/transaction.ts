@@ -116,7 +116,7 @@ export const withStake = async (
     findMintCounterId(params.receiptMint),
   ]);
 
-  const userOriginalMintTokenAccount =
+  const userOriginalMintTokenAccountId =
     await withFindOrInitAssociatedTokenAccount(
       transaction,
       connection,
@@ -125,15 +125,16 @@ export const withStake = async (
       wallet.publicKey
     );
 
-  const userMintTokenAccount = await withFindOrInitAssociatedTokenAccount(
-    transaction,
-    connection,
-    params.receiptMint,
-    wallet.publicKey,
-    wallet.publicKey
-  );
+  const userReceiptMintTokenAccountId =
+    await withFindOrInitAssociatedTokenAccount(
+      transaction,
+      connection,
+      params.receiptMint,
+      wallet.publicKey,
+      wallet.publicKey
+    );
 
-  const stakeEntryOriginalMintTokenAccount =
+  const stakeEntryOriginalMintTokenAccountId =
     await withFindOrInitAssociatedTokenAccount(
       transaction,
       connection,
@@ -143,23 +144,25 @@ export const withStake = async (
       true
     );
 
-  const stakeEntryMintTokenAccount = await withFindOrInitAssociatedTokenAccount(
-    transaction,
-    connection,
-    params.receiptMint,
-    stakeEntryId,
-    wallet.publicKey,
-    true
-  );
+  const stakeEntryMintTokenAccountId =
+    await withFindOrInitAssociatedTokenAccount(
+      transaction,
+      connection,
+      params.receiptMint,
+      stakeEntryId,
+      wallet.publicKey,
+      true
+    );
 
-  const tokenManagerMintAccount = await withFindOrInitAssociatedTokenAccount(
-    transaction,
-    connection,
-    params.receiptMint,
-    tokenManagerId,
-    wallet.publicKey,
-    true
-  );
+  const tokenManagerReceiptMintAccountId =
+    await withFindOrInitAssociatedTokenAccount(
+      transaction,
+      connection,
+      params.receiptMint,
+      tokenManagerId,
+      wallet.publicKey,
+      true
+    );
 
   transaction.add(
     await stake(connection, wallet, {
@@ -170,12 +173,13 @@ export const withStake = async (
       tokenManagerId: tokenManagerId,
       mintCounterId: mintCounterId,
       receiptMintId: params.receiptMint,
-      stakeEntryOriginalMintTokenAccountId: stakeEntryOriginalMintTokenAccount,
-      stakeEntryReceiptMintTokenAccountId: stakeEntryMintTokenAccount,
+      stakeEntryOriginalMintTokenAccountId:
+        stakeEntryOriginalMintTokenAccountId,
+      stakeEntryReceiptMintTokenAccountId: stakeEntryMintTokenAccountId,
       user: wallet.publicKey,
-      userOriginalMintTokenAccountId: userOriginalMintTokenAccount,
-      userReceiptMintTokenAccountId: userMintTokenAccount,
-      tokenManagerMintAccountId: tokenManagerMintAccount,
+      userOriginalMintTokenAccountId: userOriginalMintTokenAccountId,
+      userReceiptMintTokenAccountId: userReceiptMintTokenAccountId,
+      tokenManagerMintAccountId: tokenManagerReceiptMintAccountId,
       tokenManagerKind: TokenManagerKind.Managed,
     })
   );
