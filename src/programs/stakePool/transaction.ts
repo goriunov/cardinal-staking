@@ -15,7 +15,11 @@ import type { Wallet } from "@saberhq/solana-contrib";
 import * as web3 from "@solana/web3.js";
 
 import { initStakeEntry, initStakePool, stake, unstake } from "./instruction";
-import { findStakeEntryIdForPool, findStakePoolId } from "./pda";
+import {
+  findStakeEntryId,
+  findStakeEntryIdForPool,
+  findStakePoolId,
+} from "./pda";
 
 export const withCreatePool = async (
   transaction: web3.Transaction,
@@ -96,9 +100,10 @@ export const withStake = async (
     receiptMint: web3.PublicKey;
   }
 ): Promise<[web3.Transaction, web3.PublicKey]> => {
+  const [stakePoolId] = await findStakePoolId(params.stakePoolIdentifier);
   const [[stakeEntryId], [tokenManagerId], [mintCounterId]] = await Promise.all(
     [
-      findStakeEntryIdForPool(params.stakePoolIdentifier, params.originalMint),
+      findStakeEntryId(stakePoolId, params.originalMint),
       findTokenManagerAddress(params.receiptMint),
       findMintCounterId(params.receiptMint),
     ]
@@ -152,7 +157,7 @@ export const withStake = async (
   transaction.add(
     await stake(connection, wallet, {
       stakeEntryId: stakeEntryId,
-      stakePoolIdentifier: params.stakePoolIdentifier,
+      stakePoolId: stakePoolId,
       originalMintId: params.originalMint,
       tokenManagerId: tokenManagerId,
       mintCounterId: mintCounterId,

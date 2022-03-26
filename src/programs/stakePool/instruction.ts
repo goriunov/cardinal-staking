@@ -104,7 +104,8 @@ export const stake = async (
     stakeEntryId: PublicKey;
     tokenManagerId: PublicKey;
     mintCounterId: PublicKey;
-    stakePoolIdentifier: BN;
+    // todo enforce pool
+    stakePoolId: PublicKey;
     originalMintId: PublicKey;
     receiptMintId: PublicKey;
     stakeEntryOriginalMintTokenAccountId: PublicKey;
