@@ -1,8 +1,12 @@
+use solana_program::stake;
+
 use {crate::state::*, anchor_lang::prelude::*};
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct InitPoolIx {
     identifier: u64,
+    allowed_collections: Vec<Pubkey>,
+    allowed_creators: Vec<Pubkey>,
     overlay_text: String,
     image_uri: String,
 }
@@ -28,6 +32,8 @@ pub fn handler(ctx: Context<InitPoolCtx>, ix: InitPoolIx) -> Result<()> {
     let stake_pool = &mut ctx.accounts.stake_pool;
     stake_pool.bump = *ctx.bumps.get("stake_pool").unwrap();
     stake_pool.identifier = ix.identifier;
+    stake_pool.allowed_collections = ix.allowed_collections;
+    stake_pool.allowed_creators = ix.allowed_creators;
     stake_pool.overlay_text = ix.overlay_text;
     stake_pool.image_uri = ix.image_uri;
 

@@ -27,6 +27,8 @@ export const initStakePool = (
   params: {
     identifier: BN;
     stakePoolId: PublicKey;
+    allowedCreators: PublicKey[];
+    allowedCollections: PublicKey[];
     overlayText: string;
     imageUri: string;
   }
@@ -42,6 +44,8 @@ export const initStakePool = (
       identifier: params.identifier,
       overlayText: params.overlayText,
       imageUri: params.imageUri,
+      allowedCreators: params.allowedCreators,
+      allowedCollections: params.allowedCollections,
     },
     {
       accounts: {

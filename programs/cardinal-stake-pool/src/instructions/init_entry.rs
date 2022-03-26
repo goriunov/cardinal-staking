@@ -163,7 +163,7 @@ pub fn handler(ctx: Context<InitEntryCtx>, ix: InitEntryIx) -> Result<()> {
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(stake_pool_signer);
     token::mint_to(cpi_context, 1)?;
 
-    // init token  manager
+    // init mint manager
     let token_manager_program = ctx.accounts.token_manager_program.to_account_info();
     let cpi_accounts = cardinal_token_manager::cpi::accounts::CreateMintManagerCtx {
         mint_manager: ctx.accounts.mint_manager.to_account_info(),

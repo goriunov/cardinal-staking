@@ -20,6 +20,7 @@ test-keys:
 
 build:
 	anchor build
+	yarn idl:generate
 
 deploy:
 	anchor deploy --provider.cluster localnet

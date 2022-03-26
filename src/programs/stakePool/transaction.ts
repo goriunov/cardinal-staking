@@ -27,6 +27,8 @@ export const withCreatePool = async (
   wallet: Wallet,
   params: {
     identifier: BN;
+    allowedCollections?: web3.PublicKey[];
+    allowedCreators?: web3.PublicKey[];
     overlayText?: string;
     imageUri?: string;
   }
@@ -36,6 +38,8 @@ export const withCreatePool = async (
     initStakePool(connection, wallet, {
       identifier: params.identifier,
       stakePoolId: stakePoolId,
+      allowedCollections: params.allowedCollections || [],
+      allowedCreators: params.allowedCreators || [],
       overlayText: params.overlayText || "",
       imageUri: params.imageUri || "",
     })
