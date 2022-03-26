@@ -64,8 +64,9 @@ export const initStakeEntry = (
     stakePoolId: PublicKey;
     stakeEntryId: PublicKey;
     originalMintId: PublicKey;
+    originalMintMetadatId: PublicKey;
     stakeEntryReceiptMintTokenAccountId: PublicKey;
-    receiptMintMetadata: PublicKey;
+    receiptMintMetadataId: PublicKey;
     receiptMintId: PublicKey;
     mintManager: PublicKey;
     name: string;
@@ -89,11 +90,12 @@ export const initStakeEntry = (
         stakeEntry: params.stakeEntryId,
         stakePool: params.stakePoolId,
         originalMint: params.originalMintId,
+        originalMintMetadata: params.originalMintMetadatId,
         receiptMint: params.receiptMintId,
         mintManager: params.mintManager,
         stakeEntryReceiptMintTokenAccount:
           params.stakeEntryReceiptMintTokenAccountId,
-        receiptMintMetadata: params.receiptMintMetadata,
+        receiptMintMetadata: params.receiptMintMetadataId,
         payer: wallet.publicKey,
         rent: SYSVAR_RENT_PUBKEY,
         tokenProgram: TOKEN_PROGRAM_ID,
@@ -113,9 +115,9 @@ export const stake = async (
     stakeEntryId: PublicKey;
     tokenManagerId: PublicKey;
     mintCounterId: PublicKey;
-    // todo enforce pool
     stakePoolId: PublicKey;
     originalMintId: PublicKey;
+    originalMintMetadataId: PublicKey;
     receiptMintId: PublicKey;
     stakeEntryOriginalMintTokenAccountId: PublicKey;
     stakeEntryReceiptMintTokenAccountId: PublicKey;
@@ -141,7 +143,9 @@ export const stake = async (
   return stakePoolProgram.instruction.stake({
     accounts: {
       stakeEntry: params.stakeEntryId,
+      stakePool: params.stakePoolId,
       originalMint: params.originalMintId,
+      originalMintMetadata: params.originalMintMetadataId,
       receiptMint: params.receiptMintId,
       tokenManager: params.tokenManagerId,
       mintCounter: params.mintCounterId,

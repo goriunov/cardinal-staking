@@ -16,4 +16,10 @@ pub enum ErrorCode {
     InvalidStakeEntryMintTokenAccount,
     #[msg("Invalid unstake user only last staker can unstake")]
     InvalidUnstakeUser,
+    #[msg("Invalid stake pool")]
+    InvalidStakePool,
+    #[msg("No mint metadat")]
+    NoMintMetadata,
+    #[msg("Mint not allowed in this pool")]
+    MintNotAllowedInPool,
 }

@@ -1,5 +1,17 @@
+import {
+  CreateMasterEditionV3,
+  CreateMetadataV2,
+  DataV2,
+  MasterEdition,
+  Metadata,
+} from "@metaplex-foundation/mpl-token-metadata";
+import { BN } from "@project-serum/anchor";
 import * as splToken from "@solana/spl-token";
 import * as web3 from "@solana/web3.js";
+
+export function getRandomInt(max: number) {
+  return Math.floor(Math.random() * max);
+}
 
 /**
  * Pay and create mint and token account
@@ -30,4 +42,43 @@ export const createMint = async (
   const tokenAccount = await mint.createAssociatedTokenAccount(recipient);
   await mint.mintTo(tokenAccount, creator.publicKey, [], amount);
   return [tokenAccount, mint];
+};
+
+export const createMasterEditionIxs = async (
+  mintId: web3.PublicKey,
+  tokenCreatorId: web3.PublicKey
+) => {
+  const metadataId = await Metadata.getPDA(mintId);
+  const metadataTx = new CreateMetadataV2(
+    { feePayer: tokenCreatorId },
+    {
+      metadata: metadataId,
+      metadataData: new DataV2({
+        name: "test",
+        symbol: "TST",
+        uri: "http://test/",
+        sellerFeeBasisPoints: 10,
+        creators: null,
+        collection: null,
+        uses: null,
+      }),
+      updateAuthority: tokenCreatorId,
+      mint: mintId,
+      mintAuthority: tokenCreatorId,
+    }
+  );
+
+  const masterEditionId = await MasterEdition.getPDA(mintId);
+  const masterEditionTx = new CreateMasterEditionV3(
+    { feePayer: tokenCreatorId },
+    {
+      edition: masterEditionId,
+      metadata: metadataId,
+      updateAuthority: tokenCreatorId,
+      mint: mintId,
+      mintAuthority: tokenCreatorId,
+      maxSupply: new BN(1),
+    }
+  );
+  return [...metadataTx.instructions, ...masterEditionTx.instructions];
 };

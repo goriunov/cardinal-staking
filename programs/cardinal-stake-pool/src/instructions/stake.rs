@@ -10,15 +10,22 @@ use {
         program::CardinalTokenManager,
         state::{InvalidationType, TokenManagerKind},
     },
+    mpl_token_metadata::state::Metadata,
 };
 
 #[derive(Accounts)]
 pub struct StakeCtx<'info> {
     #[account(mut)]
     stake_entry: Box<Account<'info, StakeEntry>>,
+    #[account(constraint = stake_pool.key() == stake_entry.pool @ ErrorCode::InvalidStakePool)]
+    stake_pool: Box<Account<'info, StakePool>>,
 
     #[account(constraint = original_mint.key() == stake_entry.original_mint @ ErrorCode::InvalidOriginalMint)]
     original_mint: Box<Account<'info, Mint>>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
+    #[account(mut)]
+    original_mint_metadata: AccountInfo<'info>,
+
     #[account(mut, constraint = receipt_mint.key() == stake_entry.receipt_mint @ ErrorCode::InvalidTokenManagerMint)]
     receipt_mint: Box<Account<'info, Mint>>,
 
@@ -74,6 +81,32 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     let stake_entry = &mut ctx.accounts.stake_entry;
     let stake_entry_seed = &[STAKE_ENTRY_PREFIX.as_bytes(), stake_entry.pool.as_ref(), stake_entry.original_mint.as_ref(), &[stake_entry.bump]];
     let stake_entry_signer = &[&stake_entry_seed[..]];
+
+    // check allowlist
+    if ctx.accounts.stake_pool.allowed_creators.len() > 0 || ctx.accounts.stake_pool.allowed_collections.len() > 0 {
+        if ctx.accounts.original_mint_metadata.data_is_empty() {
+            return Err(error!(ErrorCode::NoMintMetadata));
+        }
+        let original_mint_metadata = Metadata::from_account_info(&ctx.accounts.original_mint_metadata.to_account_info())?;
+        let mut allowed = false;
+        if ctx.accounts.stake_pool.allowed_creators.len() > 0 && original_mint_metadata.data.creators != None {
+            let creators = original_mint_metadata.data.creators.unwrap();
+            let find = creators.iter().find(|c| ctx.accounts.stake_pool.allowed_creators.contains(&c.address));
+            if find != None {
+                allowed = true
+            };
+        }
+        let original_mint_metadata = Metadata::from_account_info(&ctx.accounts.original_mint_metadata.to_account_info())?;
+        if ctx.accounts.stake_pool.allowed_collections.len() > 0
+            && original_mint_metadata.collection != None
+            && ctx.accounts.stake_pool.allowed_collections.contains(&original_mint_metadata.collection.unwrap().key)
+        {
+            allowed = true
+        }
+        if !allowed {
+            return Err(error!(ErrorCode::MintNotAllowedInPool));
+        }
+    }
 
     // transfer original
     let cpi_accounts = token::Transfer {

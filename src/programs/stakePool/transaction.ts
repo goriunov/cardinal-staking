@@ -12,7 +12,7 @@ import {
 import * as metaplex from "@metaplex-foundation/mpl-token-metadata";
 import type { BN } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
-import * as web3 from "@solana/web3.js";
+import type * as web3 from "@solana/web3.js";
 
 import { initStakeEntry, initStakePool, stake, unstake } from "./instruction";
 import {
@@ -71,22 +71,19 @@ export const withCreateEntry = async (
     true
   );
 
-  const [mintMetadataId] = await web3.PublicKey.findProgramAddress(
-    [
-      Buffer.from(metaplex.MetadataProgram.PREFIX),
-      metaplex.MetadataProgram.PUBKEY.toBuffer(),
-      params.receiptMintKeypair.publicKey.toBuffer(),
-    ],
-    metaplex.MetadataProgram.PUBKEY
-  );
+  const [receiptMintMetadataId, originalMintMetadatId] = await Promise.all([
+    metaplex.Metadata.getPDA(params.receiptMintKeypair.publicKey),
+    metaplex.Metadata.getPDA(params.originalMint),
+  ]);
 
   transaction.add(
     initStakeEntry(connection, wallet, {
       stakePoolId: stakePoolId,
       stakeEntryId: stakeEntryId,
       originalMintId: params.originalMint,
+      originalMintMetadatId: originalMintMetadatId,
       stakeEntryReceiptMintTokenAccountId: mintTokenAccount,
-      receiptMintMetadata: mintMetadataId,
+      receiptMintMetadataId: receiptMintMetadataId,
       receiptMintId: params.receiptMintKeypair.publicKey,
       mintManager: mintManager,
       name: params.name,
@@ -107,13 +104,17 @@ export const withStake = async (
   }
 ): Promise<[web3.Transaction, web3.PublicKey]> => {
   const [stakePoolId] = await findStakePoolId(params.stakePoolIdentifier);
-  const [[stakeEntryId], [tokenManagerId], [mintCounterId]] = await Promise.all(
-    [
-      findStakeEntryId(stakePoolId, params.originalMint),
-      findTokenManagerAddress(params.receiptMint),
-      findMintCounterId(params.receiptMint),
-    ]
-  );
+  const [
+    [stakeEntryId],
+    originalMintMetadataId,
+    [tokenManagerId],
+    [mintCounterId],
+  ] = await Promise.all([
+    findStakeEntryId(stakePoolId, params.originalMint),
+    metaplex.Metadata.getPDA(params.originalMint),
+    findTokenManagerAddress(params.receiptMint),
+    findMintCounterId(params.receiptMint),
+  ]);
 
   const userOriginalMintTokenAccount =
     await withFindOrInitAssociatedTokenAccount(
@@ -165,6 +166,7 @@ export const withStake = async (
       stakeEntryId: stakeEntryId,
       stakePoolId: stakePoolId,
       originalMintId: params.originalMint,
+      originalMintMetadataId: originalMintMetadataId,
       tokenManagerId: tokenManagerId,
       mintCounterId: mintCounterId,
       receiptMintId: params.receiptMint,

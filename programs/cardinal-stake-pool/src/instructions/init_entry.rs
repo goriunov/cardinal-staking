@@ -1,5 +1,3 @@
-use mpl_token_metadata::state::Creator;
-
 use {
     crate::state::*,
     anchor_lang::{
@@ -11,6 +9,7 @@ use {
         token::{self, Mint, Token},
     },
     cardinal_token_manager::{self, program::CardinalTokenManager},
+    mpl_token_metadata::state::{Creator, Metadata},
     mpl_token_metadata::{self, instruction::create_metadata_accounts_v2},
     solana_program::{program_pack::Pack, system_instruction::create_account},
 };
@@ -36,6 +35,8 @@ pub struct InitEntryCtx<'info> {
     stake_pool: Box<Account<'info, StakePool>>,
 
     original_mint: Box<Account<'info, Mint>>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
+    original_mint_metadata: AccountInfo<'info>,
     #[account(mut)]
     receipt_mint: Signer<'info>,
 
@@ -111,6 +112,13 @@ pub fn handler(ctx: Context<InitEntryCtx>, ix: InitEntryIx) -> Result<()> {
     associated_token::create(cpi_context)?;
 
     // create metadata
+    let mut metadata_uri_param: String = "".to_string();
+    if !ctx.accounts.original_mint_metadata.data_is_empty() {
+        let original_mint_metadata = Metadata::from_account_info(&ctx.accounts.original_mint_metadata.to_account_info())?;
+        metadata_uri_param = "&uri=".to_string() + &original_mint_metadata.data.uri.trim_matches(char::from(0));
+    }
+    // TODO use image?
+    // let image_uri = ctx.accounts.stake_pool.image_uri.clone();
     invoke_signed(
         &create_metadata_accounts_v2(
             *ctx.accounts.token_metadata_program.key,
@@ -122,7 +130,7 @@ pub fn handler(ctx: Context<InitEntryCtx>, ix: InitEntryIx) -> Result<()> {
             ix.name,
             ix.symbol,
             // generative URL which will include image of the name with expiration data
-            "https://api.cardinal.so/metadata/".to_string() + &ctx.accounts.receipt_mint.key().to_string() + &"?text=".to_string() + &ctx.accounts.stake_pool.overlay_text,
+            "https://api.cardinal.so/metadata/".to_string() + &ctx.accounts.receipt_mint.key().to_string() + &"?text=".to_string() + &ctx.accounts.stake_pool.overlay_text + &metadata_uri_param,
             Some(vec![
                 Creator {
                     address: ctx.accounts.stake_pool.key(),

@@ -1,5 +1,3 @@
-use solana_program::stake;
-
 use {crate::state::*, anchor_lang::prelude::*};
 
 #[derive(AnchorSerialize, AnchorDeserialize)]

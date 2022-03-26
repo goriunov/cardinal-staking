@@ -1,3 +1,4 @@
+import { findAta } from "@cardinal/common";
 import { BN } from "@project-serum/anchor";
 import { expectTXTable } from "@saberhq/chai-solana";
 import { SolanaProvider, TransactionEnvelope } from "@saberhq/solana-contrib";
@@ -19,7 +20,7 @@ import {
   withStake,
   withUnstake,
 } from "../src/programs/stakePool/transaction";
-import { createMint } from "./utils";
+import { createMint, getRandomInt } from "./utils";
 import { getProvider } from "./workspace";
 
 describe("Create stake pool", () => {
@@ -149,25 +150,25 @@ describe("Create stake pool", () => {
       stakeEntryId
     );
 
-    const userOriginalMintTokenAccountId = await getAta(
+    const userOriginalMintTokenAccountId = await findAta(
       originalMint.publicKey,
       provider.wallet.publicKey,
       true
     );
 
-    const userMintTokenAccountId = await getAta(
+    const userMintTokenAccountId = await findAta(
       receiptMintKeypair.publicKey,
       provider.wallet.publicKey,
       true
     );
 
-    const stakeEntryOriginalMintTokenAccountId = await getAta(
+    const stakeEntryOriginalMintTokenAccountId = await findAta(
       originalMint.publicKey,
       stakeEntryData.pubkey,
       true
     );
 
-    const stakeEntryMintTokenAccountId = await getAta(
+    const stakeEntryMintTokenAccountId = await findAta(
       receiptMintKeypair.publicKey,
       stakeEntryData.pubkey,
       true
@@ -249,25 +250,25 @@ describe("Create stake pool", () => {
       web3.Keypair.generate()
     );
 
-    const userOriginalMintTokenAccountId = await getAta(
+    const userOriginalMintTokenAccountId = await findAta(
       originalMint.publicKey,
       provider.wallet.publicKey,
       true
     );
 
-    const userMintTokenAccountId = await getAta(
+    const userMintTokenAccountId = await findAta(
       receiptMintKeypair.publicKey,
       provider.wallet.publicKey,
       true
     );
 
-    const stakeEntryOriginalMintTokenAccountId = await getAta(
+    const stakeEntryOriginalMintTokenAccountId = await findAta(
       originalMint.publicKey,
       stakeEntryData.pubkey,
       true
     );
 
-    const stakeEntryMintTokenAccountId = await getAta(
+    const stakeEntryMintTokenAccountId = await findAta(
       receiptMintKeypair.publicKey,
       stakeEntryData.pubkey,
       true
@@ -293,22 +294,3 @@ describe("Create stake pool", () => {
     expect(checkStakeEntryOriginalMintTokenAccount.amount.toNumber()).to.eq(0);
   });
 });
-
-function getRandomInt(max: number) {
-  return Math.floor(Math.random() * max);
-}
-
-const getAta = async (
-  mint: web3.PublicKey,
-  owner: web3.PublicKey,
-  allowOwnerOffCurve?: true
-): Promise<web3.PublicKey> => {
-  const associatedAddress = await splToken.Token.getAssociatedTokenAddress(
-    splToken.ASSOCIATED_TOKEN_PROGRAM_ID,
-    splToken.TOKEN_PROGRAM_ID,
-    mint,
-    owner,
-    allowOwnerOffCurve
-  );
-  return associatedAddress;
-};

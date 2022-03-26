@@ -49,6 +49,11 @@ export type CardinalStakePool = {
           isSigner: false;
         },
         {
+          name: "originalMintMetadata";
+          isMut: false;
+          isSigner: false;
+        },
+        {
           name: "receiptMint";
           isMut: true;
           isSigner: true;
@@ -122,8 +127,18 @@ export type CardinalStakePool = {
           isSigner: false;
         },
         {
+          name: "stakePool";
+          isMut: false;
+          isSigner: false;
+        },
+        {
           name: "originalMint";
           isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "originalMintMetadata";
+          isMut: true;
           isSigner: false;
         },
         {
@@ -419,6 +434,21 @@ export type CardinalStakePool = {
       code: 6006;
       name: "InvalidUnstakeUser";
       msg: "Invalid unstake user only last staker can unstake";
+    },
+    {
+      code: 6007;
+      name: "InvalidStakePool";
+      msg: "Invalid stake pool";
+    },
+    {
+      code: 6008;
+      name: "NoMintMetadata";
+      msg: "No mint metadat";
+    },
+    {
+      code: 6009;
+      name: "MintNotAllowedInPool";
+      msg: "Mint not allowed in this pool";
     }
   ];
 };
@@ -470,6 +500,11 @@ export const IDL: CardinalStakePool = {
         },
         {
           name: "originalMint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "originalMintMetadata",
           isMut: false,
           isSigner: false,
         },
@@ -547,8 +582,18 @@ export const IDL: CardinalStakePool = {
           isSigner: false,
         },
         {
+          name: "stakePool",
+          isMut: false,
+          isSigner: false,
+        },
+        {
           name: "originalMint",
           isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "originalMintMetadata",
+          isMut: true,
           isSigner: false,
         },
         {
@@ -844,6 +889,21 @@ export const IDL: CardinalStakePool = {
       code: 6006,
       name: "InvalidUnstakeUser",
       msg: "Invalid unstake user only last staker can unstake",
+    },
+    {
+      code: 6007,
+      name: "InvalidStakePool",
+      msg: "Invalid stake pool",
+    },
+    {
+      code: 6008,
+      name: "NoMintMetadata",
+      msg: "No mint metadat",
+    },
+    {
+      code: 6009,
+      name: "MintNotAllowedInPool",
+      msg: "Mint not allowed in this pool",
     },
   ],
 };
