@@ -26,7 +26,7 @@ describe("Create stake pool", () => {
   const poolIdentifier = new BN(getRandomInt(1000));
   const entryName = "name";
   const symbol = "symbol";
-  const textOverlay = "staking";
+  const overlayText = "staking";
   let originalMint: splToken.Token;
   const receiptMintKeypair = web3.Keypair.generate();
   const originalMintAuthority = web3.Keypair.generate();
@@ -46,6 +46,7 @@ describe("Create stake pool", () => {
     const transaction = new web3.Transaction();
     await withCreatePool(transaction, provider.connection, provider.wallet, {
       identifier: poolIdentifier,
+      overlayText: overlayText,
     });
 
     const txEnvelope = new TransactionEnvelope(
@@ -80,7 +81,6 @@ describe("Create stake pool", () => {
       originalMint: originalMint.publicKey,
       name: entryName,
       symbol: symbol,
-      textOverlay: textOverlay,
     });
 
     const txEnvelope = new TransactionEnvelope(

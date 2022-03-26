@@ -309,6 +309,14 @@ export type CardinalStakePool = {
           {
             name: "identifier";
             type: "u64";
+          },
+          {
+            name: "overlayText";
+            type: "string";
+          },
+          {
+            name: "imageUri";
+            type: "string";
           }
         ];
       };
@@ -327,10 +335,6 @@ export type CardinalStakePool = {
           {
             name: "symbol";
             type: "string";
-          },
-          {
-            name: "textOverlay";
-            type: "string";
           }
         ];
       };
@@ -343,6 +347,14 @@ export type CardinalStakePool = {
           {
             name: "identifier";
             type: "u64";
+          },
+          {
+            name: "overlayText";
+            type: "string";
+          },
+          {
+            name: "imageUri";
+            type: "string";
           }
         ];
       };
@@ -699,6 +711,14 @@ export const IDL: CardinalStakePool = {
             name: "identifier",
             type: "u64",
           },
+          {
+            name: "overlayText",
+            type: "string",
+          },
+          {
+            name: "imageUri",
+            type: "string",
+          },
         ],
       },
     },
@@ -717,10 +737,6 @@ export const IDL: CardinalStakePool = {
             name: "symbol",
             type: "string",
           },
-          {
-            name: "textOverlay",
-            type: "string",
-          },
         ],
       },
     },
@@ -732,6 +748,14 @@ export const IDL: CardinalStakePool = {
           {
             name: "identifier",
             type: "u64",
+          },
+          {
+            name: "overlayText",
+            type: "string",
+          },
+          {
+            name: "imageUri",
+            type: "string",
           },
         ],
       },

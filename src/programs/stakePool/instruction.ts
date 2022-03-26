@@ -24,7 +24,12 @@ import { STAKE_POOL_ADDRESS, STAKE_POOL_IDL } from ".";
 export const initStakePool = (
   connection: Connection,
   wallet: Wallet,
-  params: { identifier: BN; stakePoolId: PublicKey }
+  params: {
+    identifier: BN;
+    stakePoolId: PublicKey;
+    overlayText: string;
+    imageUri: string;
+  }
 ): TransactionInstruction => {
   const provider = new Provider(connection, wallet, {});
   const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
@@ -35,6 +40,8 @@ export const initStakePool = (
   return stakePoolProgram.instruction.initPool(
     {
       identifier: params.identifier,
+      overlayText: params.overlayText,
+      imageUri: params.imageUri,
     },
     {
       accounts: {
@@ -59,7 +66,6 @@ export const initStakeEntry = (
     mintManager: PublicKey;
     name: string;
     symbol: string;
-    textOverlay: string;
   }
 ): TransactionInstruction => {
   const provider = new Provider(connection, wallet, {});
@@ -73,7 +79,6 @@ export const initStakeEntry = (
     {
       name: params.name,
       symbol: params.symbol,
-      textOverlay: params.textOverlay,
     },
     {
       accounts: {

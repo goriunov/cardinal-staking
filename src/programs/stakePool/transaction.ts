@@ -27,6 +27,8 @@ export const withCreatePool = async (
   wallet: Wallet,
   params: {
     identifier: BN;
+    overlayText?: string;
+    imageUri?: string;
   }
 ): Promise<[web3.Transaction, web3.PublicKey]> => {
   const [stakePoolId] = await findStakePoolId(params.identifier);
@@ -34,6 +36,8 @@ export const withCreatePool = async (
     initStakePool(connection, wallet, {
       identifier: params.identifier,
       stakePoolId: stakePoolId,
+      overlayText: params.overlayText || "",
+      imageUri: params.imageUri || "",
     })
   );
   return [transaction, stakePoolId];
@@ -49,7 +53,6 @@ export const withCreateEntry = async (
     originalMint: web3.PublicKey;
     name: string;
     symbol: string;
-    textOverlay: string;
   }
 ): Promise<[web3.Transaction, web3.PublicKey, web3.Keypair]> => {
   const [[stakePoolId], [stakeEntryId], [mintManager]] = await Promise.all([
@@ -84,7 +87,6 @@ export const withCreateEntry = async (
       mintManager: mintManager,
       name: params.name,
       symbol: params.symbol,
-      textOverlay: params.textOverlay,
     })
   );
   return [transaction, stakeEntryId, params.receiptMintKeypair];

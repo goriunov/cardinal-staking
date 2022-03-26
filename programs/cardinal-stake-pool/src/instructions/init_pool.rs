@@ -3,6 +3,8 @@ use {crate::state::*, anchor_lang::prelude::*};
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct InitPoolIx {
     identifier: u64,
+    overlay_text: String,
+    image_uri: String,
 }
 
 #[derive(Accounts)]
@@ -26,6 +28,8 @@ pub fn handler(ctx: Context<InitPoolCtx>, ix: InitPoolIx) -> Result<()> {
     let stake_pool = &mut ctx.accounts.stake_pool;
     stake_pool.bump = *ctx.bumps.get("stake_pool").unwrap();
     stake_pool.identifier = ix.identifier;
+    stake_pool.overlay_text = ix.overlay_text;
+    stake_pool.image_uri = ix.image_uri;
 
     return Ok(());
 }

@@ -1,10 +1,10 @@
 use anchor_lang::prelude::*;
 
 pub const STAKE_ENTRY_PREFIX: &str = "stake-entry";
-pub const STAKE_ENTRY_SIZE: usize = 8 + std::mem::size_of::<StakeEntry>() + 8;
+pub const STAKE_ENTRY_SIZE: usize = 8 + std::mem::size_of::<StakeEntry>() + 64;
 
 pub const STAKE_POOL_PREFIX: &str = "stake-pool";
-pub const STAKE_POOL_SIZE: usize = 8 + std::mem::size_of::<StakePool>() + 8;
+pub const STAKE_POOL_SIZE: usize = 8 + std::mem::size_of::<StakePool>() + 64;
 
 #[account]
 pub struct StakeEntry {
@@ -22,6 +22,8 @@ pub struct StakeEntry {
 pub struct StakePool {
     pub bump: u8,
     pub identifier: u64,
+    pub overlay_text: String,
+    pub image_uri: String,
 }
 
 // pub fn custom_seeds(ix: &'static InitEntryIx, pool_identifier: u64) -> &'static[u8]{

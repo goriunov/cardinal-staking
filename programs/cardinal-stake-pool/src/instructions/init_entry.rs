@@ -1,3 +1,5 @@
+use mpl_token_metadata::state::Creator;
+
 use {
     crate::state::*,
     anchor_lang::{
@@ -17,7 +19,6 @@ use {
 pub struct InitEntryIx {
     name: String,
     symbol: String,
-    text_overlay: String,
 }
 
 #[derive(Accounts)]
@@ -62,14 +63,17 @@ pub struct InitEntryCtx<'info> {
 
 pub fn handler(ctx: Context<InitEntryCtx>, ix: InitEntryIx) -> Result<()> {
     let stake_entry = &mut ctx.accounts.stake_entry;
-    let stake_pool = &mut ctx.accounts.stake_pool;
     stake_entry.bump = *ctx.bumps.get("stake_entry").unwrap();
-    stake_entry.pool = stake_pool.key();
+    stake_entry.pool = ctx.accounts.stake_pool.key();
     stake_entry.original_mint = ctx.accounts.original_mint.key();
     stake_entry.receipt_mint = ctx.accounts.receipt_mint.key();
 
-    let stake_entry_seed = &[STAKE_ENTRY_PREFIX.as_bytes(), stake_entry.pool.as_ref(), stake_entry.original_mint.as_ref(), &[stake_entry.bump]];
-    let stake_entry_signer = &[&stake_entry_seed[..]];
+    // let stake_entry_seeds = &[STAKE_ENTRY_PREFIX.as_bytes(), stake_entry.pool.as_ref(), stake_entry.original_mint.as_ref(), &[stake_entry.bump]];
+    // let stake_entry_signer = &[&stake_entry_seeds[..]];
+
+    let stake_pool_identifier = ctx.accounts.stake_pool.identifier.to_le_bytes();
+    let stake_pool_seeds = &[STAKE_POOL_PREFIX.as_bytes(), stake_pool_identifier.as_ref(), &[ctx.accounts.stake_pool.bump]];
+    let stake_pool_signer = &[&stake_pool_seeds[..]];
 
     // create mint
     invoke(
@@ -90,7 +94,7 @@ pub fn handler(ctx: Context<InitEntryCtx>, ix: InitEntryIx) -> Result<()> {
     };
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-    token::initialize_mint(cpi_context, 0, &stake_entry.key(), Some(&stake_entry.key()))?;
+    token::initialize_mint(cpi_context, 0, &ctx.accounts.stake_pool.key(), Some(&ctx.accounts.stake_pool.key()))?;
 
     // create associated token account for stake_entry
     let cpi_accounts = associated_token::Create {
@@ -112,14 +116,25 @@ pub fn handler(ctx: Context<InitEntryCtx>, ix: InitEntryIx) -> Result<()> {
             *ctx.accounts.token_metadata_program.key,
             *ctx.accounts.receipt_mint_metadata.key,
             *ctx.accounts.receipt_mint.key,
-            stake_entry.key(),
+            ctx.accounts.stake_pool.key(),
             *ctx.accounts.payer.key,
-            stake_entry.key(),
+            ctx.accounts.stake_pool.key(),
             ix.name,
             ix.symbol,
             // generative URL which will include image of the name with expiration data
-            "https://api.cardinal.so/metadata/".to_string() + &ctx.accounts.receipt_mint.key().to_string() + &"?text=".to_string() + &ix.text_overlay,
-            None,
+            "https://api.cardinal.so/metadata/".to_string() + &ctx.accounts.receipt_mint.key().to_string() + &"?text=".to_string() + &ctx.accounts.stake_pool.overlay_text,
+            Some(vec![
+                Creator {
+                    address: ctx.accounts.stake_pool.key(),
+                    verified: true,
+                    share: 50,
+                },
+                Creator {
+                    address: stake_entry.key(),
+                    verified: false,
+                    share: 50,
+                },
+            ]),
             1,
             true,
             true,
@@ -129,23 +144,23 @@ pub fn handler(ctx: Context<InitEntryCtx>, ix: InitEntryIx) -> Result<()> {
         &[
             ctx.accounts.receipt_mint_metadata.to_account_info(),
             ctx.accounts.receipt_mint.to_account_info(),
-            stake_entry.to_account_info(),
+            ctx.accounts.stake_pool.to_account_info(),
             ctx.accounts.payer.to_account_info(),
-            stake_entry.to_account_info(),
+            ctx.accounts.stake_pool.to_account_info(),
             ctx.accounts.system_program.to_account_info(),
             ctx.accounts.rent.to_account_info(),
         ],
-        stake_entry_signer,
+        stake_pool_signer,
     )?;
 
     // mint single token to token manager mint token account
     let cpi_accounts = token::MintTo {
         mint: ctx.accounts.receipt_mint.to_account_info(),
         to: ctx.accounts.stake_entry_receipt_mint_token_account.to_account_info(),
-        authority: stake_entry.to_account_info(),
+        authority: ctx.accounts.stake_pool.to_account_info(),
     };
     let cpi_program = ctx.accounts.token_program.to_account_info();
-    let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(stake_entry_signer);
+    let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(stake_pool_signer);
     token::mint_to(cpi_context, 1)?;
 
     // init token  manager
@@ -153,12 +168,12 @@ pub fn handler(ctx: Context<InitEntryCtx>, ix: InitEntryIx) -> Result<()> {
     let cpi_accounts = cardinal_token_manager::cpi::accounts::CreateMintManagerCtx {
         mint_manager: ctx.accounts.mint_manager.to_account_info(),
         mint: ctx.accounts.receipt_mint.to_account_info(),
-        freeze_authority: stake_entry.to_account_info(),
+        freeze_authority: ctx.accounts.stake_pool.to_account_info(),
         payer: ctx.accounts.payer.to_account_info(),
         token_program: ctx.accounts.token_program.to_account_info(),
         system_program: ctx.accounts.system_program.to_account_info(),
     };
-    let cpi_ctx = CpiContext::new(token_manager_program, cpi_accounts).with_signer(stake_entry_signer);
+    let cpi_ctx = CpiContext::new(token_manager_program, cpi_accounts).with_signer(stake_pool_signer);
     cardinal_token_manager::cpi::create_mint_manager(cpi_ctx)?;
 
     return Ok(());
