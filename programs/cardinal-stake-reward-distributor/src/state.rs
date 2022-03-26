@@ -20,4 +20,7 @@ pub struct RewardDistributor {
     pub reward_mint: Pubkey,
     pub reward_amount: u64,
     pub reward_duration_seconds: u64,
+    pub rewards_issued: u64,
+    pub max_supply: Option<u64>,
+    pub closed: bool,
 }
