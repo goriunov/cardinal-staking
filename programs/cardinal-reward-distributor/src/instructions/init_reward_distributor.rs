@@ -51,5 +51,5 @@ pub fn handler(ctx: Context<InitRewardDistributorCtx>, ix: InitRewardDistributor
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
     token::set_authority(cpi_context, AuthorityType::FreezeAccount, Some(reward_distributor.key()))?;
-    return Ok(());
+    Ok(())
 }
