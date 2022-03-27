@@ -29,11 +29,13 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           override: true
+          components: rustfmt, clippy
           profile: minimal
           toolchain: ${{ env.RUST_TOOLCHAIN }}
       - uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
           args: --all-features
   test:
     runs-on: ubuntu-latest
@@ -46,6 +48,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           override: true
+          components: rustfmt, clippy
           profile: minimal
           toolchain: ${{ env.RUST_TOOLCHAIN }}
       - uses: ./.github/actions/install-solana
