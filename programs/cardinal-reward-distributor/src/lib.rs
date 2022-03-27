@@ -21,4 +21,8 @@ pub mod cardinal_reward_distributor {
     pub fn claim_rewards<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, ClaimRewardsCtx<'info>>) -> Result<()> {
         claim_rewards::handler(ctx)
     }
+
+    pub fn set_closed(ctx: Context<SetClosedCtx>, closed: bool) -> Result<()> {
+        set_closed::handler(ctx, closed)
+    }
 }

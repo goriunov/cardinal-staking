@@ -22,4 +22,6 @@ pub enum ErrorCode {
     NoMintMetadata,
     #[msg("Mint not allowed in this pool")]
     MintNotAllowedInPool,
+    #[msg("Invalid stake pool authority")]
+    InvalidPoolAuthority,
 }

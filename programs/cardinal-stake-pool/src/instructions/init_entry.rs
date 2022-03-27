@@ -50,7 +50,7 @@ pub struct InitEntryCtx<'info> {
     #[account(mut)]
     receipt_mint_metadata: UncheckedAccount<'info>,
 
-    #[account(mut)]
+    #[account(mut, constraint = payer.key() == stake_pool.authority)]
     payer: Signer<'info>,
     rent: Sysvar<'info, Rent>,
     token_program: Program<'info, Token>,
@@ -68,9 +68,6 @@ pub fn handler(ctx: Context<InitEntryCtx>, ix: InitEntryIx) -> Result<()> {
     stake_entry.pool = ctx.accounts.stake_pool.key();
     stake_entry.original_mint = ctx.accounts.original_mint.key();
     stake_entry.receipt_mint = ctx.accounts.receipt_mint.key();
-
-    // let stake_entry_seeds = &[STAKE_ENTRY_PREFIX.as_bytes(), stake_entry.pool.as_ref(), stake_entry.original_mint.as_ref(), &[stake_entry.bump]];
-    // let stake_entry_signer = &[&stake_entry_seeds[..]];
 
     let stake_pool_identifier = ctx.accounts.stake_pool.identifier.to_le_bytes();
     let stake_pool_seeds = &[STAKE_POOL_PREFIX.as_bytes(), stake_pool_identifier.as_ref(), &[ctx.accounts.stake_pool.bump]];

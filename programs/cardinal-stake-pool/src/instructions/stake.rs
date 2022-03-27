@@ -81,27 +81,27 @@ pub struct StakeCtx<'info> {
 
 pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, StakeCtx<'info>>) -> Result<()> {
     let stake_entry = &mut ctx.accounts.stake_entry;
+    let stake_pool = &mut ctx.accounts.stake_pool;
     let stake_entry_seed = &[STAKE_ENTRY_PREFIX.as_bytes(), stake_entry.pool.as_ref(), stake_entry.original_mint.as_ref(), &[stake_entry.bump]];
     let stake_entry_signer = &[&stake_entry_seed[..]];
 
     // check allowlist
-    if !ctx.accounts.stake_pool.allowed_creators.is_empty() || !ctx.accounts.stake_pool.allowed_collections.is_empty() {
+    if !stake_pool.allowed_creators.is_empty() || !stake_pool.allowed_collections.is_empty() {
         if ctx.accounts.original_mint_metadata.data_is_empty() {
             return Err(error!(ErrorCode::NoMintMetadata));
         }
         let original_mint_metadata = Metadata::from_account_info(&ctx.accounts.original_mint_metadata.to_account_info())?;
         let mut allowed = false;
-        if !ctx.accounts.stake_pool.allowed_creators.is_empty() && original_mint_metadata.data.creators != None {
+        if !stake_pool.allowed_creators.is_empty() && original_mint_metadata.data.creators != None {
             let creators = original_mint_metadata.data.creators.unwrap();
-            let find = creators.iter().find(|c| ctx.accounts.stake_pool.allowed_creators.contains(&c.address));
+            let find = creators.iter().find(|c| stake_pool.allowed_creators.contains(&c.address));
             if find != None {
                 allowed = true
             };
         }
-        let original_mint_metadata = Metadata::from_account_info(&ctx.accounts.original_mint_metadata.to_account_info())?;
-        if !ctx.accounts.stake_pool.allowed_collections.is_empty()
+        if !stake_pool.allowed_collections.is_empty()
             && original_mint_metadata.collection != None
-            && ctx.accounts.stake_pool.allowed_collections.contains(&original_mint_metadata.collection.unwrap().key)
+            && stake_pool.allowed_collections.contains(&original_mint_metadata.collection.unwrap().key)
         {
             allowed = true
         }
