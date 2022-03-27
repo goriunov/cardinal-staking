@@ -39,32 +39,44 @@ pub struct ClaimRewardsCtx<'info> {
 pub fn handler(ctx: Context<ClaimRewardsCtx>) -> Result<()> {
     let reward_entry = &mut ctx.accounts.reward_entry;
     reward_entry.bump = *ctx.bumps.get("reward_entry").unwrap();
-    let rewards_distributed = reward_entry.rewards_distributed;
 
     let reward_distributor = &mut ctx.accounts.reward_distributor;
-    let reward_distributor_seed = &[REWARD_DISTRIBUTOR_SEED.as_bytes(), reward_distributor.stake_pool.as_ref(), &[reward_distributor.bump]];
-    let stake_pool_signer = &[&reward_distributor_seed[..]];
+    let stake_pool = reward_distributor.stake_pool;
+    let reward_distributor_seed = &[REWARD_DISTRIBUTOR_SEED.as_bytes(), stake_pool.as_ref(), &[reward_distributor.bump]];
+    let reward_distributor_signer = &[&reward_distributor_seed[..]];
 
     let reward_amount = reward_distributor.reward_amount;
     let reward_duration_seconds = reward_distributor.reward_duration_seconds;
-    let max_supply = reward_distributor.max_supply;
 
-    let reward_time_received = rewards_distributed / reward_amount * reward_duration_seconds;
-    if reward_time_received <= ctx.accounts.stake_entry.total_stake_seconds as u64 && (max_supply == None || reward_distributor.rewards_issued < max_supply.unwrap()) {
-        // mint to the user = reward_time_received / reward_duration_seconds * reward_amount
+    let reward_seconds_received = reward_entry.reward_seconds_received;
+    if reward_seconds_received <= ctx.accounts.stake_entry.total_stake_seconds as u64 && !reward_distributor.closed {
+        let mut reward_time_to_receive = ctx.accounts.stake_entry.total_stake_seconds as u64 - reward_seconds_received;
+        let mut reward_amount_to_receive = reward_time_to_receive / reward_duration_seconds * reward_amount * reward_entry.multiplier;
+
+        // if this will go over max supply give rewards up to max supply
+        if reward_distributor.max_supply != None && reward_distributor.rewards_issued + reward_amount_to_receive >= reward_distributor.max_supply.unwrap() {
+            reward_distributor.closed = true;
+            reward_amount_to_receive = reward_distributor.max_supply.unwrap() - reward_amount_to_receive;
+
+            // this is nuanced about if the rewards are closed, should they get the reward time for that time even though they didnt get any rewards?
+            // this only matters if the reward distributor becomes open again and they missed out on some rewards they coudlve gotten
+            reward_time_to_receive = reward_amount_to_receive / reward_amount * reward_duration_seconds / reward_entry.multiplier
+        }
+
+        // mint to the user
         let cpi_accounts = token::MintTo {
             mint: ctx.accounts.reward_mint.to_account_info(),
             to: ctx.accounts.user_reward_mint_token_account.to_account_info(),
-            authority: ctx.accounts.stake_pool.to_account_info(),
+            authority: reward_distributor.to_account_info(),
         };
         let cpi_program = ctx.accounts.token_program.to_account_info();
-        let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(stake_pool_signer);
-        token::mint_to(cpi_context, reward_distributor.reward_amount)?;
+        let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(reward_distributor_signer);
+        token::mint_to(cpi_context, reward_amount_to_receive)?;
 
-        reward_distributor.rewards_issued += reward_distributor.reward_amount;
-        if reward_distributor.max_supply != None && reward_distributor.rewards_issued == reward_distributor.max_supply.unwrap() {
-            reward_distributor.closed = true;
-        }
+        // update values
+        reward_distributor.rewards_issued += reward_amount_to_receive;
+        reward_entry.reward_amount_receievd += reward_amount_to_receive;
+        reward_entry.reward_seconds_received += reward_time_to_receive;
     }
     Ok(())
 }

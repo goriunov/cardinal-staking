@@ -37,6 +37,7 @@ pub struct InitRewardDistributorCtx<'info> {
 pub fn handler(ctx: Context<InitRewardDistributorCtx>, ix: InitRewardDistributorIx) -> Result<()> {
     let reward_distributor = &mut ctx.accounts.reward_distributor;
     reward_distributor.bump = *ctx.bumps.get("reward_distributor").unwrap();
+    reward_distributor.authority = ctx.accounts.freeze_authority.key();
     reward_distributor.stake_pool = ctx.accounts.stake_pool.key();
     reward_distributor.reward_mint = ctx.accounts.reward_mint.key();
     reward_distributor.reward_amount = ix.reward_amount;

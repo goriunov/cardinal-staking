@@ -7,7 +7,8 @@ pub struct RewardEntry {
     pub bump: u8,
     pub mint: Pubkey,
     pub reward_distributor: Pubkey,
-    pub rewards_distributed: u64,
+    pub reward_seconds_received: u64,
+    pub reward_amount_receievd: u64,
     pub multiplier: u64,
 }
 
@@ -17,6 +18,7 @@ pub const REWARD_DISTRIBUTOR_SIZE: usize = 8 + std::mem::size_of::<RewardDistrib
 pub struct RewardDistributor {
     pub bump: u8,
     pub stake_pool: Pubkey,
+    pub authority: Pubkey,
     pub reward_mint: Pubkey,
     pub reward_amount: u64,
     pub reward_duration_seconds: u64,
