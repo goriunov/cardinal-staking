@@ -21,30 +21,20 @@ env:
 
 jobs:
   rust-clippy:
-    strategy:
-      matrix:
-        rust: ["1.59"]
-        os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}
-
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v2
-
-      - name: Use Rust ${{ matrix.rust }}
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/install-linux-build-deps
+      - name: Install Rust nightly
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: ${{ matrix.rust }}
-          components: clippy
-
-      - name: Run Clippy
-        uses: actions-rs/clippy-check@v1
+          override: true
+          profile: minimal
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+      - uses: actions-rs/clippy-check@v1
         with:
-          name: Run Clippy
           token: ${{ secrets.GITHUB_TOKEN }}
-          toolchain: ${{ matrix.rust }}
-          use-cross: false
-          args: --all-features --no-deps --manifest-path ./program/Cargo.toml -- --deny=warnings
+          args: --all-features
   test:
     runs-on: ubuntu-latest
     name: Publish test results
