@@ -27,7 +27,7 @@ pub struct ClaimRewardsCtx<'info> {
     #[account(mut, constraint = reward_mint.key() == reward_distributor.reward_mint @ ErrorCode::InvalidRewardMint)]
     reward_mint: Box<Account<'info, Mint>>,
 
-    #[account(mut, constraint = user_reward_mint_token_account.owner == user.key() @ ErrorCode::InvalidUserRewardMintTokenAccount)]
+    #[account(mut, constraint = user_reward_mint_token_account.mint == reward_distributor.reward_mint && user_reward_mint_token_account.owner == user.key() @ ErrorCode::InvalidUserRewardMintTokenAccount)]
     user_reward_mint_token_account: Box<Account<'info, TokenAccount>>,
 
     #[account(mut)]
@@ -36,10 +36,8 @@ pub struct ClaimRewardsCtx<'info> {
     system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<ClaimRewardsCtx>) -> Result<()> {
+pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, ClaimRewardsCtx<'info>>) -> Result<()> {
     let reward_entry = &mut ctx.accounts.reward_entry;
-    reward_entry.bump = *ctx.bumps.get("reward_entry").unwrap();
-
     let reward_distributor = &mut ctx.accounts.reward_distributor;
     let stake_pool = reward_distributor.stake_pool;
     let reward_distributor_seed = &[REWARD_DISTRIBUTOR_SEED.as_bytes(), stake_pool.as_ref(), &[reward_distributor.bump]];
@@ -64,15 +62,33 @@ pub fn handler(ctx: Context<ClaimRewardsCtx>) -> Result<()> {
         }
 
         // mint to the user
-        let cpi_accounts = token::MintTo {
-            mint: ctx.accounts.reward_mint.to_account_info(),
-            to: ctx.accounts.user_reward_mint_token_account.to_account_info(),
-            authority: reward_distributor.to_account_info(),
-        };
-        let cpi_program = ctx.accounts.token_program.to_account_info();
-        let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(reward_distributor_signer);
-        token::mint_to(cpi_context, reward_amount_to_receive)?;
+        let remaining_accs = &mut ctx.remaining_accounts.iter();
+        match reward_distributor.kind {
+            k if k == RewardDistributorKind::Mint as u8 => {
+                let cpi_accounts = token::MintTo {
+                    mint: ctx.accounts.reward_mint.to_account_info(),
+                    to: ctx.accounts.user_reward_mint_token_account.to_account_info(),
+                    authority: reward_distributor.to_account_info(),
+                };
+                let cpi_program = ctx.accounts.token_program.to_account_info();
+                let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(reward_distributor_signer);
+                token::mint_to(cpi_context, reward_amount_to_receive)?;
+            }
+            k if k == RewardDistributorKind::Treasury as u8 => {
+                let reward_distributor_token_account_info = next_account_info(remaining_accs)?;
+                let reward_distributor_token_account = Account::<TokenAccount>::try_from(reward_distributor_token_account_info)?;
 
+                let cpi_accounts = token::Transfer {
+                    from: reward_distributor_token_account.to_account_info(),
+                    to: ctx.accounts.user_reward_mint_token_account.to_account_info(),
+                    authority: reward_distributor.to_account_info(),
+                };
+                let cpi_program = ctx.accounts.token_program.to_account_info();
+                let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(reward_distributor_signer);
+                token::transfer(cpi_context, reward_amount_to_receive)?;
+            }
+            _ => return Err(error!(ErrorCode::InvalidRewardDistributorKind)),
+        }
         // update values
         reward_distributor.rewards_issued += reward_amount_to_receive;
         reward_entry.reward_amount_receievd += reward_amount_to_receive;

@@ -177,7 +177,7 @@ export const unstake = (
     stakeEntryMintTokenAccount: PublicKey;
     user: PublicKey;
     userOriginalMintTokenAccount: PublicKey;
-    userMintTokenAccount: PublicKey;
+    userReceiptMintTokenAccount: PublicKey;
     tokenManagerMintAccount: PublicKey;
   }
 ): TransactionInstruction => {
@@ -187,7 +187,6 @@ export const unstake = (
     STAKE_POOL_ADDRESS,
     provider
   );
-
   return stakePoolProgram.instruction.unstake({
     accounts: {
       stakeEntry: params.stakeEntryId,
@@ -197,7 +196,7 @@ export const unstake = (
       stakeEntryReceiptMintTokenAccount: params.stakeEntryMintTokenAccount,
       user: params.user,
       userOriginalMintTokenAccount: params.userOriginalMintTokenAccount,
-      userReceiptMintTokenAccount: params.userMintTokenAccount,
+      userReceiptMintTokenAccount: params.userReceiptMintTokenAccount,
       tokenManagerMintAccount: params.tokenManagerMintAccount,
       tokenProgram: TOKEN_PROGRAM_ID,
       tokenManagerProgram: TOKEN_MANAGER_ADDRESS,

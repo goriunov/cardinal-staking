@@ -12,4 +12,8 @@ pub enum ErrorCode {
     InvalidRewardDistributor,
     #[msg("Invalid reward distributor authority")]
     InvalidRewardDistributorAuthority,
+    #[msg("Invalid reward distributor kind")]
+    InvalidRewardDistributorKind,
+    #[msg("Max supply required for kind treasury")]
+    MaxSupplyRequired,
 }

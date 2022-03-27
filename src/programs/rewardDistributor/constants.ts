@@ -21,3 +21,8 @@ export type RewardDistributorTypes = AnchorTypes<REWARD_DISTRIBUTOR_PROGRAM>;
 type Accounts = RewardDistributorTypes["Accounts"];
 export type RewardEntryData = Accounts["rewardEntry"];
 export type RewardDistributorData = Accounts["rewardDistributor"];
+
+export enum RewardDistributorKind {
+  Mint = 1,
+  Treasury = 2,
+}

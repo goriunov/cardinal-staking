@@ -10,7 +10,7 @@ declare_id!("t2youarTBdTv9eRXoDaMGCywbYjAteNF3Fuzvn8fXNj");
 pub mod cardinal_reward_distributor {
     use super::*;
 
-    pub fn init_reward_distributor(ctx: Context<InitRewardDistributorCtx>, ix: InitRewardDistributorIx) -> Result<()> {
+    pub fn init_reward_distributor<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, InitRewardDistributorCtx<'info>>, ix: InitRewardDistributorIx) -> Result<()> {
         init_reward_distributor::handler(ctx, ix)
     }
 
@@ -18,7 +18,7 @@ pub mod cardinal_reward_distributor {
         init_reward_entry::handler(ctx, ix)
     }
 
-    pub fn claim_rewards(ctx: Context<ClaimRewardsCtx>) -> Result<()> {
+    pub fn claim_rewards<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, ClaimRewardsCtx<'info>>) -> Result<()> {
         claim_rewards::handler(ctx)
     }
 }
