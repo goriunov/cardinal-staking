@@ -159,7 +159,11 @@ export type CardinalRewardDistributor = {
             type: "publicKey";
           },
           {
-            name: "rewardsDistributed";
+            name: "rewardSecondsReceived";
+            type: "u64";
+          },
+          {
+            name: "rewardAmountReceievd";
             type: "u64";
           },
           {
@@ -180,6 +184,10 @@ export type CardinalRewardDistributor = {
           },
           {
             name: "stakePool";
+            type: "publicKey";
+          },
+          {
+            name: "authority";
             type: "publicKey";
           },
           {
@@ -250,6 +258,18 @@ export type CardinalRewardDistributor = {
           }
         ];
       };
+    },
+    {
+      name: "UpdateRewardEntryIx";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "multipler";
+            type: "u64";
+          }
+        ];
+      };
     }
   ];
   errors: [
@@ -267,6 +287,16 @@ export type CardinalRewardDistributor = {
       code: 6002;
       name: "InvalidUserRewardMintTokenAccount";
       msg: "Invalid user reward mint token account";
+    },
+    {
+      code: 6003;
+      name: "InvalidRewardDistributor";
+      msg: "Invalid reward distributor";
+    },
+    {
+      code: 6004;
+      name: "InvalidRewardDistributorAuthority";
+      msg: "Invalid reward distributor authority";
     }
   ];
 };
@@ -432,7 +462,11 @@ export const IDL: CardinalRewardDistributor = {
             type: "publicKey",
           },
           {
-            name: "rewardsDistributed",
+            name: "rewardSecondsReceived",
+            type: "u64",
+          },
+          {
+            name: "rewardAmountReceievd",
             type: "u64",
           },
           {
@@ -453,6 +487,10 @@ export const IDL: CardinalRewardDistributor = {
           },
           {
             name: "stakePool",
+            type: "publicKey",
+          },
+          {
+            name: "authority",
             type: "publicKey",
           },
           {
@@ -524,6 +562,18 @@ export const IDL: CardinalRewardDistributor = {
         ],
       },
     },
+    {
+      name: "UpdateRewardEntryIx",
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "multipler",
+            type: "u64",
+          },
+        ],
+      },
+    },
   ],
   errors: [
     {
@@ -540,6 +590,16 @@ export const IDL: CardinalRewardDistributor = {
       code: 6002,
       name: "InvalidUserRewardMintTokenAccount",
       msg: "Invalid user reward mint token account",
+    },
+    {
+      code: 6003,
+      name: "InvalidRewardDistributor",
+      msg: "Invalid reward distributor",
+    },
+    {
+      code: 6004,
+      name: "InvalidRewardDistributorAuthority",
+      msg: "Invalid reward distributor authority",
     },
   ],
 };

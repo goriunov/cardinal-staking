@@ -7,7 +7,8 @@ pub struct RewardEntry {
     pub bump: u8,
     pub mint: Pubkey,
     pub reward_distributor: Pubkey,
-    pub rewards_distributed: u64,
+    pub reward_seconds_received: u64,
+    pub reward_amount_receievd: u64,
     pub multiplier: u64,
 }
 
