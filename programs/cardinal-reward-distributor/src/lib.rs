@@ -22,7 +22,11 @@ pub mod cardinal_reward_distributor {
         claim_rewards::handler(ctx)
     }
 
-    pub fn set_closed(ctx: Context<SetClosedCtx>, closed: bool) -> Result<()> {
-        set_closed::handler(ctx, closed)
+    pub fn reopen(ctx: Context<ReopenCtx>) -> Result<()> {
+        reopen::handler(ctx)
+    }
+
+    pub fn close(ctx: Context<CloseCtx>) -> Result<()> {
+        close::handler(ctx)
     }
 }
