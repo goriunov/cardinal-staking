@@ -17,11 +17,11 @@ export type CardinalRewardDistributor = {
         },
         {
           name: "rewardMint";
-          isMut: false;
+          isMut: true;
           isSigner: false;
         },
         {
-          name: "freezeAuthority";
+          name: "authority";
           isMut: true;
           isSigner: true;
         },
@@ -187,6 +187,10 @@ export type CardinalRewardDistributor = {
             type: "publicKey";
           },
           {
+            name: "kind";
+            type: "u8";
+          },
+          {
             name: "authority";
             type: "publicKey";
           },
@@ -235,6 +239,10 @@ export type CardinalRewardDistributor = {
             type: "u64";
           },
           {
+            name: "kind";
+            type: "u8";
+          },
+          {
             name: "maxSupply";
             type: {
               option: "u64";
@@ -270,6 +278,20 @@ export type CardinalRewardDistributor = {
           }
         ];
       };
+    },
+    {
+      name: "RewardDistributorKind";
+      type: {
+        kind: "enum";
+        variants: [
+          {
+            name: "Mint";
+          },
+          {
+            name: "Treasury";
+          }
+        ];
+      };
     }
   ];
   errors: [
@@ -297,6 +319,16 @@ export type CardinalRewardDistributor = {
       code: 6004;
       name: "InvalidRewardDistributorAuthority";
       msg: "Invalid reward distributor authority";
+    },
+    {
+      code: 6005;
+      name: "InvalidRewardDistributorKind";
+      msg: "Invalid reward distributor kind";
+    },
+    {
+      code: 6006;
+      name: "MaxSupplyRequired";
+      msg: "Max supply required for kind treasury";
     }
   ];
 };
@@ -320,11 +352,11 @@ export const IDL: CardinalRewardDistributor = {
         },
         {
           name: "rewardMint",
-          isMut: false,
+          isMut: true,
           isSigner: false,
         },
         {
-          name: "freezeAuthority",
+          name: "authority",
           isMut: true,
           isSigner: true,
         },
@@ -490,6 +522,10 @@ export const IDL: CardinalRewardDistributor = {
             type: "publicKey",
           },
           {
+            name: "kind",
+            type: "u8",
+          },
+          {
             name: "authority",
             type: "publicKey",
           },
@@ -538,6 +574,10 @@ export const IDL: CardinalRewardDistributor = {
             type: "u64",
           },
           {
+            name: "kind",
+            type: "u8",
+          },
+          {
             name: "maxSupply",
             type: {
               option: "u64",
@@ -574,6 +614,20 @@ export const IDL: CardinalRewardDistributor = {
         ],
       },
     },
+    {
+      name: "RewardDistributorKind",
+      type: {
+        kind: "enum",
+        variants: [
+          {
+            name: "Mint",
+          },
+          {
+            name: "Treasury",
+          },
+        ],
+      },
+    },
   ],
   errors: [
     {
@@ -600,6 +654,16 @@ export const IDL: CardinalRewardDistributor = {
       code: 6004,
       name: "InvalidRewardDistributorAuthority",
       msg: "Invalid reward distributor authority",
+    },
+    {
+      code: 6005,
+      name: "InvalidRewardDistributorKind",
+      msg: "Invalid reward distributor kind",
+    },
+    {
+      code: 6006,
+      name: "MaxSupplyRequired",
+      msg: "Max supply required for kind treasury",
     },
   ],
 };

@@ -1,5 +1,6 @@
 import {
   findAta,
+  tryGetAccount,
   withFindOrInitAssociatedTokenAccount,
 } from "@cardinal/common";
 import { withInvalidate } from "@cardinal/token-manager";
@@ -14,6 +15,10 @@ import type { BN } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
 import type * as web3 from "@solana/web3.js";
 
+import { getRewardDistributor } from "../rewardDistributor/accounts";
+import { claimRewards } from "../rewardDistributor/instruction";
+import { findRewardDistributorId } from "../rewardDistributor/pda";
+import { withRemainingAccountsForKind } from "../rewardDistributor/utils";
 import { initStakeEntry, initStakePool, stake, unstake } from "./instruction";
 import {
   findStakeEntryId,
@@ -197,8 +202,9 @@ export const withUnstake = async (
     receiptMint: web3.PublicKey;
   }
 ): Promise<[web3.Transaction, web3.PublicKey]> => {
+  const [stakePoolId] = await findStakePoolId(params.stakePoolIdentifier);
   const [[stakeEntryId], [tokenManagerId]] = await Promise.all([
-    findStakeEntryIdForPool(params.stakePoolIdentifier, params.originalMint),
+    findStakeEntryId(stakePoolId, params.originalMint),
     findTokenManagerAddress(params.receiptMint),
   ]);
 
@@ -221,7 +227,7 @@ export const withUnstake = async (
     true
   );
 
-  const userOriginalMintTokenAccount =
+  const userOriginalMintTokenAccountId =
     await withFindOrInitAssociatedTokenAccount(
       transaction,
       connection,
@@ -230,22 +236,24 @@ export const withUnstake = async (
       wallet.publicKey
     );
 
-  const userMintTokenAccount = await withFindOrInitAssociatedTokenAccount(
-    transaction,
-    connection,
-    params.receiptMint,
-    wallet.publicKey,
-    wallet.publicKey
-  );
+  const userReceiptMintTokenAccountId =
+    await withFindOrInitAssociatedTokenAccount(
+      transaction,
+      connection,
+      params.receiptMint,
+      wallet.publicKey,
+      wallet.publicKey
+    );
 
-  const tokenManagerMintAccount = await withFindOrInitAssociatedTokenAccount(
-    transaction,
-    connection,
-    params.receiptMint,
-    tokenManagerId,
-    wallet.publicKey,
-    true
-  );
+  const tokenManagerReceiptMintAccountId =
+    await withFindOrInitAssociatedTokenAccount(
+      transaction,
+      connection,
+      params.receiptMint,
+      tokenManagerId,
+      wallet.publicKey,
+      true
+    );
 
   await withInvalidate(transaction, connection, wallet, params.receiptMint);
 
@@ -256,11 +264,45 @@ export const withUnstake = async (
       stakeEntryOriginalMintTokenAccount: stakeEntryOriginalMintTokenAccount,
       stakeEntryMintTokenAccount: stakeEntryMintTokenAccount,
       user: wallet.publicKey,
-      userOriginalMintTokenAccount: userOriginalMintTokenAccount,
-      userMintTokenAccount: userMintTokenAccount,
-      tokenManagerMintAccount: tokenManagerMintAccount,
+      userOriginalMintTokenAccount: userOriginalMintTokenAccountId,
+      userReceiptMintTokenAccount: userReceiptMintTokenAccountId,
+      tokenManagerMintAccount: tokenManagerReceiptMintAccountId,
     })
   );
+
+  const [rewardDistributorId] = await findRewardDistributorId(stakePoolId);
+  const rewardDistributorData = await tryGetAccount(() =>
+    getRewardDistributor(connection, rewardDistributorId)
+  );
+  if (rewardDistributorData) {
+    const userRewardMintTokenAccountId =
+      await withFindOrInitAssociatedTokenAccount(
+        transaction,
+        connection,
+        rewardDistributorData.parsed.rewardMint,
+        wallet.publicKey,
+        wallet.publicKey
+      );
+    const remainingAccountsForKind = await withRemainingAccountsForKind(
+      transaction,
+      connection,
+      wallet,
+      rewardDistributorId,
+      rewardDistributorData.parsed.kind,
+      rewardDistributorData.parsed.rewardMint
+    );
+
+    transaction.add(
+      await claimRewards(connection, wallet, {
+        stakePoolId,
+        originalMint: params.originalMint,
+        mintTokenAccount: userOriginalMintTokenAccountId,
+        rewardMintId: rewardDistributorData.parsed.rewardMint,
+        rewardMintTokenAccountId: userRewardMintTokenAccountId,
+        remainingAccountsForKind,
+      })
+    );
+  }
 
   return [transaction, stakeEntryId];
 };

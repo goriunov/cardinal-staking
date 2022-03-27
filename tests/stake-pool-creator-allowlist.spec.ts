@@ -1,4 +1,3 @@
-import { BN } from "@project-serum/anchor";
 import { expectTXTable } from "@saberhq/chai-solana";
 import {
   SignerWallet,
@@ -22,11 +21,11 @@ import {
   withCreatePool,
   withStake,
 } from "../src/programs/stakePool/transaction";
-import { createMasterEditionIxs, createMint, getRandomInt } from "./utils";
+import { createMasterEditionIxs, createMint, getPoolIdentifier } from "./utils";
 import { getProvider } from "./workspace";
 
 describe("Create stake pool", () => {
-  const poolIdentifier = new BN(getRandomInt(1000));
+  const poolIdentifier = getPoolIdentifier();
   const entryName = "name";
   const symbol = "symbol";
   const overlayText = "staking";
@@ -161,7 +160,7 @@ describe("Create stake pool", () => {
     );
 
     await expectTXTable(txEnvelope, "Success stake", {
-      verbosity: "always",
+      verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
   });

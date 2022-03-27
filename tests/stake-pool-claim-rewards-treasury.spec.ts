@@ -1,10 +1,15 @@
 import { findAta } from "@cardinal/common";
+import { BN } from "@project-serum/anchor";
 import { expectTXTable } from "@saberhq/chai-solana";
 import { SolanaProvider, TransactionEnvelope } from "@saberhq/solana-contrib";
 import * as splToken from "@solana/spl-token";
 import * as web3 from "@solana/web3.js";
 import { expect } from "chai";
 
+import { rewardDistributor } from "../src";
+import { RewardDistributorKind } from "../src/programs/rewardDistributor";
+import { getRewardDistributor } from "../src/programs/rewardDistributor/accounts";
+import { findRewardDistributorId } from "../src/programs/rewardDistributor/pda";
 import {
   getStakeEntry,
   getStakePool,
@@ -19,15 +24,18 @@ import {
   withStake,
   withUnstake,
 } from "../src/programs/stakePool/transaction";
-import { createMint, getPoolIdentifier } from "./utils";
+import { createMint, delay, getPoolIdentifier } from "./utils";
 import { getProvider } from "./workspace";
 
-describe("Create stake pool", () => {
+describe("Stake and claim rewards from treasury", () => {
   const poolIdentifier = getPoolIdentifier();
+  const maxSupply = 100;
   const entryName = "name";
   const symbol = "symbol";
   const overlayText = "staking";
   let originalMint: splToken.Token;
+  let rewardMint: splToken.Token;
+  let stakePoolId: web3.PublicKey;
   const receiptMintKeypair = web3.Keypair.generate();
   const originalMintAuthority = web3.Keypair.generate();
 
@@ -37,6 +45,15 @@ describe("Create stake pool", () => {
     [, originalMint] = await createMint(
       provider.connection,
       originalMintAuthority,
+      provider.wallet.publicKey
+    );
+
+    // original mint
+    [, rewardMint] = await createMint(
+      provider.connection,
+      originalMintAuthority,
+      provider.wallet.publicKey,
+      maxSupply,
       provider.wallet.publicKey
     );
   });
@@ -58,16 +75,94 @@ describe("Create stake pool", () => {
       [...transaction.instructions]
     );
 
-    await expectTXTable(txEnvelope, "test", {
+    await expectTXTable(txEnvelope, "Create pool", {
       verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
 
-    const [stakePoolId] = await findStakePoolId(poolIdentifier);
+    [stakePoolId] = await findStakePoolId(poolIdentifier);
     const stakePoolData = await getStakePool(provider.connection, stakePoolId);
 
     expect(stakePoolData.parsed.identifier.toNumber()).to.eq(
       poolIdentifier.toNumber()
+    );
+  });
+
+  it("Create Reward Distributor", async () => {
+    const provider = getProvider();
+    const transaction = new web3.Transaction();
+    await rewardDistributor.transaction.withInitRewardDistributor(
+      transaction,
+      provider.connection,
+      provider.wallet,
+      {
+        stakePoolId: stakePoolId,
+        rewardMintId: rewardMint.publicKey,
+        kind: RewardDistributorKind.Treasury,
+        maxSupply: new BN(maxSupply),
+      }
+    );
+
+    const txEnvelope = new TransactionEnvelope(
+      SolanaProvider.init({
+        connection: provider.connection,
+        wallet: provider.wallet,
+        opts: provider.opts,
+      }),
+      [...transaction.instructions]
+    );
+
+    await expectTXTable(txEnvelope, "Create reward distributor", {
+      verbosity: "error",
+      formatLogs: true,
+    }).to.be.fulfilled;
+
+    const [rewardDistributorId] = await findRewardDistributorId(stakePoolId);
+    const rewardDistributorData = await getRewardDistributor(
+      provider.connection,
+      rewardDistributorId
+    );
+
+    expect(rewardDistributorData.parsed.rewardMint.toString()).to.eq(
+      rewardMint.publicKey.toString()
+    );
+  });
+
+  it("Init Reward Entry", async () => {
+    const provider = getProvider();
+    const transaction = new web3.Transaction();
+    const [rewardDistributorId] = await findRewardDistributorId(stakePoolId);
+    await rewardDistributor.transaction.withInitRewardEntry(
+      transaction,
+      provider.connection,
+      provider.wallet,
+      {
+        mintId: originalMint.publicKey,
+        rewardDistributorId: rewardDistributorId,
+      }
+    );
+
+    const txEnvelope = new TransactionEnvelope(
+      SolanaProvider.init({
+        connection: provider.connection,
+        wallet: provider.wallet,
+        opts: provider.opts,
+      }),
+      [...transaction.instructions]
+    );
+
+    await expectTXTable(txEnvelope, "Init reward entry", {
+      verbosity: "error",
+      formatLogs: true,
+    }).to.be.fulfilled;
+
+    const rewardDistributorData = await getRewardDistributor(
+      provider.connection,
+      rewardDistributorId
+    );
+
+    expect(rewardDistributorData.parsed.rewardMint.toString()).to.eq(
+      rewardMint.publicKey.toString()
     );
   });
 
@@ -93,7 +188,7 @@ describe("Create stake pool", () => {
       [receiptMintKeypair]
     );
 
-    await expectTXTable(txEnvelope, "test", {
+    await expectTXTable(txEnvelope, "init stake entry", {
       verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
@@ -135,7 +230,7 @@ describe("Create stake pool", () => {
       }),
       [...transaction.instructions]
     );
-    await expectTXTable(txEnvelope, "test", {
+    await expectTXTable(txEnvelope, "stake", {
       verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
@@ -206,6 +301,7 @@ describe("Create stake pool", () => {
   });
 
   it("Unstake", async () => {
+    await delay(2000);
     const provider = getProvider();
     const transaction = new web3.Transaction();
 
@@ -223,7 +319,7 @@ describe("Create stake pool", () => {
       }),
       [...transaction.instructions]
     );
-    await expectTXTable(txEnvelope, "test", {
+    await expectTXTable(txEnvelope, "unstake", {
       verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
@@ -273,6 +369,12 @@ describe("Create stake pool", () => {
       true
     );
 
+    const userRewardMintTokenAccountId = await findAta(
+      rewardMint.publicKey,
+      provider.wallet.publicKey,
+      true
+    );
+
     const checkUserMintTokenAccount = await checkMint.getAccountInfo(
       userMintTokenAccountId
     );
@@ -291,5 +393,10 @@ describe("Create stake pool", () => {
     const checkStakeEntryOriginalMintTokenAccount =
       await originalMint.getAccountInfo(stakeEntryOriginalMintTokenAccountId);
     expect(checkStakeEntryOriginalMintTokenAccount.amount.toNumber()).to.eq(0);
+
+    const checkUserRewardTokenAccount = await rewardMint.getAccountInfo(
+      userRewardMintTokenAccountId
+    );
+    expect(checkUserRewardTokenAccount.amount.toNumber()).greaterThan(1);
   });
 });

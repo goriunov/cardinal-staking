@@ -10,8 +10,16 @@ import { BN } from "@project-serum/anchor";
 import * as splToken from "@solana/spl-token";
 import * as web3 from "@solana/web3.js";
 
+export function getPoolIdentifier(): BN {
+  return new BN(getRandomInt(100000));
+}
+
 export function getRandomInt(max: number) {
   return Math.floor(Math.random() * max);
+}
+
+export function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -25,7 +33,8 @@ export const createMint = async (
   creator: web3.Keypair,
   recipient: web3.PublicKey,
   amount = 1,
-  freezeAuthority: web3.PublicKey = recipient
+  freezeAuthority: web3.PublicKey = recipient,
+  mintAuthority: web3.PublicKey = creator.publicKey
 ): Promise<[web3.PublicKey, splToken.Token]> => {
   const fromAirdropSignature = await connection.requestAirdrop(
     creator.publicKey,
@@ -35,13 +44,15 @@ export const createMint = async (
   const mint = await splToken.Token.createMint(
     connection,
     creator,
-    creator.publicKey,
+    mintAuthority,
     freezeAuthority,
     0,
     splToken.TOKEN_PROGRAM_ID
   );
   const tokenAccount = await mint.createAssociatedTokenAccount(recipient);
-  await mint.mintTo(tokenAccount, creator.publicKey, [], amount);
+  if (amount) {
+    await mint.mintTo(tokenAccount, creator.publicKey, [], amount);
+  }
   return [tokenAccount, mint];
 };
 

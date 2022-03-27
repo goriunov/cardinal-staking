@@ -12,12 +12,22 @@ pub struct RewardEntry {
     pub multiplier: u64,
 }
 
+#[derive(Clone, Debug, PartialEq, AnchorSerialize, AnchorDeserialize)]
+#[repr(u8)]
+pub enum RewardDistributorKind {
+    /// Rewards are distributed by minting new tokens
+    Mint = 1,
+    /// Rewards are distributed from a treasury
+    Treasury = 2,
+}
+
 pub const REWARD_DISTRIBUTOR_SEED: &str = "reward-distributor";
 pub const REWARD_DISTRIBUTOR_SIZE: usize = 8 + std::mem::size_of::<RewardDistributor>() + 64;
 #[account]
 pub struct RewardDistributor {
     pub bump: u8,
     pub stake_pool: Pubkey,
+    pub kind: u8,
     pub authority: Pubkey,
     pub reward_mint: Pubkey,
     pub reward_amount: u64,

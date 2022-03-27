@@ -3,6 +3,7 @@ import { Program, Provider } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import type {
+  AccountMeta,
   Connection,
   PublicKey,
   TransactionInstruction,
@@ -12,17 +13,21 @@ import { SystemProgram } from "@solana/web3.js";
 import { findStakeEntryId } from "../stakePool/pda";
 import type { REWARD_DISTRIBUTOR_PROGRAM } from ".";
 import { REWARD_DISTRIBUTOR_ADDRESS, REWARD_DISTRIBUTOR_IDL } from ".";
+import type { RewardDistributorKind } from "./constants";
 import { findRewardDistributorId, findRewardEntryId } from "./pda";
 
 export const initRewardDistributor = (
   connection: Connection,
   wallet: Wallet,
   params: {
+    rewardDistributorId: PublicKey;
     stakePoolId: PublicKey;
     rewardMintId: PublicKey;
     rewardAmount: BN;
     rewardDurationSeconds: BN;
-    maxSupply: BN;
+    kind: RewardDistributorKind;
+    remainingAccountsForKind: AccountMeta[];
+    maxSupply?: BN;
   }
 ): TransactionInstruction => {
   const provider = new Provider(connection, wallet, {});
@@ -31,23 +36,24 @@ export const initRewardDistributor = (
     REWARD_DISTRIBUTOR_ADDRESS,
     provider
   );
-  const rewardDistributorId = findRewardDistributorId(params.stakePoolId);
   return rewardDistributorProgram.instruction.initRewardDistributor(
     {
       rewardAmount: params.rewardAmount,
       rewardDurationSeconds: params.rewardDurationSeconds,
-      maxSupply: params.maxSupply,
+      maxSupply: params.maxSupply || null,
+      kind: params.kind,
     },
     {
       accounts: {
-        rewardDistributor: rewardDistributorId,
+        rewardDistributor: params.rewardDistributorId,
         stakePool: params.stakePoolId,
         rewardMint: params.rewardMintId,
-        freezeAuthority: wallet.publicKey,
+        authority: wallet.publicKey,
         payer: wallet.publicKey,
         tokenProgram: TOKEN_PROGRAM_ID,
         systemProgram: SystemProgram.programId,
       },
+      remainingAccounts: params.remainingAccountsForKind,
     }
   );
 };
@@ -96,6 +102,7 @@ export const claimRewards = async (
     mintTokenAccount: PublicKey;
     rewardMintId: PublicKey;
     rewardMintTokenAccountId: PublicKey;
+    remainingAccountsForKind: AccountMeta[];
   }
 ): Promise<TransactionInstruction> => {
   const provider = new Provider(connection, wallet, {});
@@ -126,5 +133,6 @@ export const claimRewards = async (
       tokenProgram: TOKEN_PROGRAM_ID,
       systemProgram: SystemProgram.programId,
     },
+    remainingAccounts: params.remainingAccountsForKind,
   });
 };
