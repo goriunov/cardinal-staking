@@ -8,4 +8,8 @@ pub enum ErrorCode {
     InvalidRewardMint,
     #[msg("Invalid user reward mint token account")]
     InvalidUserRewardMintTokenAccount,
+    #[msg("Invalid reward distributor")]
+    InvalidRewardDistributor,
+    #[msg("Invalid reward distributor authority")]
+    InvalidRewardDistributorAuthority,
 }

@@ -30,6 +30,6 @@ pub fn handler(ctx: Context<InitRewardEntryCtx>, ix: InitRewardEntryIx) -> Resul
     reward_entry.mint = ix.mint;
     reward_entry.reward_distributor = ctx.accounts.reward_distributor.key();
     reward_entry.rewards_distributed = 0;
-    reward_entry.multiplier = ix.multipler;
+    reward_entry.multiplier = 1;
     Ok(())
 }
