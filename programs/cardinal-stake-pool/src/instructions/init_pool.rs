@@ -1,7 +1,7 @@
 use {
-    crate::{state::*, errors::ErrorCode},
-    anchor_lang::{prelude::*,
-}};
+    crate::{errors::ErrorCode, state::*},
+    anchor_lang::prelude::*,
+};
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct InitPoolIx {
@@ -33,7 +33,7 @@ pub struct InitPoolCtx<'info> {
     )]
     identifier: Account<'info, Identifier>,
 
-    #[account(mut, constraint = is_admin(&payer.key()) @ ErrorCode::InvalidPoolAuthority)]
+    #[account(mut, constraint = is_authority(&payer.key()) @ ErrorCode::InvalidPoolAuthority)]
     payer: Signer<'info>,
     system_program: Program<'info, System>,
 }
