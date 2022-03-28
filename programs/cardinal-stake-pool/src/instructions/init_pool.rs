@@ -20,6 +20,14 @@ pub struct InitPoolCtx<'info> {
         bump
     )]
     stake_pool: Account<'info, StakePool>,
+    #[account(
+        init_if_needed,
+        payer = payer,
+        space = IDENTIFIER_SIZE,
+        seeds = [IDENTIFIER_PREFIX.as_bytes()],
+        bump
+    )]
+    identifier: Account<'info, Identifier>,
 
     #[account(mut)]
     payer: Signer<'info>,
@@ -34,6 +42,9 @@ pub fn handler(ctx: Context<InitPoolCtx>, ix: InitPoolIx) -> Result<()> {
     stake_pool.allowed_creators = ix.allowed_creators;
     stake_pool.overlay_text = ix.overlay_text;
     stake_pool.image_uri = ix.image_uri;
+
+    let identifier = &mut ctx.accounts.identifier;
+    identifier.count += 1;
 
     Ok(())
 }
