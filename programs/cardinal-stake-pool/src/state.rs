@@ -6,7 +6,10 @@ pub const STAKE_ENTRY_SIZE: usize = 8 + std::mem::size_of::<StakeEntry>() + 64;
 
 pub const STAKE_POOL_PREFIX: &str = "stake-pool";
 // max 4 pubkeys and 256 for strings
-pub const STAKE_POOL_SIZE: usize = 8 + 1 + 8 + 32 * 4 + 256;
+pub const STAKE_POOL_SIZE: usize = 8 + std::mem::size_of::<StakePool>() + 256;
+
+pub const IDENTIFIER_PREFIX: &str = "identifier";
+pub const IDENTIFIER_SIZE: usize = 8 + std::mem::size_of::<Identifier>() + 8;
 
 #[account]
 pub struct StakeEntry {
@@ -30,6 +33,11 @@ pub struct StakePool {
     pub authority: Pubkey,
 }
 
-pub fn is_admin(key: &Pubkey) -> bool{
+#[account]
+pub struct Identifier {
+    pub count: u64,
+}
+
+pub fn is_authority(key: &Pubkey) -> bool {
     *key == Pubkey::from_str("crdk1Mw5WzoVNgz8RgHJXzHdwSrJvp4UcGirvtJzB6U").unwrap()
 }
