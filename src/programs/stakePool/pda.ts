@@ -3,6 +3,7 @@ import { utils } from "@project-serum/anchor";
 import * as web3 from "@solana/web3.js";
 
 import { STAKE_ENTRY_SEED, STAKE_POOL_ADDRESS, STAKE_POOL_SEED } from ".";
+import { IDENTIFIER_SEED } from "./constants";
 
 /**
  * Finds the stake pool id.
@@ -45,6 +46,19 @@ export const findStakeEntryId = async (
       utils.bytes.utf8.encode(STAKE_ENTRY_SEED),
       stakePoolId.toBuffer(),
       originalMintId.toBuffer(),
+    ],
+    STAKE_POOL_ADDRESS
+  );
+};
+
+/**
+ * Finds the identifier id.
+ * @returns
+ */
+ export const findIdentifierId = async (): Promise<[web3.PublicKey, number]> => {
+  return web3.PublicKey.findProgramAddress(
+    [
+      utils.bytes.utf8.encode(IDENTIFIER_SEED),
     ],
     STAKE_POOL_ADDRESS
   );

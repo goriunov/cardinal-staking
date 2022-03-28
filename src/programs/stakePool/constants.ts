@@ -11,6 +11,8 @@ export const STAKE_POOL_SEED = "stake-pool";
 
 export const STAKE_ENTRY_SEED = "stake-entry";
 
+export const IDENTIFIER_SEED = "identifier";
+
 export type STAKE_POOL_PROGRAM = STAKE_POOL_TYPES.CardinalStakePool;
 
 export const STAKE_POOL_IDL = STAKE_POOL_TYPES.IDL;
@@ -20,3 +22,4 @@ export type StakePoolTypes = AnchorTypes<STAKE_POOL_PROGRAM>;
 type Accounts = StakePoolTypes["Accounts"];
 export type StakePoolData = Accounts["stakePool"];
 export type StakeEntryData = Accounts["stakeEntry"];
+export type IdentifierData = Accounts["identifier"];

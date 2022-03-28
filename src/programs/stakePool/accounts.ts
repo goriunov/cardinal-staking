@@ -4,7 +4,8 @@ import type { Connection, PublicKey } from "@solana/web3.js";
 import type { AccountData } from "../../utils";
 import type { STAKE_POOL_PROGRAM, StakePoolData } from ".";
 import { STAKE_POOL_ADDRESS, STAKE_POOL_IDL } from ".";
-import type { StakeEntryData } from "./constants";
+import type { IdentifierData, StakeEntryData } from "./constants";
+import { findIdentifierId } from "./pda";
 
 export const getStakePool = async (
   connection: Connection,
@@ -19,7 +20,7 @@ export const getStakePool = async (
     provider
   );
 
-  const parsed = await stakePoolProgram.account.stakePool.fetch(stakePoolId);
+  const parsed = await stakePoolProgram.account.stakePool.fetch(stakePoolId) as StakePoolData;
   return {
     parsed,
     pubkey: stakePoolId,
@@ -88,4 +89,25 @@ export const getStakeEntries = async (
     parsed: tm,
     pubkey: stakeEntryIds[i]!,
   }));
+};
+
+export const getPoolIdentifier = async (
+  connection: Connection,
+): Promise<AccountData<IdentifierData>> => {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  const provider = new Provider(connection, null, {});
+  const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
+    STAKE_POOL_IDL,
+    STAKE_POOL_ADDRESS,
+    provider
+  );
+  const [identifierId] = await findIdentifierId()
+  const parsed = (await stakePoolProgram.account.identifier.fetch(
+    identifierId
+  )) as IdentifierData;
+  return {
+    parsed,
+    pubkey: identifierId,
+  }
 };
