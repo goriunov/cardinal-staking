@@ -81,18 +81,14 @@ jobs:
           done
         shell: bash
 
-  test:
+  integration-tests:
     runs-on: ubuntu-latest
-    name: Publish test results
     steps:
       - uses: actions/checkout@v3
-
       - uses: ./.github/actions/install-linux-build-deps
-      - name: Install Rust nightly
-        uses: actions-rs/toolchain@v1
+      - uses: actions-rs/toolchain@v1
         with:
           override: true
-          components: rustfmt, clippy
           profile: minimal
           toolchain: ${{ env.RUST_TOOLCHAIN }}
       - uses: ./.github/actions/install-solana

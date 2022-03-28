@@ -53,7 +53,11 @@ pub struct UnstakeCtx<'info> {
 
 pub fn handler(ctx: Context<UnstakeCtx>) -> Result<()> {
     let stake_entry = &mut ctx.accounts.stake_entry;
-    stake_entry.total_stake_seconds += Clock::get().unwrap().unix_timestamp - stake_entry.last_staked_at;
+
+    // saturing add will stop at max u64
+    stake_entry.total_stake_seconds = stake_entry
+        .total_stake_seconds
+        .saturating_add(Clock::get().unwrap().unix_timestamp.checked_sub(stake_entry.last_staked_at).unwrap());
     stake_entry.last_staker = Pubkey::default();
 
     let stake_entry_seed = &[STAKE_ENTRY_PREFIX.as_bytes(), stake_entry.pool.as_ref(), stake_entry.original_mint.as_ref(), &[stake_entry.bump]];

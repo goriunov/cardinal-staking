@@ -50,17 +50,29 @@ pub fn handler(ctx: Context<ClaimRewardsCtx>) -> Result<()> {
 
     let reward_seconds_received = reward_entry.reward_seconds_received;
     if reward_seconds_received <= ctx.accounts.stake_entry.total_stake_seconds as u64 && !reward_distributor.closed {
-        let mut reward_time_to_receive = ctx.accounts.stake_entry.total_stake_seconds as u64 - reward_seconds_received;
-        let mut reward_amount_to_receive = reward_time_to_receive / reward_duration_seconds * reward_amount * reward_entry.multiplier;
+        let mut reward_time_to_receive = (ctx.accounts.stake_entry.total_stake_seconds as u64).checked_sub(reward_seconds_received).unwrap();
+        let mut reward_amount_to_receive = reward_time_to_receive
+            .checked_div(reward_duration_seconds)
+            .unwrap()
+            .checked_mul(reward_amount)
+            .unwrap()
+            .checked_mul(reward_entry.multiplier)
+            .unwrap();
 
         // if this will go over max supply give rewards up to max supply
-        if reward_distributor.max_supply != None && reward_distributor.rewards_issued + reward_amount_to_receive >= reward_distributor.max_supply.unwrap() {
+        if reward_distributor.max_supply != None && reward_distributor.rewards_issued.checked_add(reward_amount_to_receive).unwrap() >= reward_distributor.max_supply.unwrap() {
             reward_distributor.closed = true;
-            reward_amount_to_receive = reward_distributor.max_supply.unwrap() - reward_amount_to_receive;
+            reward_amount_to_receive = reward_distributor.max_supply.unwrap().checked_sub(reward_amount_to_receive).unwrap();
 
             // this is nuanced about if the rewards are closed, should they get the reward time for that time even though they didnt get any rewards?
             // this only matters if the reward distributor becomes open again and they missed out on some rewards they coudlve gotten
-            reward_time_to_receive = reward_amount_to_receive / reward_amount * reward_duration_seconds / reward_entry.multiplier
+            reward_time_to_receive = reward_amount_to_receive
+                .checked_div(reward_amount)
+                .unwrap()
+                .checked_mul(reward_duration_seconds)
+                .unwrap()
+                .checked_div(reward_entry.multiplier)
+                .unwrap();
         }
 
         // mint to the user
@@ -74,9 +86,9 @@ pub fn handler(ctx: Context<ClaimRewardsCtx>) -> Result<()> {
         token::mint_to(cpi_context, reward_amount_to_receive)?;
 
         // update values
-        reward_distributor.rewards_issued += reward_amount_to_receive;
-        reward_entry.reward_amount_receievd += reward_amount_to_receive;
-        reward_entry.reward_seconds_received += reward_time_to_receive;
+        reward_distributor.rewards_issued = reward_distributor.rewards_issued.checked_add(reward_amount_to_receive).unwrap();
+        reward_entry.reward_amount_receievd = reward_entry.reward_amount_receievd.checked_add(reward_amount_to_receive).unwrap();
+        reward_entry.reward_seconds_received = reward_entry.reward_seconds_received.checked_add(reward_time_to_receive).unwrap();
     }
     Ok(())
 }
