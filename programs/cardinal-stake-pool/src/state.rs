@@ -31,5 +31,5 @@ pub struct StakePool {
 }
 
 pub fn is_admin(key: &Pubkey) -> bool{
-    return *key == Pubkey::from_str("crdk1Mw5WzoVNgz8RgHJXzHdwSrJvp4UcGirvtJzB6U").unwrap();
+    *key == Pubkey::from_str("crdk1Mw5WzoVNgz8RgHJXzHdwSrJvp4UcGirvtJzB6U").unwrap()
 }

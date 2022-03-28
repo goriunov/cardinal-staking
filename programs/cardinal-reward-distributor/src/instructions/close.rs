@@ -46,5 +46,5 @@ pub fn handler(ctx: Context<CloseCtx>) -> Result<()> {
     }
 
     ctx.accounts.reward_distributor.closed = true;
-    return Ok(())
+    Ok(())
 }

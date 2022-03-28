@@ -81,7 +81,7 @@ pub struct StakeCtx<'info> {
 
 pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, StakeCtx<'info>>) -> Result<()> {
     let stake_entry = &mut ctx.accounts.stake_entry;
-    let stake_pool = &mut ctx.accounts.stake_pool;
+    let stake_pool = &ctx.accounts.stake_pool;
     let stake_entry_seed = &[STAKE_ENTRY_PREFIX.as_bytes(), stake_entry.pool.as_ref(), stake_entry.original_mint.as_ref(), &[stake_entry.bump]];
     let stake_entry_signer = &[&stake_entry_seed[..]];
 
