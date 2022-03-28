@@ -20,7 +20,6 @@ pub struct StakeEntry {
     pub total_stake_seconds: i64,
     pub last_staked_at: i64,
     pub last_staker: Pubkey,
-    pub authority: Pubkey,
 }
 
 #[account]
@@ -31,6 +30,7 @@ pub struct StakePool {
     pub allowed_collections: Vec<Pubkey>,
     pub overlay_text: String,
     pub image_uri: String,
+    pub authority: Pubkey,
 }
 
 #[account]

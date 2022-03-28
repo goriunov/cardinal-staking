@@ -1,4 +1,7 @@
-use {crate::state::*, anchor_lang::prelude::*};
+use {
+    crate::{errors::ErrorCode, state::*},
+    anchor_lang::prelude::*,
+};
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct InitPoolIx {
@@ -7,6 +10,7 @@ pub struct InitPoolIx {
     allowed_creators: Vec<Pubkey>,
     overlay_text: String,
     image_uri: String,
+    authority: Pubkey,
 }
 
 #[derive(Accounts)]
@@ -29,7 +33,7 @@ pub struct InitPoolCtx<'info> {
     )]
     identifier: Account<'info, Identifier>,
 
-    #[account(mut)]
+    #[account(mut, constraint = is_authority(&payer.key()) @ ErrorCode::InvalidPoolAuthority)]
     payer: Signer<'info>,
     system_program: Program<'info, System>,
 }
@@ -42,6 +46,7 @@ pub fn handler(ctx: Context<InitPoolCtx>, ix: InitPoolIx) -> Result<()> {
     stake_pool.allowed_creators = ix.allowed_creators;
     stake_pool.overlay_text = ix.overlay_text;
     stake_pool.image_uri = ix.image_uri;
+    stake_pool.authority = ix.authority;
 
     let identifier = &mut ctx.accounts.identifier;
     identifier.count += 1;
