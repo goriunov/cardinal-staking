@@ -1,8 +1,8 @@
 use {
-    crate::{state::*, errors::ErrorCode},
-    anchor_lang::{prelude::*},
-    cardinal_stake_pool::state::{StakePool},
+    crate::{errors::ErrorCode, state::*},
+    anchor_lang::prelude::*,
     anchor_spl::token::{self, Mint, SetAuthority, Token, TokenAccount},
+    cardinal_stake_pool::state::StakePool,
     spl_token::instruction::AuthorityType,
 };
 
@@ -25,8 +25,8 @@ pub struct ReopenCtx<'info> {
 
 pub fn handler(ctx: Context<ReopenCtx>) -> Result<()> {
     let reward_distributor = &mut ctx.accounts.reward_distributor;
-    if !reward_distributor.closed{
-        return Err(error!(ErrorCode::DistributorNotClosed))
+    if !reward_distributor.closed {
+        return Err(error!(ErrorCode::DistributorNotClosed));
     }
 
     match reward_distributor.kind {
@@ -43,6 +43,7 @@ pub fn handler(ctx: Context<ReopenCtx>) -> Result<()> {
             if reward_distributor.max_supply == None {
                 return Err(error!(ErrorCode::MaxSupplyRequired));
             }
+            let remaining_tokens = reward_distributor.max_supply.unwrap() - reward_distributor.rewards_issued;
             let reward_distributor_token_account = &mut ctx.accounts.reward_distributor_token_account;
             let authority_token_account = &mut ctx.accounts.authority_token_account;
 
@@ -53,7 +54,7 @@ pub fn handler(ctx: Context<ReopenCtx>) -> Result<()> {
             };
             let cpi_program = ctx.accounts.token_program.to_account_info();
             let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-            token::transfer(cpi_context, reward_distributor.max_supply.unwrap())?;
+            token::transfer(cpi_context, remaining_tokens)?;
         }
         _ => return Err(error!(ErrorCode::InvalidRewardDistributorKind)),
     }
