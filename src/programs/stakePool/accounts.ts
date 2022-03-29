@@ -20,9 +20,7 @@ export const getStakePool = async (
     provider
   );
 
-  const parsed = (await stakePoolProgram.account.stakePool.fetch(
-    stakePoolId
-  )) as StakePoolData;
+  const parsed = await stakePoolProgram.account.stakePool.fetch(stakePoolId);
   return {
     parsed,
     pubkey: stakePoolId,
@@ -105,9 +103,7 @@ export const getPoolIdentifier = async (
     provider
   );
   const [identifierId] = await findIdentifierId();
-  const parsed = (await stakePoolProgram.account.identifier.fetch(
-    identifierId
-  )) as IdentifierData;
+  const parsed = await stakePoolProgram.account.identifier.fetch(identifierId);
   return {
     parsed,
     pubkey: identifierId,
