@@ -20,7 +20,7 @@ export const getStakePool = async (
     provider
   );
 
-  const parsed = await stakePoolProgram.account.stakePool.fetch(stakePoolId) as StakePoolData;
+  const parsed = await stakePoolProgram.account.stakePool.fetch(stakePoolId);
   return {
     parsed,
     pubkey: stakePoolId,
@@ -92,7 +92,7 @@ export const getStakeEntries = async (
 };
 
 export const getPoolIdentifier = async (
-  connection: Connection,
+  connection: Connection
 ): Promise<AccountData<IdentifierData>> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -102,12 +102,10 @@ export const getPoolIdentifier = async (
     STAKE_POOL_ADDRESS,
     provider
   );
-  const [identifierId] = await findIdentifierId()
-  const parsed = (await stakePoolProgram.account.identifier.fetch(
-    identifierId
-  )) as IdentifierData;
+  const [identifierId] = await findIdentifierId();
+  const parsed = await stakePoolProgram.account.identifier.fetch(identifierId);
   return {
     parsed,
     pubkey: identifierId,
-  }
+  };
 };
