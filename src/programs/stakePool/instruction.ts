@@ -147,9 +147,7 @@ export const stake = async (
   return stakePoolProgram.instruction.stake({
     accounts: {
       stakeEntry: params.stakeEntryId,
-      stakePool: params.stakePoolId,
       originalMint: params.originalMintId,
-      originalMintMetadata: params.originalMintMetadataId,
       receiptMint: params.receiptMintId,
       tokenManager: params.tokenManagerId,
       mintCounter: params.mintCounterId,
