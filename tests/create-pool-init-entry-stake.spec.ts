@@ -1,4 +1,5 @@
 import { findAta } from "@cardinal/common";
+import type { BN } from "@project-serum/anchor";
 import { expectTXTable } from "@saberhq/chai-solana";
 import { SolanaProvider, TransactionEnvelope } from "@saberhq/solana-contrib";
 import * as splToken from "@solana/spl-token";
@@ -19,11 +20,11 @@ import {
   withStake,
   withUnstake,
 } from "../src/programs/stakePool/transaction";
-import { createMint, getPoolIdentifier } from "./utils";
+import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
 describe("Create stake pool", () => {
-  const poolIdentifier = getPoolIdentifier();
+  let poolIdentifier: BN;
   const entryName = "name";
   const symbol = "symbol";
   const overlayText = "staking";
@@ -44,10 +45,14 @@ describe("Create stake pool", () => {
   it("Create Pool", async () => {
     const provider = getProvider();
     const transaction = new web3.Transaction();
-    await withCreatePool(transaction, provider.connection, provider.wallet, {
-      identifier: poolIdentifier,
-      overlayText: overlayText,
-    });
+    [, , poolIdentifier] = await withCreatePool(
+      transaction,
+      provider.connection,
+      provider.wallet,
+      {
+        overlayText: overlayText,
+      }
+    );
 
     const txEnvelope = new TransactionEnvelope(
       SolanaProvider.init({

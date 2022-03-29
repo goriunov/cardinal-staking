@@ -1,3 +1,4 @@
+import type { BN } from "@project-serum/anchor";
 import { expectTXTable } from "@saberhq/chai-solana";
 import {
   SignerWallet,
@@ -21,11 +22,11 @@ import {
   withCreatePool,
   withStake,
 } from "../src/programs/stakePool/transaction";
-import { createMasterEditionIxs, createMint, getPoolIdentifier } from "./utils";
+import { createMasterEditionIxs, createMint } from "./utils";
 import { getProvider } from "./workspace";
 
 describe("Create stake pool", () => {
-  const poolIdentifier = getPoolIdentifier();
+  let poolIdentifier: BN;
   const entryName = "name";
   const symbol = "symbol";
   const overlayText = "staking";
@@ -66,11 +67,15 @@ describe("Create stake pool", () => {
   it("Create Pool", async () => {
     const provider = getProvider();
     const transaction = new web3.Transaction();
-    await withCreatePool(transaction, provider.connection, provider.wallet, {
-      identifier: poolIdentifier,
-      overlayText: overlayText,
-      allowedCreators: [originalMintAuthority.publicKey],
-    });
+    [, , poolIdentifier] = await withCreatePool(
+      transaction,
+      provider.connection,
+      provider.wallet,
+      {
+        overlayText: overlayText,
+        allowedCreators: [originalMintAuthority.publicKey],
+      }
+    );
 
     const txEnvelope = new TransactionEnvelope(
       SolanaProvider.init({

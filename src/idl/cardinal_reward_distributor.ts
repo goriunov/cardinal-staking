@@ -1,5 +1,5 @@
 export type CardinalRewardDistributor = {
-  version: "0.1.0";
+  version: "0.0.0";
   name: "cardinal_reward_distributor";
   instructions: [
     {
@@ -133,6 +133,88 @@ export type CardinalRewardDistributor = {
         },
         {
           name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [];
+    },
+    {
+      name: "reopen";
+      accounts: [
+        {
+          name: "rewardDistributor";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "stakePool";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "rewardMint";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "rewardDistributorTokenAccount";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "authorityTokenAccount";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "signer";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [];
+    },
+    {
+      name: "close";
+      accounts: [
+        {
+          name: "rewardDistributor";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "stakePool";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "rewardMint";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "rewardDistributorTokenAccount";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "authorityTokenAccount";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "signer";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "tokenProgram";
           isMut: false;
           isSigner: false;
         }
@@ -280,6 +362,47 @@ export type CardinalRewardDistributor = {
       };
     },
     {
+      name: "ErrorCode";
+      type: {
+        kind: "enum";
+        variants: [
+          {
+            name: "InvalidTokenAccount";
+          },
+          {
+            name: "InvalidRewardMint";
+          },
+          {
+            name: "InvalidUserRewardMintTokenAccount";
+          },
+          {
+            name: "InvalidRewardDistributor";
+          },
+          {
+            name: "InvalidRewardDistributorAuthority";
+          },
+          {
+            name: "InvalidRewardDistributorKind";
+          },
+          {
+            name: "MaxSupplyRequired";
+          },
+          {
+            name: "InvalidAuthority";
+          },
+          {
+            name: "InvalidPoolDistributor";
+          },
+          {
+            name: "DistributorNotClosed";
+          },
+          {
+            name: "DistributorAlreadyClosed";
+          }
+        ];
+      };
+    },
+    {
       name: "RewardDistributorKind";
       type: {
         kind: "enum";
@@ -294,47 +417,10 @@ export type CardinalRewardDistributor = {
       };
     }
   ];
-  errors: [
-    {
-      code: 6000;
-      name: "InvalidTokenAccount";
-      msg: "Invalid token account";
-    },
-    {
-      code: 6001;
-      name: "InvalidRewardMint";
-      msg: "Invalid reward mint";
-    },
-    {
-      code: 6002;
-      name: "InvalidUserRewardMintTokenAccount";
-      msg: "Invalid user reward mint token account";
-    },
-    {
-      code: 6003;
-      name: "InvalidRewardDistributor";
-      msg: "Invalid reward distributor";
-    },
-    {
-      code: 6004;
-      name: "InvalidRewardDistributorAuthority";
-      msg: "Invalid reward distributor authority";
-    },
-    {
-      code: 6005;
-      name: "InvalidRewardDistributorKind";
-      msg: "Invalid reward distributor kind";
-    },
-    {
-      code: 6006;
-      name: "MaxSupplyRequired";
-      msg: "Max supply required for kind treasury";
-    }
-  ];
 };
 
 export const IDL: CardinalRewardDistributor = {
-  version: "0.1.0",
+  version: "0.0.0",
   name: "cardinal_reward_distributor",
   instructions: [
     {
@@ -468,6 +554,88 @@ export const IDL: CardinalRewardDistributor = {
         },
         {
           name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: "reopen",
+      accounts: [
+        {
+          name: "rewardDistributor",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "stakePool",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "rewardMint",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "rewardDistributorTokenAccount",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "authorityTokenAccount",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "signer",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: "close",
+      accounts: [
+        {
+          name: "rewardDistributor",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "stakePool",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "rewardMint",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "rewardDistributorTokenAccount",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "authorityTokenAccount",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "signer",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "tokenProgram",
           isMut: false,
           isSigner: false,
         },
@@ -615,6 +783,47 @@ export const IDL: CardinalRewardDistributor = {
       },
     },
     {
+      name: "ErrorCode",
+      type: {
+        kind: "enum",
+        variants: [
+          {
+            name: "InvalidTokenAccount",
+          },
+          {
+            name: "InvalidRewardMint",
+          },
+          {
+            name: "InvalidUserRewardMintTokenAccount",
+          },
+          {
+            name: "InvalidRewardDistributor",
+          },
+          {
+            name: "InvalidRewardDistributorAuthority",
+          },
+          {
+            name: "InvalidRewardDistributorKind",
+          },
+          {
+            name: "MaxSupplyRequired",
+          },
+          {
+            name: "InvalidAuthority",
+          },
+          {
+            name: "InvalidPoolDistributor",
+          },
+          {
+            name: "DistributorNotClosed",
+          },
+          {
+            name: "DistributorAlreadyClosed",
+          },
+        ],
+      },
+    },
+    {
       name: "RewardDistributorKind",
       type: {
         kind: "enum",
@@ -627,43 +836,6 @@ export const IDL: CardinalRewardDistributor = {
           },
         ],
       },
-    },
-  ],
-  errors: [
-    {
-      code: 6000,
-      name: "InvalidTokenAccount",
-      msg: "Invalid token account",
-    },
-    {
-      code: 6001,
-      name: "InvalidRewardMint",
-      msg: "Invalid reward mint",
-    },
-    {
-      code: 6002,
-      name: "InvalidUserRewardMintTokenAccount",
-      msg: "Invalid user reward mint token account",
-    },
-    {
-      code: 6003,
-      name: "InvalidRewardDistributor",
-      msg: "Invalid reward distributor",
-    },
-    {
-      code: 6004,
-      name: "InvalidRewardDistributorAuthority",
-      msg: "Invalid reward distributor authority",
-    },
-    {
-      code: 6005,
-      name: "InvalidRewardDistributorKind",
-      msg: "Invalid reward distributor kind",
-    },
-    {
-      code: 6006,
-      name: "MaxSupplyRequired",
-      msg: "Max supply required for kind treasury",
     },
   ],
 };
