@@ -8,15 +8,17 @@ import { expect } from "chai";
 
 import {
   getStakeEntry,
-  getStakePool,
+  // getStakePool,
 } from "../src/programs/stakePool/accounts";
+import { initIdentifier } from "../src/programs/stakePool/instruction";
 import {
+  findIdentifierId,
   findStakeEntryIdForPool,
   findStakePoolId,
 } from "../src/programs/stakePool/pda";
 import {
   withCreateEntry,
-  withCreatePool,
+  // withCreatePool,
   withStake,
   withUnstake,
 } from "../src/programs/stakePool/transaction";
@@ -27,7 +29,7 @@ describe("Create stake pool", () => {
   let poolIdentifier: BN;
   const entryName = "name";
   const symbol = "symbol";
-  const overlayText = "staking";
+  // const overlayText = "staking";
   let originalMint: splToken.Token;
   const receiptMintKeypair = web3.Keypair.generate();
   const originalMintAuthority = web3.Keypair.generate();
@@ -45,15 +47,21 @@ describe("Create stake pool", () => {
   it("Create Pool", async () => {
     const provider = getProvider();
     const transaction = new web3.Transaction();
-    [, , poolIdentifier] = await withCreatePool(
-      transaction,
-      provider.connection,
-      provider.wallet,
-      {
-        overlayText: overlayText,
-      }
+
+    const [identifierId] = await findIdentifierId();
+    transaction.add(
+      initIdentifier(provider.connection, provider.wallet, {
+        identifierId: identifierId,
+      })
     );
-    console.log(transaction);
+    // [, , poolIdentifier] = await withCreatePool(
+    //   transaction,
+    //   provider.connection,
+    //   provider.wallet,
+    //   {
+    //     overlayText: overlayText,
+    //   }
+    // );
 
     const txEnvelope = new TransactionEnvelope(
       SolanaProvider.init({
@@ -69,12 +77,12 @@ describe("Create stake pool", () => {
       formatLogs: true,
     }).to.be.fulfilled;
 
-    const [stakePoolId] = await findStakePoolId(poolIdentifier);
-    const stakePoolData = await getStakePool(provider.connection, stakePoolId);
+    // const [stakePoolId] = await findStakePoolId(poolIdentifier);
+    // const stakePoolData = await getStakePool(provider.connection, stakePoolId);
 
-    expect(stakePoolData.parsed.identifier.toNumber()).to.eq(
-      poolIdentifier.toNumber()
-    );
+    // expect(stakePoolData.parsed.identifier.toNumber()).to.eq(
+    //   poolIdentifier.toNumber()
+    // );
   });
 
   it("Init stake entry for pool", async () => {

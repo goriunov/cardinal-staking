@@ -63,6 +63,7 @@ export const withCreatePool = async (
   const [identifierExists, identifier] = await checkIfIdentifierExists(
     connection
   );
+
   if (!identifierExists) {
     transaction.add(
       initIdentifier(connection, wallet, {
