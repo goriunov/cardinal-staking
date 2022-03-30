@@ -30,4 +30,6 @@ pub enum ErrorCode {
     InvalidStakeEntryReceiptTokenAccount,
     #[msg("Invalid last staker")]
     InvalidLastStaker,
+    #[msg("Invalid token manager program")]
+    InvalidTokenManagerProgram,
 }

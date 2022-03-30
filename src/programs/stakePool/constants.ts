@@ -23,3 +23,8 @@ type Accounts = StakePoolTypes["Accounts"];
 export type StakePoolData = Accounts["stakePool"];
 export type StakeEntryData = Accounts["stakeEntry"];
 export type IdentifierData = Accounts["identifier"];
+
+export enum StakeType {
+  Escrow = 1,
+  Locked = 2,
+}

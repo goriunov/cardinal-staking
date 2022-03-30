@@ -42,13 +42,13 @@ pub struct InitReceiptMintCtx<'info> {
 
     /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
-    mint_manager: UncheckedAccount<'info>,
+    receipt_mint_metadata: UncheckedAccount<'info>,
     /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
     stake_entry_receipt_mint_token_account: UncheckedAccount<'info>,
     /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
-    receipt_mint_metadata: UncheckedAccount<'info>,
+    mint_manager: UncheckedAccount<'info>,
 
     #[account(mut, constraint = payer.key() == stake_pool.authority)]
     payer: Signer<'info>,

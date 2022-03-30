@@ -111,7 +111,7 @@ export const withClaimRewards = async (
     transaction.add(
       await claimRewards(connection, wallet, {
         stakePoolId: params.stakePoolId,
-        originalMint: params.originalMint,
+        originalMintId: params.originalMint,
         mintTokenAccount: params.originalMintTokenAccount,
         rewardMintId: rewardDistributorData.parsed.rewardMint,
         rewardMintTokenAccountId: rewardMintTokenAccountId,

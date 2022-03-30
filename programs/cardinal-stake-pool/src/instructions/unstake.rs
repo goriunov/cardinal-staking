@@ -1,18 +1,13 @@
 use {
     crate::{errors::ErrorCode, state::*},
     anchor_lang::prelude::*,
+    anchor_spl::token::{self, Token, TokenAccount},
 };
-
-use anchor_spl::token::{self, Token, TokenAccount};
-
-use cardinal_token_manager::{self, program::CardinalTokenManager, state::TokenManager};
 
 #[derive(Accounts)]
 pub struct UnstakeCtx<'info> {
     #[account(mut)]
     stake_entry: Box<Account<'info, StakeEntry>>,
-    #[account(mut)]
-    token_manager: Box<Account<'info, TokenManager>>,
 
     // stake_entry token accounts
     #[account(mut, constraint =
@@ -23,7 +18,7 @@ pub struct UnstakeCtx<'info> {
     stake_entry_original_mint_token_account: Box<Account<'info, TokenAccount>>,
 
     // user
-    #[account(mut, constraint = user.key() == stake_entry.last_staker.unwrap() @ ErrorCode::InvalidUnstakeUser)]
+    #[account(mut, constraint = user.key() == stake_entry.last_staker @ ErrorCode::InvalidUnstakeUser)]
     user: Signer<'info>,
     #[account(mut, constraint =
         user_original_mint_token_account.mint == stake_entry.original_mint
@@ -31,12 +26,8 @@ pub struct UnstakeCtx<'info> {
         @ ErrorCode::InvalidUserOriginalMintTokenAccount)]
     user_original_mint_token_account: Box<Account<'info, TokenAccount>>,
 
-    #[account(mut)]
-    token_manager_token_account: Box<Account<'info, TokenAccount>>,
-
     // programs
     token_program: Program<'info, Token>,
-    token_manager_program: Program<'info, CardinalTokenManager>,
 }
 
 pub fn handler(ctx: Context<UnstakeCtx>) -> Result<()> {
@@ -46,14 +37,16 @@ pub fn handler(ctx: Context<UnstakeCtx>) -> Result<()> {
     stake_entry.total_stake_seconds = stake_entry
         .total_stake_seconds
         .saturating_add(Clock::get().unwrap().unix_timestamp.checked_sub(stake_entry.last_staked_at).unwrap());
-    stake_entry.last_staker = None;
+    stake_entry.last_staker = Pubkey::default();
+    stake_entry.receipt_mint_claimed = false;
+    stake_entry.stake_type = StakeType::Unstaked as u8;
 
     let stake_entry_seed = &[STAKE_ENTRY_PREFIX.as_bytes(), stake_entry.pool.as_ref(), stake_entry.original_mint.as_ref(), &[stake_entry.bump]];
     let stake_entry_signer = &[&stake_entry_seed[..]];
 
     // If receipt has been minted, ensure it is back in the stake_entry
-    let remaining_accs = &mut ctx.remaining_accounts.iter();
     if stake_entry.receipt_mint != None {
+        let remaining_accs = &mut ctx.remaining_accounts.iter();
         let stake_entry_receipt_mint_token_account_info = next_account_info(remaining_accs)?;
         let stake_entry_receipt_mint_token_account = Account::<TokenAccount>::try_from(stake_entry_receipt_mint_token_account_info)?;
         if stake_entry_receipt_mint_token_account.mint != stake_entry.original_mint

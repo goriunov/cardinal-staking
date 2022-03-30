@@ -1,7 +1,7 @@
+import type { AccountData } from "@cardinal/common";
 import { Program, Provider } from "@project-serum/anchor";
 import type * as web3 from "@solana/web3.js";
 
-import type { AccountData } from "../../utils";
 import type { REWARD_DISTRIBUTOR_PROGRAM } from ".";
 import { REWARD_DISTRIBUTOR_ADDRESS, REWARD_DISTRIBUTOR_IDL } from ".";
 import type { RewardDistributorData, RewardEntryData } from "./constants";

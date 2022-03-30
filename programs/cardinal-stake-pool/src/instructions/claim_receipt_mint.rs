@@ -1,7 +1,10 @@
 use {
     crate::{errors::ErrorCode, state::*},
     anchor_lang::prelude::*,
-    anchor_spl::token::{Mint, Token, TokenAccount},
+    anchor_spl::{
+        associated_token::AssociatedToken,
+        token::{Mint, Token, TokenAccount},
+    },
     cardinal_token_manager::{
         self,
         program::CardinalTokenManager,
@@ -25,17 +28,18 @@ pub struct ClaimReceiptMintCtx<'info> {
     stake_entry_receipt_mint_token_account: Box<Account<'info, TokenAccount>>,
 
     // user
-    #[account(mut, constraint = user.key() == stake_entry.last_staker.unwrap() @ ErrorCode::InvalidLastStaker)]
+    #[account(mut, constraint = user.key() == stake_entry.last_staker @ ErrorCode::InvalidLastStaker)]
     user: Signer<'info>,
-    #[account(mut, constraint =
-        user_receipt_mint_token_account.amount == 0
-        && user_receipt_mint_token_account.mint == receipt_mint.key()
-        && user_receipt_mint_token_account.owner == user.key()
-        @ ErrorCode::InvalidUserMintTokenAccount)]
+    #[account(
+        init_if_needed,
+        payer = user,
+        associated_token::mint = receipt_mint,
+        associated_token::authority = user
+    )]
     user_receipt_mint_token_account: Box<Account<'info, TokenAccount>>,
 
     #[account(mut)]
-    token_manager_mint_account: Box<Account<'info, TokenAccount>>,
+    token_manager_receipt_mint_token_account: Box<Account<'info, TokenAccount>>,
 
     /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
@@ -47,13 +51,18 @@ pub struct ClaimReceiptMintCtx<'info> {
     // programs
     token_program: Program<'info, Token>,
     token_manager_program: Program<'info, CardinalTokenManager>,
+    associated_token_program: Program<'info, AssociatedToken>,
     system_program: Program<'info, System>,
+    rent: Sysvar<'info, Rent>,
 }
 
 pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, ClaimReceiptMintCtx<'info>>) -> Result<()> {
     let stake_entry = &mut ctx.accounts.stake_entry;
-    let stake_entry_seed = &[STAKE_ENTRY_PREFIX.as_bytes(), stake_entry.pool.as_ref(), stake_entry.original_mint.as_ref(), &[stake_entry.bump]];
+    let original_mint = stake_entry.original_mint;
+    let stake_pool = stake_entry.pool;
+    let stake_entry_seed = &[STAKE_ENTRY_PREFIX.as_bytes(), stake_pool.as_ref(), original_mint.as_ref(), &[stake_entry.bump]];
     let stake_entry_signer = &[&stake_entry_seed[..]];
+    stake_entry.receipt_mint_claimed = true;
 
     // token manager init
     let cpi_accounts = cardinal_token_manager::cpi::accounts::InitCtx {
@@ -78,7 +87,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     // token manager issue
     let cpi_accounts = cardinal_token_manager::cpi::accounts::IssueCtx {
         token_manager: ctx.accounts.token_manager.to_account_info(),
-        token_manager_token_account: ctx.accounts.token_manager_mint_account.to_account_info(),
+        token_manager_token_account: ctx.accounts.token_manager_receipt_mint_token_account.to_account_info(),
         issuer: stake_entry.to_account_info(),
         issuer_token_account: ctx.accounts.stake_entry_receipt_mint_token_account.to_account_info(),
         payer: ctx.accounts.user.to_account_info(),
@@ -96,7 +105,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     // token manager claim
     let cpi_accounts = cardinal_token_manager::cpi::accounts::ClaimCtx {
         token_manager: ctx.accounts.token_manager.to_account_info(),
-        token_manager_token_account: ctx.accounts.token_manager_mint_account.to_account_info(),
+        token_manager_token_account: ctx.accounts.token_manager_receipt_mint_token_account.to_account_info(),
         mint: ctx.accounts.receipt_mint.to_account_info(),
         recipient: ctx.accounts.user.to_account_info(),
         recipient_token_account: ctx.accounts.user_receipt_mint_token_account.to_account_info(),

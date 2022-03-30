@@ -18,8 +18,8 @@ pub mod cardinal_stake_pool {
         init_pool::handler(ctx, ix)
     }
 
-    pub fn init_entry(ctx: Context<InitEntryCtx>, ix: InitEntryIx) -> Result<()> {
-        init_entry::handler(ctx, ix)
+    pub fn init_entry(ctx: Context<InitEntryCtx>) -> Result<()> {
+        init_entry::handler(ctx)
     }
 
     pub fn init_receipt_mint(ctx: Context<InitReceiptMintCtx>, ix: InitReceiptMintIx) -> Result<()> {

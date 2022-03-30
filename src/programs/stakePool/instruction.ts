@@ -1,8 +1,13 @@
-import type { TokenManagerKind } from "@cardinal/token-manager/dist/cjs/programs/tokenManager";
+import { findAta } from "@cardinal/common";
 import {
   getRemainingAccountsForKind,
   TOKEN_MANAGER_ADDRESS,
+  TokenManagerKind,
 } from "@cardinal/token-manager/dist/cjs/programs/tokenManager";
+import {
+  findMintCounterId,
+  findTokenManagerAddress,
+} from "@cardinal/token-manager/dist/cjs/programs/tokenManager/pda";
 import { MetadataProgram } from "@metaplex-foundation/mpl-token-metadata";
 import { Program, Provider } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
@@ -11,6 +16,7 @@ import {
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import type {
+  AccountMeta,
   Connection,
   PublicKey,
   TransactionInstruction,
@@ -19,8 +25,9 @@ import { SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 
 import type { STAKE_POOL_PROGRAM } from ".";
 import { STAKE_POOL_ADDRESS, STAKE_POOL_IDL } from ".";
+import type { StakeType } from "./constants";
 
-export const initIdentifier = (
+export const initPoolIdentifier = (
   connection: Connection,
   wallet: Wallet,
   params: {
@@ -88,10 +95,39 @@ export const initStakeEntry = (
     stakeEntryId: PublicKey;
     originalMintId: PublicKey;
     originalMintMetadatId: PublicKey;
+  }
+): TransactionInstruction => {
+  const provider = new Provider(connection, wallet, {});
+  const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
+    STAKE_POOL_IDL,
+    STAKE_POOL_ADDRESS,
+    provider
+  );
+
+  return stakePoolProgram.instruction.initEntry({
+    accounts: {
+      stakeEntry: params.stakeEntryId,
+      stakePool: params.stakePoolId,
+      originalMint: params.originalMintId,
+      originalMintMetadata: params.originalMintMetadatId,
+      payer: wallet.publicKey,
+      systemProgram: SystemProgram.programId,
+    },
+  });
+};
+
+export const initReceiptMint = (
+  connection: Connection,
+  wallet: Wallet,
+  params: {
+    stakePoolId: PublicKey;
+    stakeEntryId: PublicKey;
+    originalMintId: PublicKey;
+    originalMintMetadatId: PublicKey;
     stakeEntryReceiptMintTokenAccountId: PublicKey;
     receiptMintMetadataId: PublicKey;
     receiptMintId: PublicKey;
-    mintManager: PublicKey;
+    mintManagerId: PublicKey;
     name: string;
     symbol: string;
   }
@@ -103,11 +139,8 @@ export const initStakeEntry = (
     provider
   );
 
-  return stakePoolProgram.instruction.initEntry(
-    {
-      name: params.name,
-      symbol: params.symbol,
-    },
+  return stakePoolProgram.instruction.initReceiptMint(
+    { name: params.name, symbol: params.symbol },
     {
       accounts: {
         stakeEntry: params.stakeEntryId,
@@ -115,40 +148,29 @@ export const initStakeEntry = (
         originalMint: params.originalMintId,
         originalMintMetadata: params.originalMintMetadatId,
         receiptMint: params.receiptMintId,
-        mintManager: params.mintManager,
+        receiptMintMetadata: params.receiptMintMetadataId,
         stakeEntryReceiptMintTokenAccount:
           params.stakeEntryReceiptMintTokenAccountId,
-        receiptMintMetadata: params.receiptMintMetadataId,
+        mintManager: params.mintManagerId,
         payer: wallet.publicKey,
-        rent: SYSVAR_RENT_PUBKEY,
         tokenProgram: TOKEN_PROGRAM_ID,
         tokenManagerProgram: TOKEN_MANAGER_ADDRESS,
         associatedToken: ASSOCIATED_TOKEN_PROGRAM_ID,
         tokenMetadataProgram: MetadataProgram.PUBKEY,
+        rent: SYSVAR_RENT_PUBKEY,
         systemProgram: SystemProgram.programId,
       },
     }
   );
 };
 
-export const stake = async (
+export const claimReceiptMint = async (
   connection: Connection,
   wallet: Wallet,
   params: {
     stakeEntryId: PublicKey;
-    tokenManagerId: PublicKey;
-    mintCounterId: PublicKey;
-    stakePoolId: PublicKey;
-    originalMintId: PublicKey;
-    originalMintMetadataId: PublicKey;
+    tokenManagerReceiptMintTokenAccountId: PublicKey;
     receiptMintId: PublicKey;
-    stakeEntryOriginalMintTokenAccountId: PublicKey;
-    stakeEntryReceiptMintTokenAccountId: PublicKey;
-    user: PublicKey;
-    userOriginalMintTokenAccountId: PublicKey;
-    userReceiptMintTokenAccountId: PublicKey;
-    tokenManagerMintAccountId: PublicKey;
-    tokenManagerKind: TokenManagerKind;
   }
 ): Promise<TransactionInstruction> => {
   const provider = new Provider(connection, wallet, {});
@@ -158,33 +180,71 @@ export const stake = async (
     provider
   );
 
-  const remainingAccounts = await getRemainingAccountsForKind(
-    params.receiptMintId,
-    params.tokenManagerKind
+  const [
+    [tokenManagerId],
+    [mintCounterId],
+    stakeEntryReceiptMintTokenAccountId,
+    userReceiptMintTokenAccountId,
+    remainingAccounts,
+  ] = await Promise.all([
+    findTokenManagerAddress(params.receiptMintId),
+    findMintCounterId(params.receiptMintId),
+    findAta(params.receiptMintId, params.stakeEntryId),
+    findAta(params.receiptMintId, wallet.publicKey),
+    getRemainingAccountsForKind(params.receiptMintId, TokenManagerKind.Managed),
+  ]);
+
+  return stakePoolProgram.instruction.claimReceiptMint({
+    accounts: {
+      stakeEntry: params.stakeEntryId,
+      receiptMint: params.receiptMintId,
+      stakeEntryReceiptMintTokenAccount: stakeEntryReceiptMintTokenAccountId,
+      user: wallet.publicKey,
+      userReceiptMintTokenAccount: userReceiptMintTokenAccountId,
+      mintCounter: mintCounterId,
+      tokenManager: tokenManagerId,
+      tokenManagerReceiptMintTokenAccount:
+        params.tokenManagerReceiptMintTokenAccountId,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      tokenManagerProgram: TOKEN_MANAGER_ADDRESS,
+      systemProgram: SystemProgram.programId,
+      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+      rent: SYSVAR_RENT_PUBKEY,
+    },
+    remainingAccounts,
+  });
+};
+
+export const stake = (
+  connection: Connection,
+  wallet: Wallet,
+  params: {
+    stakeType: StakeType;
+    stakeEntryId: PublicKey;
+    originalMintId: PublicKey;
+    stakeEntryOriginalMintTokenAccountId: PublicKey;
+    userOriginalMintTokenAccountId: PublicKey;
+    remainingAccounts: AccountMeta[];
+  }
+): TransactionInstruction => {
+  const provider = new Provider(connection, wallet, {});
+  const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
+    STAKE_POOL_IDL,
+    STAKE_POOL_ADDRESS,
+    provider
   );
 
-  return stakePoolProgram.instruction.stake({
+  return stakePoolProgram.instruction.stake(params.stakeType, {
     accounts: {
       stakeEntry: params.stakeEntryId,
       originalMint: params.originalMintId,
-      receiptMint: params.receiptMintId,
-      tokenManager: params.tokenManagerId,
-      mintCounter: params.mintCounterId,
       stakeEntryOriginalMintTokenAccount:
         params.stakeEntryOriginalMintTokenAccountId,
-      stakeEntryReceiptMintTokenAccount:
-        params.stakeEntryReceiptMintTokenAccountId,
-      user: params.user,
+      user: wallet.publicKey,
       userOriginalMintTokenAccount: params.userOriginalMintTokenAccountId,
-      userReceiptMintTokenAccount: params.userReceiptMintTokenAccountId,
-      tokenManagerMintAccount: params.tokenManagerMintAccountId,
       tokenProgram: TOKEN_PROGRAM_ID,
-      tokenManagerProgram: TOKEN_MANAGER_ADDRESS,
-      associatedToken: ASSOCIATED_TOKEN_PROGRAM_ID,
-      rent: SYSVAR_RENT_PUBKEY,
-      systemProgram: SystemProgram.programId,
     },
-    remainingAccounts: remainingAccounts,
+    remainingAccounts: params.remainingAccounts,
   });
 };
 
@@ -193,13 +253,9 @@ export const unstake = (
   wallet: Wallet,
   params: {
     stakeEntryId: PublicKey;
-    tokenManagerId: PublicKey;
     stakeEntryOriginalMintTokenAccount: PublicKey;
-    stakeEntryMintTokenAccount: PublicKey;
-    user: PublicKey;
     userOriginalMintTokenAccount: PublicKey;
-    userReceiptMintTokenAccount: PublicKey;
-    tokenManagerMintAccount: PublicKey;
+    user: PublicKey;
   }
 ): TransactionInstruction => {
   const provider = new Provider(connection, wallet, {});
@@ -211,16 +267,11 @@ export const unstake = (
   return stakePoolProgram.instruction.unstake({
     accounts: {
       stakeEntry: params.stakeEntryId,
-      tokenManager: params.tokenManagerId,
       stakeEntryOriginalMintTokenAccount:
         params.stakeEntryOriginalMintTokenAccount,
-      stakeEntryReceiptMintTokenAccount: params.stakeEntryMintTokenAccount,
       user: params.user,
       userOriginalMintTokenAccount: params.userOriginalMintTokenAccount,
-      userReceiptMintTokenAccount: params.userReceiptMintTokenAccount,
-      tokenManagerMintAccount: params.tokenManagerMintAccount,
       tokenProgram: TOKEN_PROGRAM_ID,
-      tokenManagerProgram: TOKEN_MANAGER_ADDRESS,
     },
   });
 };
