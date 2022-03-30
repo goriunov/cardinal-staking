@@ -29,7 +29,10 @@ import {
 } from "./instruction";
 import { findIdentifierId, findStakeEntryId, findStakePoolId } from "./pda";
 import { withInvalidate } from "./token-manager";
-import { withRemainingAccountsForStake } from "./utils";
+import {
+  withRemainingAccountsForStake,
+  withRemainingAccountsForUnstake,
+} from "./utils";
 
 export const withInitPoolIdentifier = async (
   transaction: web3.Transaction,
@@ -303,12 +306,21 @@ export const withUnstake = async (
       wallet.publicKey
     );
 
+  const remainingAccounts = await withRemainingAccountsForUnstake(
+    transaction,
+    connection,
+    wallet,
+    stakeEntryId,
+    stakeEntryData?.parsed.receiptMint
+  );
+
   transaction.add(
     unstake(connection, wallet, {
       stakeEntryId: stakeEntryId,
       user: wallet.publicKey,
       stakeEntryOriginalMintTokenAccount: stakeEntryOriginalMintTokenAccountId,
       userOriginalMintTokenAccount: userOriginalMintTokenAccountId,
+      remainingAccounts,
     })
   );
 

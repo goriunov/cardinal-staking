@@ -273,7 +273,7 @@ describe("Create stake pool", () => {
 
     expect(stakeEntryData.parsed.lastStakedAt.toNumber()).to.be.greaterThan(0);
     expect(stakeEntryData.parsed.lastStaker.toString()).to.eq(
-      provider.wallet.publicKey.toString()
+      web3.PublicKey.default.toString()
     );
 
     const receiptMint = new splToken.Token(

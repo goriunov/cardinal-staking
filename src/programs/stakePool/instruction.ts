@@ -154,11 +154,11 @@ export const initReceiptMint = (
           params.stakeEntryReceiptMintTokenAccountId,
         mintManager: params.mintManagerId,
         payer: wallet.publicKey,
+        rent: SYSVAR_RENT_PUBKEY,
         tokenProgram: TOKEN_PROGRAM_ID,
         tokenManagerProgram: TOKEN_MANAGER_ADDRESS,
         associatedToken: ASSOCIATED_TOKEN_PROGRAM_ID,
         tokenMetadataProgram: MetadataProgram.PUBKEY,
-        rent: SYSVAR_RENT_PUBKEY,
         systemProgram: SystemProgram.programId,
       },
     }
@@ -257,6 +257,7 @@ export const unstake = (
     stakeEntryOriginalMintTokenAccount: PublicKey;
     userOriginalMintTokenAccount: PublicKey;
     user: PublicKey;
+    remainingAccounts: AccountMeta[];
   }
 ): TransactionInstruction => {
   const provider = new Provider(connection, wallet, {});
@@ -274,5 +275,6 @@ export const unstake = (
       userOriginalMintTokenAccount: params.userOriginalMintTokenAccount,
       tokenProgram: TOKEN_PROGRAM_ID,
     },
+    remainingAccounts: params.remainingAccounts,
   });
 };

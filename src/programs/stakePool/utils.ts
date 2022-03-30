@@ -77,6 +77,35 @@ export const withRemainingAccountsForStake = async (
   }
 };
 
+export const withRemainingAccountsForUnstake = async (
+  transaction: web3.Transaction,
+  connection: web3.Connection,
+  wallet: Wallet,
+  stakeEntryId: web3.PublicKey,
+  receiptMint: web3.PublicKey | null | undefined
+): Promise<web3.AccountMeta[]> => {
+  if (receiptMint) {
+    const stakeEntryReceiptMintTokenAccount =
+      await withFindOrInitAssociatedTokenAccount(
+        transaction,
+        connection,
+        receiptMint,
+        stakeEntryId,
+        wallet.publicKey,
+        true
+      );
+    return [
+      {
+        pubkey: stakeEntryReceiptMintTokenAccount,
+        isSigner: false,
+        isWritable: false,
+      },
+    ];
+  } else {
+    return [];
+  }
+};
+
 export const getTotalStakeSeconds = async (
   connection: web3.Connection,
   stakePoolId: web3.PublicKey,

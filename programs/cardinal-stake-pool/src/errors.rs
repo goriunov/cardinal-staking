@@ -18,7 +18,7 @@ pub enum ErrorCode {
     InvalidUnstakeUser,
     #[msg("Invalid stake pool")]
     InvalidStakePool,
-    #[msg("No mint metadat")]
+    #[msg("No mint metadata")]
     NoMintMetadata,
     #[msg("Mint not allowed in this pool")]
     MintNotAllowedInPool,

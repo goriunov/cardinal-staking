@@ -33,14 +33,6 @@ pub struct UnstakeCtx<'info> {
 pub fn handler(ctx: Context<UnstakeCtx>) -> Result<()> {
     let stake_entry = &mut ctx.accounts.stake_entry;
 
-    // saturing add will stop at max u64
-    stake_entry.total_stake_seconds = stake_entry
-        .total_stake_seconds
-        .saturating_add(Clock::get().unwrap().unix_timestamp.checked_sub(stake_entry.last_staked_at).unwrap());
-    stake_entry.last_staker = Pubkey::default();
-    stake_entry.receipt_mint_claimed = false;
-    stake_entry.stake_type = StakeType::Unstaked as u8;
-
     let stake_entry_seed = &[STAKE_ENTRY_PREFIX.as_bytes(), stake_entry.pool.as_ref(), stake_entry.original_mint.as_ref(), &[stake_entry.bump]];
     let stake_entry_signer = &[&stake_entry_seed[..]];
 
@@ -49,9 +41,9 @@ pub fn handler(ctx: Context<UnstakeCtx>) -> Result<()> {
         let remaining_accs = &mut ctx.remaining_accounts.iter();
         let stake_entry_receipt_mint_token_account_info = next_account_info(remaining_accs)?;
         let stake_entry_receipt_mint_token_account = Account::<TokenAccount>::try_from(stake_entry_receipt_mint_token_account_info)?;
-        if stake_entry_receipt_mint_token_account.mint != stake_entry.original_mint
+        if stake_entry_receipt_mint_token_account.mint != stake_entry.receipt_mint.unwrap()
             || stake_entry_receipt_mint_token_account.owner != stake_entry.key()
-            || stake_entry_receipt_mint_token_account.amount > 0
+            || stake_entry_receipt_mint_token_account.amount == 0
         {
             return Err(error!(ErrorCode::InvalidStakeEntryReceiptTokenAccount));
         }
@@ -99,5 +91,14 @@ pub fn handler(ctx: Context<UnstakeCtx>) -> Result<()> {
     //     }
     //     _ => return Err(error!(ErrorCode::InvalidStakeType)),
     // }
+    // saturing add will stop at max u64
+
+    stake_entry.total_stake_seconds = stake_entry
+        .total_stake_seconds
+        .saturating_add(Clock::get().unwrap().unix_timestamp.checked_sub(stake_entry.last_staked_at).unwrap());
+    stake_entry.last_staker = Pubkey::default();
+    stake_entry.receipt_mint_claimed = false;
+    stake_entry.stake_type = StakeType::Unstaked as u8;
+
     Ok(())
 }

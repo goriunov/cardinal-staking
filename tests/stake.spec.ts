@@ -67,7 +67,6 @@ describe("Create stake pool", () => {
       provider.wallet,
       {}
     );
-    console.log(provider.wallet.publicKey.toString());
 
     await expectTXTable(
       new TransactionEnvelope(SolanaProvider.init(provider), [
