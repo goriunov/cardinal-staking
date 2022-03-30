@@ -65,14 +65,6 @@ export const withCreatePool = async (
   );
   const identifier = identifierData?.parsed.count || new BN(0);
 
-  if (!identifierData) {
-    transaction.add(
-      initIdentifier(connection, wallet, {
-        identifierId: identifierId,
-      })
-    );
-  }
-
   const [stakePoolId] = await findStakePoolId(identifier);
   transaction.add(
     initStakePool(connection, wallet, {

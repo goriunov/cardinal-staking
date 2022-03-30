@@ -1,4 +1,5 @@
 import { findAta } from "@cardinal/common";
+import { tryGetAccount } from "@cardinal/token-manager";
 import type { BN } from "@project-serum/anchor";
 import { expectTXTable } from "@saberhq/chai-solana";
 import { SolanaProvider, TransactionEnvelope } from "@saberhq/solana-contrib";
@@ -7,10 +8,13 @@ import * as web3 from "@solana/web3.js";
 import { expect } from "chai";
 
 import {
+  getPoolIdentifier,
   getStakeEntry,
   getStakePool,
 } from "../src/programs/stakePool/accounts";
+import { initIdentifier } from "../src/programs/stakePool/instruction";
 import {
+  findIdentifierId,
   findStakeEntryIdForPool,
   findStakePoolId,
 } from "../src/programs/stakePool/pda";
@@ -40,6 +44,32 @@ describe("Create stake pool", () => {
       originalMintAuthority,
       provider.wallet.publicKey
     );
+    const [identifierId] = await findIdentifierId();
+    const identifierData = await tryGetAccount(() =>
+      getPoolIdentifier(provider.connection)
+    );
+
+    if (!identifierData) {
+      const transaction = new web3.Transaction();
+      transaction.add(
+        initIdentifier(provider.connection, provider.wallet, {
+          identifierId: identifierId,
+        })
+      );
+      const txEnvelope = new TransactionEnvelope(
+        SolanaProvider.init({
+          connection: provider.connection,
+          wallet: provider.wallet,
+          opts: provider.opts,
+        }),
+        [...transaction.instructions]
+      );
+
+      await expectTXTable(txEnvelope, "init identifier", {
+        verbosity: "error",
+        formatLogs: true,
+      }).to.be.fulfilled;
+    }
   });
 
   it("Create Pool", async () => {
@@ -64,7 +94,7 @@ describe("Create stake pool", () => {
       [...transaction.instructions]
     );
 
-    await expectTXTable(txEnvelope, "test", {
+    await expectTXTable(txEnvelope, "create pool", {
       verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
@@ -99,7 +129,7 @@ describe("Create stake pool", () => {
       [receiptMintKeypair]
     );
 
-    await expectTXTable(txEnvelope, "test", {
+    await expectTXTable(txEnvelope, "init stake entry", {
       verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
@@ -141,7 +171,7 @@ describe("Create stake pool", () => {
       }),
       [...transaction.instructions]
     );
-    await expectTXTable(txEnvelope, "test", {
+    await expectTXTable(txEnvelope, "stake", {
       verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
@@ -229,7 +259,7 @@ describe("Create stake pool", () => {
       }),
       [...transaction.instructions]
     );
-    await expectTXTable(txEnvelope, "test", {
+    await expectTXTable(txEnvelope, "unstake", {
       verbosity: "error",
       formatLogs: true,
     }).to.be.fulfilled;
