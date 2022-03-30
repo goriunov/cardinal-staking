@@ -13,7 +13,7 @@
 
 ## Background
 
-Cardinal staking is a suite of contracts for issuing staking NFTs and FTs. The simple program is a stake pool that tracks total stake duration. In addition there is an implementation of a token minting reward distributor. Cardinal staking works well with any standard NFT collection and also composes with other programs in the Cardinal NFT infrastructure ecosystem
+Cardinal staking encompasses a suite of contracts for issuing and staking NFTs and FTs. The simple program is a stake pool that tracks total stake duration. In addition, there is an implementation of a token minting reward distributor. Cardinal staking works well with any standard NFT collection and also composes with other programs in the Cardinal NFT infrastructure ecosystem.
 
 ## Packages
 
@@ -32,12 +32,12 @@ Program addresses are the same on devnet, testnet, and mainnet-beta.
 
 ## Plugins
 
-Cardinal stake pool is meant to be composable. A simple reward distributor is provided but any complex reward mechanics can be implemented in a similar manner. Other implementations of other reward distributors are welcomed and encouraged. Examples that could be built
+Cardinal stake pool is meant to be composable. A simple reward distributor is provided out of the box, but any complex reward distribution logic can be implemented in a similar manner. Other implementations of other reward distributors are welcomed and encouraged. Examples that could be built:
 
-- Tiered reward system that gives rewards based on stake tiers
+- Tiered reward system that distributes rewards based on specified stake tiers
 - Arbitrary non-linear reward functions
-- NFT mutator based on stake duration
-- Random stake distributor that may or may not give a reward emulating a quest or mission with a probability of success
+- NFT mutator that modifies metadata based on stake duration
+- Probabilistic distributor that may or may not give a reward depending on the outcome of a random iteration. This could apply to a quest or mission with a given probability of success
 
 ## Documentation
 
