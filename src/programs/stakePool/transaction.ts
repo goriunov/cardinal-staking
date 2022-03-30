@@ -3,7 +3,6 @@ import {
   tryGetAccount,
   withFindOrInitAssociatedTokenAccount,
 } from "@cardinal/common";
-import { withInvalidate } from "@cardinal/token-manager";
 import {
   findMintManagerId,
   findTokenManagerAddress,
@@ -29,6 +28,7 @@ import {
   unstake,
 } from "./instruction";
 import { findIdentifierId, findStakeEntryId, findStakePoolId } from "./pda";
+import { withInvalidate } from "./token-manager";
 import { withRemainingAccountsForStake } from "./utils";
 
 export const withInitPoolIdentifier = async (
@@ -60,7 +60,7 @@ export const withInitStakePool = async (
   const identifierData = await tryGetAccount(() =>
     getPoolIdentifier(connection)
   );
-  const identifier = identifierData?.parsed.count || new BN(0);
+  const identifier = identifierData?.parsed.count || new BN(1);
 
   if (!identifierData) {
     transaction.add(
@@ -277,10 +277,6 @@ export const withUnstake = async (
       stakeEntryData?.parsed.receiptMint
     );
   }
-  console.log(
-    stakeEntryData,
-    stakeEntryData?.parsed.stakeType === StakeType.Locked
-  );
 
   // return original mint if its locked
   if (stakeEntryData?.parsed.stakeType === StakeType.Locked) {

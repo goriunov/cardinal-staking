@@ -68,6 +68,7 @@ export const initStakePool = (
     STAKE_POOL_ADDRESS,
     provider
   );
+
   return stakePoolProgram.instruction.initPool(
     {
       overlayText: params.overlayText,
