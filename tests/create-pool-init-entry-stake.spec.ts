@@ -53,6 +53,7 @@ describe("Create stake pool", () => {
         overlayText: overlayText,
       }
     );
+    console.log(transaction);
 
     const txEnvelope = new TransactionEnvelope(
       SolanaProvider.init({

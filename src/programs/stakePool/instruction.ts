@@ -4,7 +4,6 @@ import {
   TOKEN_MANAGER_ADDRESS,
 } from "@cardinal/token-manager/dist/cjs/programs/tokenManager";
 import { MetadataProgram } from "@metaplex-foundation/mpl-token-metadata";
-import type { BN } from "@project-serum/anchor";
 import { Program, Provider } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
 import {
@@ -21,11 +20,32 @@ import { SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 import type { STAKE_POOL_PROGRAM } from ".";
 import { STAKE_POOL_ADDRESS, STAKE_POOL_IDL } from ".";
 
+export const initIdentifier = (
+  connection: Connection,
+  wallet: Wallet,
+  params: {
+    identifierId: PublicKey;
+  }
+): TransactionInstruction => {
+  const provider = new Provider(connection, wallet, {});
+  const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
+    STAKE_POOL_IDL,
+    STAKE_POOL_ADDRESS,
+    provider
+  );
+  return stakePoolProgram.instruction.initIdentifier({
+    accounts: {
+      identifier: params.identifierId,
+      payer: wallet.publicKey,
+      systemProgram: SystemProgram.programId,
+    },
+  });
+};
+
 export const initStakePool = (
   connection: Connection,
   wallet: Wallet,
   params: {
-    identifier: BN;
     identifierId: PublicKey;
     stakePoolId: PublicKey;
     allowedCreators: PublicKey[];
@@ -43,7 +63,6 @@ export const initStakePool = (
   );
   return stakePoolProgram.instruction.initPool(
     {
-      identifier: params.identifier,
       overlayText: params.overlayText,
       imageUri: params.imageUri,
       allowedCollections: params.allowedCollections,
