@@ -45,6 +45,7 @@ describe("Create stake pool", () => {
   it("Create Pool", async () => {
     const provider = getProvider();
     const transaction = new web3.Transaction();
+
     [, , poolIdentifier] = await withCreatePool(
       transaction,
       provider.connection,

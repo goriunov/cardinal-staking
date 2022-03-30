@@ -3,6 +3,27 @@ export type CardinalStakePool = {
   name: "cardinal_stake_pool";
   instructions: [
     {
+      name: "initIdentifier";
+      accounts: [
+        {
+          name: "identifier";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "payer";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [];
+    },
+    {
       name: "initPool";
       accounts: [
         {
@@ -383,10 +404,6 @@ export type CardinalStakePool = {
         kind: "struct";
         fields: [
           {
-            name: "identifier";
-            type: "u64";
-          },
-          {
             name: "overlayText";
             type: "string";
           },
@@ -461,6 +478,27 @@ export const IDL: CardinalStakePool = {
   version: "0.0.0",
   name: "cardinal_stake_pool",
   instructions: [
+    {
+      name: "initIdentifier",
+      accounts: [
+        {
+          name: "identifier",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "payer",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
     {
       name: "initPool",
       accounts: [
@@ -841,10 +879,6 @@ export const IDL: CardinalStakePool = {
       type: {
         kind: "struct",
         fields: [
-          {
-            name: "identifier",
-            type: "u64",
-          },
           {
             name: "overlayText",
             type: "string",

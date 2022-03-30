@@ -10,6 +10,10 @@ declare_id!("t1LVbNwJZT3pxFQHfY65jp6QbvcTvda6oPSbaeKbYEs");
 pub mod cardinal_stake_pool {
     use super::*;
 
+    pub fn init_identifier(ctx: Context<InitIdentifierCtx>) -> Result<()> {
+        init_identifier::handler(ctx)
+    }
+
     pub fn init_pool(ctx: Context<InitPoolCtx>, ix: InitPoolIx) -> Result<()> {
         init_pool::handler(ctx, ix)
     }

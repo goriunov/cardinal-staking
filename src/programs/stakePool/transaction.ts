@@ -11,7 +11,7 @@ import {
   findTokenManagerAddress,
 } from "@cardinal/token-manager/dist/cjs/programs/tokenManager/pda";
 import * as metaplex from "@metaplex-foundation/mpl-token-metadata";
-import type { BN } from "@project-serum/anchor";
+import { BN } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
 import type * as web3 from "@solana/web3.js";
 
@@ -19,14 +19,34 @@ import { getRewardDistributor } from "../rewardDistributor/accounts";
 import { claimRewards } from "../rewardDistributor/instruction";
 import { findRewardDistributorId } from "../rewardDistributor/pda";
 import { withRemainingAccountsForKind } from "../rewardDistributor/utils";
-import { initStakeEntry, initStakePool, stake, unstake } from "./instruction";
+import { getPoolIdentifier } from "./accounts";
+import {
+  initIdentifier,
+  initStakeEntry,
+  initStakePool,
+  stake,
+  unstake,
+} from "./instruction";
 import {
   findIdentifierId,
   findStakeEntryId,
   findStakeEntryIdForPool,
   findStakePoolId,
 } from "./pda";
-import { getNextPoolIdentifier } from "./utils";
+
+export const withInitIdentifier = async (
+  transaction: web3.Transaction,
+  connection: web3.Connection,
+  wallet: Wallet
+): Promise<[web3.Transaction, web3.PublicKey]> => {
+  const [identifierId] = await findIdentifierId();
+  transaction.add(
+    initIdentifier(connection, wallet, {
+      identifierId: identifierId,
+    })
+  );
+  return [transaction, identifierId];
+};
 
 export const withCreatePool = async (
   transaction: web3.Transaction,
@@ -39,14 +59,23 @@ export const withCreatePool = async (
     imageUri?: string;
   }
 ): Promise<[web3.Transaction, web3.PublicKey, BN]> => {
-  const identifier = await getNextPoolIdentifier(connection);
-  const [[stakePoolId], [identifierId]] = await Promise.all([
-    findStakePoolId(identifier),
-    findIdentifierId(),
-  ]);
+  const [identifierId] = await findIdentifierId();
+  const identifierData = await tryGetAccount(() =>
+    getPoolIdentifier(connection)
+  );
+  const identifier = identifierData?.parsed.count || new BN(0);
+
+  if (!identifierData) {
+    transaction.add(
+      initIdentifier(connection, wallet, {
+        identifierId: identifierId,
+      })
+    );
+  }
+
+  const [stakePoolId] = await findStakePoolId(identifier);
   transaction.add(
     initStakePool(connection, wallet, {
-      identifier: identifier,
       identifierId: identifierId,
       stakePoolId: stakePoolId,
       allowedCreators: params.allowedCreators || [],

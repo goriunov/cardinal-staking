@@ -6,9 +6,9 @@ import {
   MasterEdition,
   Metadata,
 } from "@metaplex-foundation/mpl-token-metadata";
-import BN from 'bn.js';
 import * as splToken from "@solana/spl-token";
 import * as web3 from "@solana/web3.js";
+import BN from "bn.js";
 
 export function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
