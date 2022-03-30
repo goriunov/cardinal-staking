@@ -11,7 +11,7 @@ import {
   findTokenManagerAddress,
 } from "@cardinal/token-manager/dist/cjs/programs/tokenManager/pda";
 import * as metaplex from "@metaplex-foundation/mpl-token-metadata";
-import type { BN } from "@project-serum/anchor";
+import { BN } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
 import type * as web3 from "@solana/web3.js";
 
@@ -19,6 +19,7 @@ import { getRewardDistributor } from "../rewardDistributor/accounts";
 import { claimRewards } from "../rewardDistributor/instruction";
 import { findRewardDistributorId } from "../rewardDistributor/pda";
 import { withRemainingAccountsForKind } from "../rewardDistributor/utils";
+import { getPoolIdentifier } from "./accounts";
 import {
   initIdentifier,
   initStakeEntry,
@@ -32,7 +33,6 @@ import {
   findStakeEntryIdForPool,
   findStakePoolId,
 } from "./pda";
-import { checkIfIdentifierExists } from "./utils";
 
 export const withInitIdentifier = async (
   transaction: web3.Transaction,
@@ -60,11 +60,12 @@ export const withCreatePool = async (
   }
 ): Promise<[web3.Transaction, web3.PublicKey, BN]> => {
   const [identifierId] = await findIdentifierId();
-  const [identifierExists, identifier] = await checkIfIdentifierExists(
-    connection
+  const identifierData = await tryGetAccount(() =>
+    getPoolIdentifier(connection)
   );
+  const identifier = identifierData?.parsed.count || new BN(0);
 
-  if (!identifierExists) {
+  if (!identifierData) {
     transaction.add(
       initIdentifier(connection, wallet, {
         identifierId: identifierId,
