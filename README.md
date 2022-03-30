@@ -67,7 +67,7 @@ Cardinal stake pool is meant to be composable. A simple reward distributor is pr
 
 ## Questions & Support
 
-If you are developing using Cardinal staking contracts and libraries, feel free to reach out on for support on Discord. We will work with you or your team to answer questions, provide development support and discuss new feature requests.
+If you are developing using Cardinal staking contracts and libraries, feel free to reach out for support on Discord. We will work with you or your team to answer questions, provide development support and discuss new feature requests.
 
 For issues please, file a GitHub issue.
 
