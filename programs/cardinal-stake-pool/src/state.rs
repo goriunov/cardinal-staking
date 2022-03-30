@@ -11,15 +11,21 @@ pub const STAKE_POOL_SIZE: usize = 8 + std::mem::size_of::<StakePool>() + 256;
 pub const IDENTIFIER_PREFIX: &str = "identifier";
 pub const IDENTIFIER_SIZE: usize = 8 + std::mem::size_of::<Identifier>() + 8;
 
+pub enum StakeType {
+    Unstaked,
+    Escrow,
+    Locked,
+}
+
 #[account]
 pub struct StakeEntry {
     pub bump: u8,
     pub pool: Pubkey,
     pub original_mint: Pubkey,
-    pub receipt_mint: Pubkey,
+    pub receipt_mint: Option<Pubkey>,
     pub total_stake_seconds: i64,
     pub last_staked_at: i64,
-    pub last_staker: Pubkey,
+    pub last_staker: Option<Pubkey>,
 }
 
 #[account]

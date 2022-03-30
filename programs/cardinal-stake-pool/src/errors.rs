@@ -24,4 +24,10 @@ pub enum ErrorCode {
     MintNotAllowedInPool,
     #[msg("Invalid stake pool authority")]
     InvalidPoolAuthority,
+    #[msg("Invalid stake type")]
+    InvalidStakeType,
+    #[msg("Invalid stake entry receipt token account")]
+    InvalidStakeEntryReceiptTokenAccount,
+    #[msg("Invalid last staker")]
+    InvalidLastStaker,
 }
