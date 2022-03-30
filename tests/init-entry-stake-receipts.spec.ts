@@ -142,25 +142,28 @@ describe("Create stake pool", () => {
       originalMint.publicKey.toString()
     );
     expect(stakeEntryData.parsed.pool.toString()).to.eq(stakePoolId.toString());
-    expect(stakeEntryData.parsed.receiptMint).to.eq(null);
+    expect(stakeEntryData.parsed.receiptMint).to.not.eq(null);
   });
 
   it("Stake", async () => {
     const provider = getProvider();
+    const [transaction] = await stake(provider.connection, provider.wallet, {
+      stakeType: StakeType.Escrow,
+      stakePoolId: stakePoolId,
+      originalMintId: originalMint.publicKey,
+      userOriginalMintTokenAccountId: originalMintTokenAccountId,
+      receipt: {
+        name: receiptMintName,
+        symbol: receiptMintSymbol,
+      },
+    });
     await expectTXTable(
-      new TransactionEnvelope(SolanaProvider.init(provider), [
-        ...(
-          await stake(provider.connection, provider.wallet, {
-            stakeType: StakeType.Escrow,
-            stakePoolId: stakePoolId,
-            originalMintId: originalMint.publicKey,
-            userOriginalMintTokenAccountId: originalMintTokenAccountId,
-          })
-        ).instructions,
-      ]),
+      new TransactionEnvelope(
+        SolanaProvider.init(provider),
+        transaction.instructions
+      ),
       "Stake"
     ).to.be.fulfilled;
-
     const stakeEntryData = await getStakeEntry(
       provider.connection,
       (

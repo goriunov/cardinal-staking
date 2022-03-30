@@ -44,8 +44,7 @@ describe("Stake and claim rewards", () => {
       provider.connection,
       originalMintAuthority,
       provider.wallet.publicKey,
-      0,
-      provider.wallet.publicKey,
+      maxSupply,
       provider.wallet.publicKey
     );
   });
@@ -153,7 +152,7 @@ describe("Stake and claim rewards", () => {
             originalMintId: originalMint.publicKey,
             userOriginalMintTokenAccountId: originalMintTokenAccountId,
           })
-        ).instructions,
+        )[0].instructions,
       ]),
       "Stake"
     ).to.be.fulfilled;

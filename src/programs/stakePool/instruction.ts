@@ -190,7 +190,7 @@ export const claimReceiptMint = async (
   ] = await Promise.all([
     findTokenManagerAddress(params.receiptMintId),
     findMintCounterId(params.receiptMintId),
-    findAta(params.receiptMintId, params.stakeEntryId),
+    findAta(params.receiptMintId, params.stakeEntryId, true),
     findAta(params.receiptMintId, wallet.publicKey),
     getRemainingAccountsForKind(params.receiptMintId, TokenManagerKind.Managed),
   ]);

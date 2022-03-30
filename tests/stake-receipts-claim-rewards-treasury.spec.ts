@@ -245,7 +245,7 @@ describe("Stake and claim rewards from treasury", () => {
             originalMintId: originalMint.publicKey,
             userOriginalMintTokenAccountId: originalMintTokenAccountId,
           })
-        ).instructions,
+        )[0].instructions,
       ]),
       "Stake"
     ).to.be.fulfilled;

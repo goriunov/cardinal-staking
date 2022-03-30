@@ -1,5 +1,5 @@
 use {
-    crate::state::*,
+    crate::{errors::ErrorCode, state::*},
     anchor_lang::{
         prelude::*,
         solana_program::program::{invoke, invoke_signed},
@@ -23,13 +23,7 @@ pub struct InitReceiptMintIx {
 #[derive(Accounts)]
 #[instruction(ix: InitReceiptMintIx)]
 pub struct InitReceiptMintCtx<'info> {
-    #[account(
-        init,
-        payer = payer,
-        space = STAKE_ENTRY_SIZE,
-        seeds = [STAKE_ENTRY_PREFIX.as_bytes(), stake_pool.key().as_ref(), original_mint.key().as_ref()],
-        bump,
-    )]
+    #[account(mut, constraint = stake_entry.pool == stake_pool.key() @ ErrorCode::InvalidStakePool)]
     stake_entry: Box<Account<'info, StakeEntry>>,
     #[account(mut)]
     stake_pool: Box<Account<'info, StakePool>>,
@@ -67,6 +61,7 @@ pub fn handler(ctx: Context<InitReceiptMintCtx>, ix: InitReceiptMintIx) -> Resul
     let stake_pool_identifier = ctx.accounts.stake_pool.identifier.to_le_bytes();
     let stake_pool_seeds = &[STAKE_POOL_PREFIX.as_bytes(), stake_pool_identifier.as_ref(), &[ctx.accounts.stake_pool.bump]];
     let stake_pool_signer = &[&stake_pool_seeds[..]];
+    stake_entry.receipt_mint = Some(ctx.accounts.receipt_mint.key());
 
     // create mint
     invoke(

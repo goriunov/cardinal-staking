@@ -27,7 +27,7 @@ describe("Create stake pool", () => {
   let originalMint: splToken.Token;
   const receiptMintName = "NAME";
   const receiptMintSymbol = "SYMBOL";
-  const receiptMintKeypair = web3.Keypair.generate();
+  let receiptMintKeypair: web3.Keypair | undefined;
   const originalMintAuthority = web3.Keypair.generate();
 
   before(async () => {
@@ -68,21 +68,28 @@ describe("Create stake pool", () => {
 
   it("Stake", async () => {
     const provider = getProvider();
+    let transaction;
+    [transaction, receiptMintKeypair] = await stake(
+      provider.connection,
+      provider.wallet,
+      {
+        stakeType: StakeType.Escrow,
+        stakePoolId: stakePoolId,
+        originalMintId: originalMint.publicKey,
+        userOriginalMintTokenAccountId: originalMintTokenAccountId,
+        receipt: {
+          name: receiptMintName,
+          symbol: receiptMintSymbol,
+        },
+      }
+    );
+
     await expectTXTable(
-      new TransactionEnvelope(SolanaProvider.init(provider), [
-        ...(
-          await stake(provider.connection, provider.wallet, {
-            stakeType: StakeType.Escrow,
-            stakePoolId: stakePoolId,
-            originalMintId: originalMint.publicKey,
-            userOriginalMintTokenAccountId: originalMintTokenAccountId,
-            receipt: {
-              name: receiptMintName,
-              symbol: receiptMintSymbol,
-            },
-          })
-        ).instructions,
-      ]),
+      new TransactionEnvelope(
+        SolanaProvider.init(provider),
+        transaction.instructions,
+        receiptMintKeypair ? [receiptMintKeypair] : []
+      ),
       "Stake"
     ).to.be.fulfilled;
 
@@ -100,7 +107,7 @@ describe("Create stake pool", () => {
     );
 
     const userReceiptMintTokenAccountId = await findAta(
-      receiptMintKeypair.publicKey,
+      receiptMintKeypair!.publicKey,
       provider.wallet.publicKey,
       true
     );
@@ -112,7 +119,7 @@ describe("Create stake pool", () => {
     );
 
     const stakeEntryReceiptMintTokenAccountId = await findAta(
-      receiptMintKeypair.publicKey,
+      receiptMintKeypair!.publicKey,
       stakeEntryData.pubkey,
       true
     );
@@ -124,7 +131,7 @@ describe("Create stake pool", () => {
 
     const receiptMint = new splToken.Token(
       provider.connection,
-      receiptMintKeypair.publicKey,
+      receiptMintKeypair!.publicKey,
       splToken.TOKEN_PROGRAM_ID,
       web3.Keypair.generate()
     );
@@ -176,7 +183,7 @@ describe("Create stake pool", () => {
     );
 
     const userReceiptMintTokenAccountId = await findAta(
-      receiptMintKeypair.publicKey,
+      receiptMintKeypair!.publicKey,
       provider.wallet.publicKey,
       true
     );
@@ -188,7 +195,7 @@ describe("Create stake pool", () => {
     );
 
     const stakeEntryReceiptMintTokenAccountId = await findAta(
-      receiptMintKeypair.publicKey,
+      receiptMintKeypair!.publicKey,
       stakeEntryData.pubkey,
       true
     );
@@ -200,7 +207,7 @@ describe("Create stake pool", () => {
 
     const receiptMint = new splToken.Token(
       provider.connection,
-      receiptMintKeypair.publicKey,
+      receiptMintKeypair!.publicKey,
       splToken.TOKEN_PROGRAM_ID,
       web3.Keypair.generate()
     );

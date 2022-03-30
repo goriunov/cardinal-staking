@@ -136,7 +136,8 @@ export const withInitReceiptMint = async (
 
   const stakeEntryReceiptMintTokenAccountId = await findAta(
     params.receiptMintKeypair.publicKey,
-    stakeEntryId
+    stakeEntryId,
+    true
   );
 
   transaction.add(
@@ -255,14 +256,9 @@ export const withUnstake = async (
     await findRewardDistributorId(params.stakePoolId),
   ]);
 
-  const [
-    stakeEntryData,
-    rewardDistributorData,
-    stakeEntryOriginalMintTokenAccountId,
-  ] = await Promise.all([
+  const [stakeEntryData, rewardDistributorData] = await Promise.all([
     tryGetAccount(() => getStakeEntry(connection, stakeEntryId)),
     tryGetAccount(() => getRewardDistributor(connection, rewardDistributorId)),
-    findAta(params.originalMintId, stakeEntryId, true),
   ]);
 
   // return receipt mint if its claimed
@@ -287,6 +283,16 @@ export const withUnstake = async (
       params.originalMintId
     );
   }
+
+  const stakeEntryOriginalMintTokenAccountId =
+    await withFindOrInitAssociatedTokenAccount(
+      transaction,
+      connection,
+      params.originalMintId,
+      stakeEntryId,
+      wallet.publicKey,
+      true
+    );
 
   const userOriginalMintTokenAccountId =
     await withFindOrInitAssociatedTokenAccount(

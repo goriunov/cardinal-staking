@@ -47,7 +47,7 @@ export const stake = async (
       symbol?: string;
     };
   }
-): Promise<web3.Transaction> => {
+): Promise<[web3.Transaction, web3.Keypair | undefined]> => {
   const transaction = new web3.Transaction();
   const [stakeEntryId] = await findStakeEntryId(
     params.stakePoolId,
@@ -87,7 +87,7 @@ export const stake = async (
       });
     }
   }
-  return transaction;
+  return [transaction, receiptMintKeypair];
 };
 
 export const unstake = async (
