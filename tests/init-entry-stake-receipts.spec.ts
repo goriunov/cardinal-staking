@@ -6,7 +6,7 @@ import * as splToken from "@solana/spl-token";
 import * as web3 from "@solana/web3.js";
 import { expect } from "chai";
 
-import { stake, unstake } from "../src";
+import { initReceiptMint, stake, unstake } from "../src";
 import { StakeType } from "../src/programs/stakePool";
 import {
   getStakeEntry,
@@ -17,7 +17,6 @@ import {
   findStakePoolId,
 } from "../src/programs/stakePool/pda";
 import {
-  withInitReceiptMint,
   withInitStakeEntry,
   withInitStakePool,
 } from "../src/programs/stakePool/transaction";
@@ -31,7 +30,7 @@ describe("Create stake pool", () => {
   let originalMint: splToken.Token;
   const receiptMintName = "NAME";
   const receiptMintSymbol = "SYMBOL";
-  const receiptMintKeypair = web3.Keypair.generate();
+  let receiptMintKeypair: web3.Keypair;
   const originalMintAuthority = web3.Keypair.generate();
 
   before(async () => {
@@ -107,16 +106,16 @@ describe("Create stake pool", () => {
 
   it("Init receipt mint", async () => {
     const provider = getProvider();
-    const transaction = new web3.Transaction();
+    let transaction: web3.Transaction;
 
-    await withInitReceiptMint(
-      transaction,
+    const [stakePoolId] = await findStakePoolId(poolIdentifier);
+
+    [transaction, receiptMintKeypair] = await initReceiptMint(
       provider.connection,
       provider.wallet,
       {
         stakePoolId: stakePoolId,
         originalMintId: originalMint.publicKey,
-        receiptMintKeypair: receiptMintKeypair,
         name: receiptMintName,
         symbol: receiptMintSymbol,
       }
@@ -125,37 +124,21 @@ describe("Create stake pool", () => {
     await expectTXTable(
       new TransactionEnvelope(
         SolanaProvider.init(provider),
-        [...transaction.instructions],
+        transaction.instructions,
         [receiptMintKeypair]
       ),
       "Init receipt mint"
     ).to.be.fulfilled;
-
-    const stakeEntryData = await getStakeEntry(
-      provider.connection,
-      (
-        await findStakeEntryId(stakePoolId, originalMint.publicKey)
-      )[0]
-    );
-
-    expect(stakeEntryData.parsed.originalMint.toString()).to.eq(
-      originalMint.publicKey.toString()
-    );
-    expect(stakeEntryData.parsed.pool.toString()).to.eq(stakePoolId.toString());
-    expect(stakeEntryData.parsed.receiptMint).to.not.eq(null);
   });
 
   it("Stake", async () => {
     const provider = getProvider();
-    const [transaction] = await stake(provider.connection, provider.wallet, {
+    const transaction = await stake(provider.connection, provider.wallet, {
       stakeType: StakeType.Escrow,
       stakePoolId: stakePoolId,
       originalMintId: originalMint.publicKey,
       userOriginalMintTokenAccountId: originalMintTokenAccountId,
-      receipt: {
-        name: receiptMintName,
-        symbol: receiptMintSymbol,
-      },
+      receiptMint: receiptMintKeypair.publicKey,
     });
     await expectTXTable(
       new TransactionEnvelope(

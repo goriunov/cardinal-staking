@@ -42,12 +42,9 @@ export const stake = async (
     stakePoolId: web3.PublicKey;
     originalMintId: web3.PublicKey;
     userOriginalMintTokenAccountId: web3.PublicKey;
-    receipt?: {
-      name?: string;
-      symbol?: string;
-    };
+    receiptMint?: web3.PublicKey;
   }
-): Promise<[web3.Transaction, web3.Keypair | undefined]> => {
+): Promise<web3.Transaction> => {
   const transaction = new web3.Transaction();
   const [stakeEntryId] = await findStakeEntryId(
     params.stakePoolId,
@@ -65,30 +62,39 @@ export const stake = async (
 
   await withStake(transaction, connection, wallet, params);
 
-  let receiptMintKeypair;
-  if (stakeEntryData && params.stakeType === StakeType.Escrow) {
-    if (!stakeEntryData.parsed.receiptMint) {
-      receiptMintKeypair = web3.Keypair.generate();
-      await withInitReceiptMint(transaction, connection, wallet, {
-        stakePoolId: params.stakePoolId,
-        originalMintId: params.originalMintId,
-        receiptMintKeypair,
-        name: params.receipt?.name || "RECEIPT",
-        symbol: params.receipt?.symbol || "RCP",
-      });
-    }
+  if (params.stakeType === StakeType.Escrow) {
     const receiptMintId =
-      stakeEntryData?.parsed.receiptMint || receiptMintKeypair?.publicKey;
+      stakeEntryData?.parsed.receiptMint || params.receiptMint;
     if (receiptMintId) {
       await withClaimReceiptMint(transaction, connection, wallet, {
         stakePoolId: params.stakePoolId,
         originalMintId: params.originalMintId,
         receiptMintId,
       });
+    } else {
+      throw new Error("Reciept mint needs to be initialized");
     }
   }
-  return [transaction, receiptMintKeypair];
+  return transaction;
 };
+
+export const initReceiptMint = async (
+  connection: web3.Connection,
+  wallet: Wallet,
+  params: {
+    stakePoolId: web3.PublicKey;
+    originalMintId: web3.PublicKey;
+    name: string;
+    symbol: string;
+  }
+): Promise<[web3.Transaction, web3.Keypair]> =>
+  withInitReceiptMint(new web3.Transaction(), connection, wallet, {
+    stakePoolId: params.stakePoolId,
+    originalMintId: params.originalMintId,
+    receiptMintKeypair: web3.Keypair.generate(),
+    name: params.name,
+    symbol: params.symbol,
+  });
 
 export const unstake = async (
   connection: web3.Connection,

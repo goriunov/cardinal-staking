@@ -1,7 +1,11 @@
 import { findAta } from "@cardinal/common";
 import { BN } from "@project-serum/anchor";
 import { expectTXTable } from "@saberhq/chai-solana";
-import { SolanaProvider, TransactionEnvelope } from "@saberhq/solana-contrib";
+import {
+  SignerWallet,
+  SolanaProvider,
+  TransactionEnvelope,
+} from "@saberhq/solana-contrib";
 import type * as splToken from "@solana/spl-token";
 import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
 import { expect } from "chai";
@@ -18,7 +22,7 @@ import {
   findStakeEntryId,
   findStakePoolId,
 } from "../src/programs/stakePool/pda";
-import { createMint, delay } from "./utils";
+import { createMasterEditionIxs, createMint, delay } from "./utils";
 import { getProvider } from "./workspace";
 
 describe("Stake and claim rewards", () => {
@@ -36,8 +40,28 @@ describe("Stake and claim rewards", () => {
     [originalMintTokenAccountId, originalMint] = await createMint(
       provider.connection,
       originalMintAuthority,
-      provider.wallet.publicKey
+      provider.wallet.publicKey,
+      1,
+      originalMintAuthority.publicKey
     );
+
+    // master edition
+    const ixs = await createMasterEditionIxs(
+      originalMint.publicKey,
+      originalMintAuthority.publicKey
+    );
+    const txEnvelope = new TransactionEnvelope(
+      SolanaProvider.init({
+        connection: provider.connection,
+        wallet: new SignerWallet(originalMintAuthority),
+        opts: provider.opts,
+      }),
+      ixs
+    );
+    await expectTXTable(txEnvelope, "before", {
+      verbosity: "error",
+      formatLogs: true,
+    }).to.be.fulfilled;
 
     // reward mint
     [, rewardMint] = await createMint(
@@ -152,7 +176,7 @@ describe("Stake and claim rewards", () => {
             originalMintId: originalMint.publicKey,
             userOriginalMintTokenAccountId: originalMintTokenAccountId,
           })
-        )[0].instructions,
+        ).instructions,
       ]),
       "Stake"
     ).to.be.fulfilled;
