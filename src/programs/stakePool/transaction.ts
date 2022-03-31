@@ -29,10 +29,7 @@ import {
 } from "./instruction";
 import { findIdentifierId, findStakeEntryId, findStakePoolId } from "./pda";
 import { withInvalidate } from "./token-manager";
-import {
-  withRemainingAccountsForStake,
-  withRemainingAccountsForUnstake,
-} from "./utils";
+import { withRemainingAccountsForUnstake } from "./utils";
 
 export const withInitPoolIdentifier = async (
   transaction: web3.Transaction,
@@ -170,9 +167,10 @@ export const withClaimReceiptMint = async (
     receiptMintId: web3.PublicKey;
   }
 ): Promise<web3.Transaction> => {
-  const [[stakeEntryId]] = await Promise.all([
-    findStakeEntryId(params.stakePoolId, params.originalMintId),
-  ]);
+  const [stakeEntryId] = await findStakeEntryId(
+    params.stakePoolId,
+    params.originalMintId
+  );
 
   const tokenManagerReceiptMintTokenAccountId =
     await withFindOrInitAssociatedTokenAccount(
@@ -186,12 +184,18 @@ export const withClaimReceiptMint = async (
       true
     );
 
+  const stakeType =
+    params.originalMintId.toString() === params.receiptMintId.toString()
+      ? StakeType.Locked
+      : StakeType.Escrow;
+
   transaction.add(
     await claimReceiptMint(connection, wallet, {
       stakeEntryId: stakeEntryId,
       tokenManagerReceiptMintTokenAccountId:
         tokenManagerReceiptMintTokenAccountId,
       receiptMintId: params.receiptMintId,
+      stakeType: stakeType,
     })
   );
   return transaction;
@@ -222,23 +226,13 @@ export const withStake = async (
       true
     );
 
-  const remainingAccounts = await withRemainingAccountsForStake(
-    transaction,
-    connection,
-    wallet,
-    params.originalMintId,
-    params.stakeType || StakeType.Locked
-  );
-
   transaction.add(
     stake(connection, wallet, {
       stakeType: params.stakeType || StakeType.Locked,
       stakeEntryId: stakeEntryId,
-      originalMintId: params.originalMintId,
       stakeEntryOriginalMintTokenAccountId:
         stakeEntryOriginalMintTokenAccountId,
       userOriginalMintTokenAccountId: params.userOriginalMintTokenAccountId,
-      remainingAccounts,
     })
   );
 

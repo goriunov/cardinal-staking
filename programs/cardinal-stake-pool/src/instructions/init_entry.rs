@@ -28,11 +28,7 @@ pub struct InitEntryCtx<'info> {
 }
 
 pub fn handler(ctx: Context<InitEntryCtx>) -> Result<()> {
-    let stake_entry = &mut ctx.accounts.stake_entry;
     let stake_pool = &ctx.accounts.stake_pool;
-    stake_entry.bump = *ctx.bumps.get("stake_entry").unwrap();
-    stake_entry.pool = ctx.accounts.stake_pool.key();
-    stake_entry.original_mint = ctx.accounts.original_mint.key();
 
     // check allowlist
     if !stake_pool.allowed_creators.is_empty() || !stake_pool.allowed_collections.is_empty() {
@@ -55,5 +51,11 @@ pub fn handler(ctx: Context<InitEntryCtx>) -> Result<()> {
             return Err(error!(ErrorCode::MintNotAllowedInPool));
         }
     }
+
+    let stake_entry = &mut ctx.accounts.stake_entry;
+    stake_entry.bump = *ctx.bumps.get("stake_entry").unwrap();
+    stake_entry.pool = ctx.accounts.stake_pool.key();
+    stake_entry.original_mint = ctx.accounts.original_mint.key();
+
     Ok(())
 }

@@ -25,7 +25,7 @@ import { SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 
 import type { STAKE_POOL_PROGRAM } from ".";
 import { STAKE_POOL_ADDRESS, STAKE_POOL_IDL } from ".";
-import type { StakeType } from "./constants";
+import { StakeType } from "./constants";
 
 export const initPoolIdentifier = (
   connection: Connection,
@@ -172,6 +172,7 @@ export const claimReceiptMint = async (
     stakeEntryId: PublicKey;
     tokenManagerReceiptMintTokenAccountId: PublicKey;
     receiptMintId: PublicKey;
+    stakeType: StakeType;
   }
 ): Promise<TransactionInstruction> => {
   const provider = new Provider(connection, wallet, {});
@@ -192,10 +193,15 @@ export const claimReceiptMint = async (
     findMintCounterId(params.receiptMintId),
     findAta(params.receiptMintId, params.stakeEntryId, true),
     findAta(params.receiptMintId, wallet.publicKey),
-    getRemainingAccountsForKind(params.receiptMintId, TokenManagerKind.Managed),
+    getRemainingAccountsForKind(
+      params.receiptMintId,
+      params.stakeType === StakeType.Locked
+        ? TokenManagerKind.Edition
+        : TokenManagerKind.Managed
+    ),
   ]);
 
-  return stakePoolProgram.instruction.claimReceiptMint({
+  return stakePoolProgram.instruction.claimStakeMint({
     accounts: {
       stakeEntry: params.stakeEntryId,
       receiptMint: params.receiptMintId,
@@ -222,10 +228,8 @@ export const stake = (
   params: {
     stakeType: StakeType;
     stakeEntryId: PublicKey;
-    originalMintId: PublicKey;
     stakeEntryOriginalMintTokenAccountId: PublicKey;
     userOriginalMintTokenAccountId: PublicKey;
-    remainingAccounts: AccountMeta[];
   }
 ): TransactionInstruction => {
   const provider = new Provider(connection, wallet, {});
@@ -238,14 +242,12 @@ export const stake = (
   return stakePoolProgram.instruction.stake(params.stakeType, {
     accounts: {
       stakeEntry: params.stakeEntryId,
-      originalMint: params.originalMintId,
       stakeEntryOriginalMintTokenAccount:
         params.stakeEntryOriginalMintTokenAccountId,
       user: wallet.publicKey,
       userOriginalMintTokenAccount: params.userOriginalMintTokenAccountId,
       tokenProgram: TOKEN_PROGRAM_ID,
     },
-    remainingAccounts: params.remainingAccounts,
   });
 };
 

@@ -4,7 +4,7 @@ pub mod state;
 
 use {anchor_lang::prelude::*, instructions::*};
 
-declare_id!("stkBL96RZkjY5ine4TvPihGqW8UHJfch2cokjAPzV8i");
+declare_id!("t1LVbNwJZT3pxFQHfY65jp6QbvcTvda6oPSbaeKbYEs");
 
 #[program]
 pub mod cardinal_stake_pool {
@@ -26,12 +26,12 @@ pub mod cardinal_stake_pool {
         init_receipt_mint::handler(ctx, ix)
     }
 
-    pub fn stake<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, StakeCtx<'info>>, stake_type: u8) -> Result<()> {
+    pub fn stake(ctx: Context<StakeCtx>, stake_type: u8) -> Result<()> {
         stake::handler(ctx, stake_type)
     }
 
-    pub fn claim_receipt_mint<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, ClaimReceiptMintCtx<'info>>) -> Result<()> {
-        claim_receipt_mint::handler(ctx)
+    pub fn claim_stake_mint<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, ClaimStakeMintCtx<'info>>) -> Result<()> {
+        claim_stake_mint::handler(ctx)
     }
 
     pub fn unstake(ctx: Context<UnstakeCtx>) -> Result<()> {

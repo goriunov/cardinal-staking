@@ -76,7 +76,12 @@ export const stake = async (
       originalMintId: params.originalMintId,
     });
   }
-  await withStake(transaction, connection, wallet, params);
+  await withStake(transaction, connection, wallet, {
+    stakeType: params.stakeType,
+    stakePoolId: params.stakePoolId,
+    originalMintId: params.originalMintId,
+    userOriginalMintTokenAccountId: params.userOriginalMintTokenAccountId,
+  });
 
   let receiptMintKeypair;
   if (params.stakeType === StakeType.Escrow) {
@@ -90,6 +95,12 @@ export const stake = async (
         symbol: params.receipt?.symbol || "RCP",
       });
     }
+  } else {
+    await withClaimReceiptMint(transaction, connection, wallet, {
+      stakePoolId: params.stakePoolId,
+      originalMintId: params.originalMintId,
+      receiptMintId: params.originalMintId,
+    });
   }
 
   return [transaction, receiptMintKeypair];

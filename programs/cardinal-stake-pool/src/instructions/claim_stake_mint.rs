@@ -13,7 +13,7 @@ use {
 };
 
 #[derive(Accounts)]
-pub struct ClaimReceiptMintCtx<'info> {
+pub struct ClaimStakeMintCtx<'info> {
     #[account(mut)]
     stake_entry: Box<Account<'info, StakeEntry>>,
 
@@ -56,7 +56,7 @@ pub struct ClaimReceiptMintCtx<'info> {
     rent: Sysvar<'info, Rent>,
 }
 
-pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, ClaimReceiptMintCtx<'info>>) -> Result<()> {
+pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, ClaimStakeMintCtx<'info>>) -> Result<()> {
     let stake_entry = &mut ctx.accounts.stake_entry;
     let original_mint = stake_entry.original_mint;
     let stake_pool = stake_entry.pool;
@@ -84,6 +84,17 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     let cpi_ctx = CpiContext::new(ctx.accounts.token_manager_program.to_account_info(), cpi_accounts).with_signer(stake_entry_signer);
     cardinal_token_manager::cpi::add_invalidator(cpi_ctx, ctx.accounts.user.key())?;
 
+    let token_manager_kind;
+    match stake_entry.stake_type {
+        k if k == StakeType::Locked as u8 => {
+            token_manager_kind = TokenManagerKind::Edition;
+        }
+        k if k == StakeType::Escrow as u8 => {
+            token_manager_kind = TokenManagerKind::Managed;
+        }
+        _ => return Err(error!(ErrorCode::InvalidStakeType)),
+    }
+
     // token manager issue
     let cpi_accounts = cardinal_token_manager::cpi::accounts::IssueCtx {
         token_manager: ctx.accounts.token_manager.to_account_info(),
@@ -96,7 +107,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     };
     let issue_ix = cardinal_token_manager::instructions::IssueIx {
         amount: 1,
-        kind: TokenManagerKind::Managed as u8,
+        kind: token_manager_kind as u8,
         invalidation_type: InvalidationType::Return as u8,
     };
     let cpi_ctx = CpiContext::new(ctx.accounts.token_manager_program.to_account_info(), cpi_accounts).with_signer(stake_entry_signer);
