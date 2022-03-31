@@ -31,7 +31,7 @@ pub struct StakeCtx<'info> {
     token_program: Program<'info, Token>,
 }
 
-pub fn handler(ctx: Context<StakeCtx>, stake_type: u8) -> Result<()> {
+pub fn handler(ctx: Context<StakeCtx>) -> Result<()> {
     let stake_entry = &mut ctx.accounts.stake_entry;
 
     // transfer original
@@ -47,10 +47,6 @@ pub fn handler(ctx: Context<StakeCtx>, stake_type: u8) -> Result<()> {
     // update stake entry
     stake_entry.last_staked_at = Clock::get().unwrap().unix_timestamp;
     stake_entry.last_staker = ctx.accounts.user.key();
-    stake_entry.stake_type = stake_type;
-    if stake_entry.stake_type == StakeType::Locked as u8 {
-        stake_entry.receipt_mint = Some(stake_entry.original_mint);
-    }
 
     Ok(())
 }

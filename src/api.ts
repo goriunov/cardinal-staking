@@ -3,14 +3,14 @@ import type { BN } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
 import * as web3 from "@solana/web3.js";
 
-import { StakeType } from "./programs/stakePool";
-import { getStakeEntry } from "./programs/stakePool/accounts";
+import { ReceiptType } from "./programs/stakePool";
+import { getStakeEntry, getStakePool } from "./programs/stakePool/accounts";
 import { findStakeEntryId } from "./programs/stakePool/pda";
 import {
   withClaimReceiptMint,
   withInitPoolIdentifier,
-  withInitReceiptMint,
   withInitStakeEntry,
+  withInitStakeMint,
   withInitStakePool,
   withStake,
   withUnstake,
@@ -48,18 +48,13 @@ export const initStakeEntry = async (
   });
 };
 
-export const stake = async (
+export const initStakeEntryAndMint = async (
   connection: web3.Connection,
   wallet: Wallet,
   params: {
-    stakeType?: StakeType;
     stakePoolId: web3.PublicKey;
     originalMintId: web3.PublicKey;
-    userOriginalMintTokenAccountId: web3.PublicKey;
-    receipt?: {
-      name?: string;
-      symbol?: string;
-    };
+    receiptType?: ReceiptType;
   }
 ): Promise<[web3.Transaction, web3.Keypair | undefined]> => {
   const transaction = new web3.Transaction();
@@ -76,34 +71,72 @@ export const stake = async (
       originalMintId: params.originalMintId,
     });
   }
+
+  let stakeMintKeypair;
+  if (params.receiptType === ReceiptType.Receipt) {
+    if (!stakeEntryData?.parsed.stakeMint) {
+      stakeMintKeypair = web3.Keypair.generate();
+      const stakePool = await getStakePool(connection, params.stakePoolId);
+
+      await withInitStakeMint(transaction, connection, wallet, {
+        stakePoolId: params.stakePoolId,
+        originalMintId: params.originalMintId,
+        stakeMintKeypair,
+        name: `POOl${stakePool.parsed.identifier.toString()} RECEIPT`,
+        symbol: `POOl${stakePool.parsed.identifier.toString()}`,
+      });
+    }
+  }
+
+  return [transaction, stakeMintKeypair];
+};
+
+export const stake = async (
+  connection: web3.Connection,
+  wallet: Wallet,
+  params: {
+    stakePoolId: web3.PublicKey;
+    originalMintId: web3.PublicKey;
+    userOriginalMintTokenAccountId: web3.PublicKey;
+    receiptType?: ReceiptType;
+  }
+): Promise<web3.Transaction> => {
+  const transaction = new web3.Transaction();
+  const [stakeEntryId] = await findStakeEntryId(
+    params.stakePoolId,
+    params.originalMintId
+  );
+  const stakeEntryData = await tryGetAccount(() =>
+    getStakeEntry(connection, stakeEntryId)
+  );
+  if (!stakeEntryData) {
+    await withInitStakeEntry(transaction, connection, wallet, {
+      stakePoolId: params.stakePoolId,
+      originalMintId: params.originalMintId,
+    });
+  }
+
   await withStake(transaction, connection, wallet, {
-    stakeType: params.stakeType,
     stakePoolId: params.stakePoolId,
     originalMintId: params.originalMintId,
     userOriginalMintTokenAccountId: params.userOriginalMintTokenAccountId,
   });
 
-  let receiptMintKeypair;
-  if (params.stakeType === StakeType.Escrow) {
-    if (!stakeEntryData?.parsed.receiptMint) {
-      receiptMintKeypair = web3.Keypair.generate();
-      await withInitReceiptMint(transaction, connection, wallet, {
-        stakePoolId: params.stakePoolId,
-        originalMintId: params.originalMintId,
-        receiptMintKeypair,
-        name: params.receipt?.name || "RECEIPT",
-        symbol: params.receipt?.symbol || "RCP",
-      });
-    }
-  } else {
+  if (params.receiptType) {
+    const receiptMintId =
+      params.receiptType === ReceiptType.Receipt &&
+      stakeEntryData?.parsed.stakeMint
+        ? stakeEntryData?.parsed.stakeMint
+        : params.originalMintId;
     await withClaimReceiptMint(transaction, connection, wallet, {
       stakePoolId: params.stakePoolId,
-      originalMintId: params.originalMintId,
-      receiptMintId: params.originalMintId,
+      stakeEntryId: stakeEntryId,
+      receiptMintId: receiptMintId,
+      receiptType: params.receiptType,
     });
   }
 
-  return [transaction, receiptMintKeypair];
+  return transaction;
 };
 
 export const claimReceiptMint = async (
@@ -111,8 +144,9 @@ export const claimReceiptMint = async (
   wallet: Wallet,
   params: {
     stakePoolId: web3.PublicKey;
-    originalMintId: web3.PublicKey;
+    stakeEntryId: web3.PublicKey;
     receiptMintId: web3.PublicKey;
+    receiptType: ReceiptType;
   }
 ): Promise<web3.Transaction> => {
   return await withClaimReceiptMint(
@@ -121,8 +155,9 @@ export const claimReceiptMint = async (
     wallet,
     {
       stakePoolId: params.stakePoolId,
-      originalMintId: params.originalMintId,
+      stakeEntryId: params.stakeEntryId,
       receiptMintId: params.receiptMintId,
+      receiptType: params.receiptType,
     }
   );
 };
@@ -133,17 +168,17 @@ export const initReceiptMint = async (
   params: {
     stakePoolId: web3.PublicKey;
     originalMintId: web3.PublicKey;
-    name: string;
-    symbol: string;
   }
-): Promise<[web3.Transaction, web3.Keypair]> =>
-  withInitReceiptMint(new web3.Transaction(), connection, wallet, {
+): Promise<[web3.Transaction, web3.Keypair]> => {
+  const stakePool = await getStakePool(connection, params.stakePoolId);
+  return withInitStakeMint(new web3.Transaction(), connection, wallet, {
     stakePoolId: params.stakePoolId,
     originalMintId: params.originalMintId,
-    receiptMintKeypair: web3.Keypair.generate(),
-    name: params.name,
-    symbol: params.symbol,
+    stakeMintKeypair: web3.Keypair.generate(),
+    name: `POOl${stakePool.parsed.identifier.toString()} RECEIPT`,
+    symbol: `POOl${stakePool.parsed.identifier.toString()}`,
   });
+};
 
 export const unstake = async (
   connection: web3.Connection,

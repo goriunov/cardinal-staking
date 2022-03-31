@@ -25,7 +25,7 @@ import { SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 
 import type { STAKE_POOL_PROGRAM } from ".";
 import { STAKE_POOL_ADDRESS, STAKE_POOL_IDL } from ".";
-import { StakeType } from "./constants";
+import { ReceiptType } from "./constants";
 
 export const initPoolIdentifier = (
   connection: Connection,
@@ -117,7 +117,7 @@ export const initStakeEntry = (
   });
 };
 
-export const initReceiptMint = (
+export const initStakeMint = (
   connection: Connection,
   wallet: Wallet,
   params: {
@@ -125,9 +125,9 @@ export const initReceiptMint = (
     stakeEntryId: PublicKey;
     originalMintId: PublicKey;
     originalMintMetadatId: PublicKey;
-    stakeEntryReceiptMintTokenAccountId: PublicKey;
-    receiptMintMetadataId: PublicKey;
-    receiptMintId: PublicKey;
+    stakeEntryStakeMintTokenAccountId: PublicKey;
+    stakeMintMetadataId: PublicKey;
+    stakeMintId: PublicKey;
     mintManagerId: PublicKey;
     name: string;
     symbol: string;
@@ -140,7 +140,7 @@ export const initReceiptMint = (
     provider
   );
 
-  return stakePoolProgram.instruction.initReceiptMint(
+  return stakePoolProgram.instruction.initStakeMint(
     { name: params.name, symbol: params.symbol },
     {
       accounts: {
@@ -148,10 +148,10 @@ export const initReceiptMint = (
         stakePool: params.stakePoolId,
         originalMint: params.originalMintId,
         originalMintMetadata: params.originalMintMetadatId,
-        receiptMint: params.receiptMintId,
-        receiptMintMetadata: params.receiptMintMetadataId,
-        stakeEntryReceiptMintTokenAccount:
-          params.stakeEntryReceiptMintTokenAccountId,
+        stakeMint: params.stakeMintId,
+        stakeMintMetadata: params.stakeMintMetadataId,
+        stakeEntryStakeMintTokenAccount:
+          params.stakeEntryStakeMintTokenAccountId,
         mintManager: params.mintManagerId,
         payer: wallet.publicKey,
         rent: SYSVAR_RENT_PUBKEY,
@@ -172,7 +172,7 @@ export const claimReceiptMint = async (
     stakeEntryId: PublicKey;
     tokenManagerReceiptMintTokenAccountId: PublicKey;
     receiptMintId: PublicKey;
-    stakeType: StakeType;
+    receiptType: ReceiptType;
   }
 ): Promise<TransactionInstruction> => {
   const provider = new Provider(connection, wallet, {});
@@ -195,13 +195,13 @@ export const claimReceiptMint = async (
     findAta(params.receiptMintId, wallet.publicKey),
     getRemainingAccountsForKind(
       params.receiptMintId,
-      params.stakeType === StakeType.Locked
+      params.receiptType === ReceiptType.Original
         ? TokenManagerKind.Edition
         : TokenManagerKind.Managed
     ),
   ]);
 
-  return stakePoolProgram.instruction.claimStakeMint({
+  return stakePoolProgram.instruction.claimReceiptMint({
     accounts: {
       stakeEntry: params.stakeEntryId,
       receiptMint: params.receiptMintId,
@@ -226,7 +226,6 @@ export const stake = (
   connection: Connection,
   wallet: Wallet,
   params: {
-    stakeType: StakeType;
     stakeEntryId: PublicKey;
     stakeEntryOriginalMintTokenAccountId: PublicKey;
     userOriginalMintTokenAccountId: PublicKey;
@@ -239,7 +238,7 @@ export const stake = (
     provider
   );
 
-  return stakePoolProgram.instruction.stake(params.stakeType, {
+  return stakePoolProgram.instruction.stake({
     accounts: {
       stakeEntry: params.stakeEntryId,
       stakeEntryOriginalMintTokenAccount:

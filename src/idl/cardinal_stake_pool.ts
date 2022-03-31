@@ -93,7 +93,7 @@ export type CardinalStakePool = {
       args: [];
     },
     {
-      name: "initReceiptMint";
+      name: "initStakeMint";
       accounts: [
         {
           name: "stakeEntry";
@@ -116,17 +116,17 @@ export type CardinalStakePool = {
           isSigner: false;
         },
         {
-          name: "receiptMint";
+          name: "stakeMint";
           isMut: true;
           isSigner: true;
         },
         {
-          name: "receiptMintMetadata";
+          name: "stakeMintMetadata";
           isMut: true;
           isSigner: false;
         },
         {
-          name: "stakeEntryReceiptMintTokenAccount";
+          name: "stakeEntryStakeMintTokenAccount";
           isMut: true;
           isSigner: false;
         },
@@ -175,7 +175,7 @@ export type CardinalStakePool = {
         {
           name: "ix";
           type: {
-            defined: "InitReceiptMintIx";
+            defined: "InitStakeMintIx";
           };
         }
       ];
@@ -209,15 +209,10 @@ export type CardinalStakePool = {
           isSigner: false;
         }
       ];
-      args: [
-        {
-          name: "stakeType";
-          type: "u8";
-        }
-      ];
+      args: [];
     },
     {
-      name: "claimStakeMint";
+      name: "claimReceiptMint";
       accounts: [
         {
           name: "stakeEntry";
@@ -338,6 +333,10 @@ export type CardinalStakePool = {
             type: "publicKey";
           },
           {
+            name: "originalMintClaimed";
+            type: "bool";
+          },
+          {
             name: "lastStaker";
             type: "publicKey";
           },
@@ -350,18 +349,14 @@ export type CardinalStakePool = {
             type: "i64";
           },
           {
-            name: "stakeType";
-            type: "u8";
+            name: "stakeMintClaimed";
+            type: "bool";
           },
           {
-            name: "receiptMint";
+            name: "stakeMint";
             type: {
               option: "publicKey";
             };
-          },
-          {
-            name: "receiptMintClaimed";
-            type: "bool";
           }
         ];
       };
@@ -457,7 +452,7 @@ export type CardinalStakePool = {
       };
     },
     {
-      name: "InitReceiptMintIx";
+      name: "InitStakeMintIx";
       type: {
         kind: "struct";
         fields: [
@@ -514,30 +509,16 @@ export type CardinalStakePool = {
             name: "InvalidStakeType";
           },
           {
-            name: "InvalidStakeEntryReceiptTokenAccount";
+            name: "InvalidStakeEntryStakeTokenAccount";
           },
           {
             name: "InvalidLastStaker";
           },
           {
             name: "InvalidTokenManagerProgram";
-          }
-        ];
-      };
-    },
-    {
-      name: "StakeType";
-      type: {
-        kind: "enum";
-        variants: [
-          {
-            name: "Unstaked";
           },
           {
-            name: "Escrow";
-          },
-          {
-            name: "Locked";
+            name: "InvalidReceiptMint";
           }
         ];
       };
@@ -640,7 +621,7 @@ export const IDL: CardinalStakePool = {
       args: [],
     },
     {
-      name: "initReceiptMint",
+      name: "initStakeMint",
       accounts: [
         {
           name: "stakeEntry",
@@ -663,17 +644,17 @@ export const IDL: CardinalStakePool = {
           isSigner: false,
         },
         {
-          name: "receiptMint",
+          name: "stakeMint",
           isMut: true,
           isSigner: true,
         },
         {
-          name: "receiptMintMetadata",
+          name: "stakeMintMetadata",
           isMut: true,
           isSigner: false,
         },
         {
-          name: "stakeEntryReceiptMintTokenAccount",
+          name: "stakeEntryStakeMintTokenAccount",
           isMut: true,
           isSigner: false,
         },
@@ -722,7 +703,7 @@ export const IDL: CardinalStakePool = {
         {
           name: "ix",
           type: {
-            defined: "InitReceiptMintIx",
+            defined: "InitStakeMintIx",
           },
         },
       ],
@@ -756,15 +737,10 @@ export const IDL: CardinalStakePool = {
           isSigner: false,
         },
       ],
-      args: [
-        {
-          name: "stakeType",
-          type: "u8",
-        },
-      ],
+      args: [],
     },
     {
-      name: "claimStakeMint",
+      name: "claimReceiptMint",
       accounts: [
         {
           name: "stakeEntry",
@@ -885,6 +861,10 @@ export const IDL: CardinalStakePool = {
             type: "publicKey",
           },
           {
+            name: "originalMintClaimed",
+            type: "bool",
+          },
+          {
             name: "lastStaker",
             type: "publicKey",
           },
@@ -897,18 +877,14 @@ export const IDL: CardinalStakePool = {
             type: "i64",
           },
           {
-            name: "stakeType",
-            type: "u8",
+            name: "stakeMintClaimed",
+            type: "bool",
           },
           {
-            name: "receiptMint",
+            name: "stakeMint",
             type: {
               option: "publicKey",
             },
-          },
-          {
-            name: "receiptMintClaimed",
-            type: "bool",
           },
         ],
       },
@@ -1004,7 +980,7 @@ export const IDL: CardinalStakePool = {
       },
     },
     {
-      name: "InitReceiptMintIx",
+      name: "InitStakeMintIx",
       type: {
         kind: "struct",
         fields: [
@@ -1061,7 +1037,7 @@ export const IDL: CardinalStakePool = {
             name: "InvalidStakeType",
           },
           {
-            name: "InvalidStakeEntryReceiptTokenAccount",
+            name: "InvalidStakeEntryStakeTokenAccount",
           },
           {
             name: "InvalidLastStaker",
@@ -1069,22 +1045,8 @@ export const IDL: CardinalStakePool = {
           {
             name: "InvalidTokenManagerProgram",
           },
-        ],
-      },
-    },
-    {
-      name: "StakeType",
-      type: {
-        kind: "enum",
-        variants: [
           {
-            name: "Unstaked",
-          },
-          {
-            name: "Escrow",
-          },
-          {
-            name: "Locked",
+            name: "InvalidReceiptMint",
           },
         ],
       },

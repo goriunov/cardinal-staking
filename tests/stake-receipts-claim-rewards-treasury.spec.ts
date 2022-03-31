@@ -11,7 +11,7 @@ import * as web3 from "@solana/web3.js";
 import { expect } from "chai";
 
 import {
-  claimReceiptMint,
+  initStakeEntryAndMint,
   initStakePool,
   rewardDistributor,
   stake,
@@ -20,7 +20,7 @@ import {
 import { RewardDistributorKind } from "../src/programs/rewardDistributor";
 import { getRewardDistributor } from "../src/programs/rewardDistributor/accounts";
 import { findRewardDistributorId } from "../src/programs/rewardDistributor/pda";
-import { StakeType } from "../src/programs/stakePool";
+import { ReceiptType } from "../src/programs/stakePool";
 import {
   getStakeEntry,
   getStakePool,
@@ -39,10 +39,8 @@ describe("Stake and claim rewards from treasury", () => {
   let originalMintTokenAccountId: web3.PublicKey;
   let originalMint: splToken.Token;
   let rewardMint: splToken.Token;
-  let receiptMintKeypair: web3.Keypair | undefined;
+  let stakeMintKeypair: web3.Keypair | undefined;
   const originalMintAuthority = web3.Keypair.generate();
-  const receiptMintName = "NAME";
-  const receiptMintSymbol = "SYMBOL";
 
   before(async () => {
     const provider = getProvider();
@@ -180,29 +178,57 @@ describe("Stake and claim rewards from treasury", () => {
     );
   });
 
-  it("Stake", async () => {
+  it("Init stake entry abd mint", async () => {
     const provider = getProvider();
     let transaction: web3.Transaction;
-    [transaction, receiptMintKeypair] = await stake(
+
+    [transaction, stakeMintKeypair] = await initStakeEntryAndMint(
       provider.connection,
       provider.wallet,
       {
-        stakeType: StakeType.Escrow,
         stakePoolId: stakePoolId,
         originalMintId: originalMint.publicKey,
-        userOriginalMintTokenAccountId: originalMintTokenAccountId,
-        receipt: {
-          name: receiptMintName,
-          symbol: receiptMintSymbol,
-        },
+        receiptType: ReceiptType.Receipt,
       }
     );
+
     await expectTXTable(
       new TransactionEnvelope(
         SolanaProvider.init(provider),
-        [...transaction.instructions],
-        receiptMintKeypair ? [receiptMintKeypair] : []
+        transaction.instructions,
+        stakeMintKeypair ? [stakeMintKeypair] : []
       ),
+      "Init stake entry"
+    ).to.be.fulfilled;
+
+    const stakeEntryData = await getStakeEntry(
+      provider.connection,
+      (
+        await findStakeEntryId(stakePoolId, originalMint.publicKey)
+      )[0]
+    );
+
+    expect(stakeEntryData.parsed.originalMint.toString()).to.eq(
+      originalMint.publicKey.toString()
+    );
+    expect(stakeEntryData.parsed.pool.toString()).to.eq(stakePoolId.toString());
+    expect(stakeEntryData.parsed.stakeMint?.toString()).to.eq(
+      stakeMintKeypair?.publicKey.toString()
+    );
+  });
+
+  it("Stake", async () => {
+    const provider = getProvider();
+    const transaction = await stake(provider.connection, provider.wallet, {
+      stakePoolId: stakePoolId,
+      originalMintId: originalMint.publicKey,
+      userOriginalMintTokenAccountId: originalMintTokenAccountId,
+      receiptType: ReceiptType.Receipt,
+    });
+    await expectTXTable(
+      new TransactionEnvelope(SolanaProvider.init(provider), [
+        ...transaction.instructions,
+      ]),
       "Stake"
     ).to.be.fulfilled;
 
@@ -218,10 +244,6 @@ describe("Stake and claim rewards from treasury", () => {
       provider.wallet.publicKey,
       true
     );
-
-    if (!receiptMintKeypair) {
-      throw new Error("Receipt mint keypair is undefined");
-    }
 
     const stakeEntryOriginalMintTokenAccountId = await findAta(
       originalMint.publicKey,
@@ -242,49 +264,33 @@ describe("Stake and claim rewards from treasury", () => {
     const checkStakeEntryOriginalMintTokenAccount =
       await originalMint.getAccountInfo(stakeEntryOriginalMintTokenAccountId);
     expect(checkStakeEntryOriginalMintTokenAccount.amount.toNumber()).to.eq(1);
-  });
 
-  it("Claim receipt mint", async () => {
-    const provider = getProvider();
-
-    if (!receiptMintKeypair) {
-      throw new Error("Receipt mint keypair is null");
+    if (!stakeMintKeypair) {
+      throw new Error("stakeMintKeypair is undefined");
     }
 
-    await expectTXTable(
-      new TransactionEnvelope(SolanaProvider.init(provider), [
-        ...(
-          await claimReceiptMint(provider.connection, provider.wallet, {
-            stakePoolId: stakePoolId,
-            originalMintId: originalMint.publicKey,
-            receiptMintId: receiptMintKeypair?.publicKey,
-          })
-        ).instructions,
-      ]),
-      "Claim receipt mint"
-    ).to.be.fulfilled;
-
-    const userReceiptMintTokenAccountId = await findAta(
-      receiptMintKeypair.publicKey,
-      provider.wallet.publicKey,
-      true
+    const receiptMint = new splToken.Token(
+      provider.connection,
+      stakeMintKeypair.publicKey,
+      splToken.TOKEN_PROGRAM_ID,
+      web3.Keypair.generate()
     );
 
     const [stakeEntryId] = await findStakeEntryId(
       stakePoolId,
       originalMint.publicKey
     );
-    const stakeEntryReceiptMintTokenAccountId = await findAta(
-      receiptMintKeypair.publicKey,
-      stakeEntryId,
+
+    const userReceiptMintTokenAccountId = await findAta(
+      stakeMintKeypair.publicKey,
+      provider.wallet.publicKey,
       true
     );
 
-    const receiptMint = new splToken.Token(
-      provider.connection,
-      receiptMintKeypair.publicKey,
-      splToken.TOKEN_PROGRAM_ID,
-      web3.Keypair.generate()
+    const stakeEntryReceiptMintTokenAccountId = await findAta(
+      stakeMintKeypair.publicKey,
+      stakeEntryId,
+      true
     );
 
     const checkUserReceiptMintTokenAccount = await receiptMint.getAccountInfo(
@@ -324,70 +330,68 @@ describe("Stake and claim rewards from treasury", () => {
     );
     expect(stakeEntryData.parsed.lastStakedAt.toNumber()).to.gt(0);
 
-    if (receiptMintKeypair) {
-      const checkMint = new splToken.Token(
-        provider.connection,
-        receiptMintKeypair.publicKey,
-        splToken.TOKEN_PROGRAM_ID,
-        web3.Keypair.generate()
-      );
-
-      const userOriginalMintTokenAccountId = await findAta(
-        originalMint.publicKey,
-        provider.wallet.publicKey,
-        true
-      );
-
-      const userReceiptMintTokenAccountId = await findAta(
-        receiptMintKeypair.publicKey,
-        provider.wallet.publicKey,
-        true
-      );
-
-      const stakeEntryOriginalMintTokenAccountId = await findAta(
-        originalMint.publicKey,
-        stakeEntryData.pubkey,
-        true
-      );
-
-      const stakeEntryReceiptMintTokenAccountId = await findAta(
-        receiptMintKeypair.publicKey,
-        stakeEntryData.pubkey,
-        true
-      );
-
-      const userRewardMintTokenAccountId = await findAta(
-        rewardMint.publicKey,
-        provider.wallet.publicKey,
-        true
-      );
-
-      const checkUserReceiptMintTokenAccount = await checkMint.getAccountInfo(
-        userReceiptMintTokenAccountId
-      );
-      expect(checkUserReceiptMintTokenAccount.amount.toNumber()).to.eq(0);
-
-      const checkStakeEntryReceiptMintTokenAccount =
-        await checkMint.getAccountInfo(stakeEntryReceiptMintTokenAccountId);
-      expect(checkStakeEntryReceiptMintTokenAccount.amount.toNumber()).to.eq(1);
-
-      const checkUserOriginalTokenAccount = await originalMint.getAccountInfo(
-        userOriginalMintTokenAccountId
-      );
-      expect(checkUserOriginalTokenAccount.amount.toNumber()).to.eq(1);
-
-      const checkStakeEntryOriginalMintTokenAccount =
-        await originalMint.getAccountInfo(stakeEntryOriginalMintTokenAccountId);
-      expect(checkStakeEntryOriginalMintTokenAccount.amount.toNumber()).to.eq(
-        0
-      );
-
-      const checkUserRewardTokenAccount = await rewardMint.getAccountInfo(
-        userRewardMintTokenAccountId
-      );
-      expect(checkUserRewardTokenAccount.amount.toNumber()).greaterThan(1);
-    } else {
-      throw new Error("Receipt mint keypair is undefined");
+    if (!stakeMintKeypair) {
+      throw new Error("stakeMintKeypair is undefined");
     }
+
+    const checkMint = new splToken.Token(
+      provider.connection,
+      stakeMintKeypair.publicKey,
+      splToken.TOKEN_PROGRAM_ID,
+      web3.Keypair.generate()
+    );
+
+    const userOriginalMintTokenAccountId = await findAta(
+      originalMint.publicKey,
+      provider.wallet.publicKey,
+      true
+    );
+
+    const userReceiptMintTokenAccountId = await findAta(
+      stakeMintKeypair.publicKey,
+      provider.wallet.publicKey,
+      true
+    );
+
+    const stakeEntryOriginalMintTokenAccountId = await findAta(
+      originalMint.publicKey,
+      stakeEntryData.pubkey,
+      true
+    );
+
+    const stakeEntryReceiptMintTokenAccountId = await findAta(
+      stakeMintKeypair.publicKey,
+      stakeEntryData.pubkey,
+      true
+    );
+
+    const userRewardMintTokenAccountId = await findAta(
+      rewardMint.publicKey,
+      provider.wallet.publicKey,
+      true
+    );
+
+    const checkUserReceiptMintTokenAccount = await checkMint.getAccountInfo(
+      userReceiptMintTokenAccountId
+    );
+    expect(checkUserReceiptMintTokenAccount.amount.toNumber()).to.eq(0);
+
+    const checkStakeEntryReceiptMintTokenAccount =
+      await checkMint.getAccountInfo(stakeEntryReceiptMintTokenAccountId);
+    expect(checkStakeEntryReceiptMintTokenAccount.amount.toNumber()).to.eq(1);
+
+    const checkUserOriginalTokenAccount = await originalMint.getAccountInfo(
+      userOriginalMintTokenAccountId
+    );
+    expect(checkUserOriginalTokenAccount.amount.toNumber()).to.eq(1);
+
+    const checkStakeEntryOriginalMintTokenAccount =
+      await originalMint.getAccountInfo(stakeEntryOriginalMintTokenAccountId);
+    expect(checkStakeEntryOriginalMintTokenAccount.amount.toNumber()).to.eq(0);
+
+    const checkUserRewardTokenAccount = await rewardMint.getAccountInfo(
+      userRewardMintTokenAccountId
+    );
+    expect(checkUserRewardTokenAccount.amount.toNumber()).greaterThan(1);
   });
 });

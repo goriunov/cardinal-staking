@@ -26,10 +26,12 @@ pub enum ErrorCode {
     InvalidPoolAuthority,
     #[msg("Invalid stake type")]
     InvalidStakeType,
-    #[msg("Invalid stake entry receipt token account")]
-    InvalidStakeEntryReceiptTokenAccount,
+    #[msg("Invalid stake entry stake token account")]
+    InvalidStakeEntryStakeTokenAccount,
     #[msg("Invalid last staker")]
     InvalidLastStaker,
     #[msg("Invalid token manager program")]
     InvalidTokenManagerProgram,
+    #[msg("Invalid receipt mint")]
+    InvalidReceiptMint,
 }

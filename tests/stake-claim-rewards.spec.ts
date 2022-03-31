@@ -13,6 +13,7 @@ import { expect } from "chai";
 import { initStakePool, rewardDistributor, stake, unstake } from "../src";
 import { getRewardDistributor } from "../src/programs/rewardDistributor/accounts";
 import { findRewardDistributorId } from "../src/programs/rewardDistributor/pda";
+import { ReceiptType } from "../src/programs/stakePool";
 import {
   getStakeEntry,
   getStakePool,
@@ -172,8 +173,9 @@ describe("Stake and claim rewards", () => {
             stakePoolId: stakePoolId,
             originalMintId: originalMint.publicKey,
             userOriginalMintTokenAccountId: originalMintTokenAccountId,
+            receiptType: ReceiptType.Original,
           })
-        )[0].instructions,
+        ).instructions,
       ]),
       "Stake"
     ).to.be.fulfilled;
