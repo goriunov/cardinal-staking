@@ -27,8 +27,7 @@ jobs:
       - name: Setup Cachix
         uses: cachix/cachix-action@v10
         with:
-          name: cardinal-token-manager
-          extraPullNames: cardinal
+          name: cardinal-staking
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
       - name: Get yarn cache directory path
@@ -66,8 +65,7 @@ jobs:
       - name: Setup Cachix
         uses: cachix/cachix-action@v10
         with:
-          name: cardinal-token-manager
-          extraPullNames: cardinal
+          name: cardinal-staking
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
       - name: Install Rust nightly
@@ -94,7 +92,7 @@ jobs:
       - name: Setup Cachix
         uses: cachix/cachix-action@v10
         with:
-          name: cardinal-token-manager
+          name: cardinal-staking
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
       - name: Build programs
@@ -122,8 +120,7 @@ jobs:
       - name: Setup Cachix
         uses: cachix/cachix-action@v10
         with:
-          name: cardinal-token-manager
-          extraPullNames: cardinal
+          name: cardinal-staking
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
       - name: Get yarn cache directory path
