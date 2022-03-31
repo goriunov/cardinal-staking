@@ -15,9 +15,9 @@ permissions:
 
 env:
   CARGO_TERM_COLOR: always
-  SOLANA_VERSION: 1.9.5
+  SOLANA_VERSION: 1.9.13
   ANCHOR_GIT: https://github.com/project-serum/anchor
-  RUST_TOOLCHAIN: nightly-2021-12-10
+  RUST_TOOLCHAIN: nightly
   SOTERIA_VERSION: 0.0.0
 
 jobs:
