@@ -94,7 +94,7 @@ describe("Create stake pool", () => {
             originalMintId: originalMint.publicKey,
             userOriginalMintTokenAccountId: originalMintTokenAccountId,
           })
-        ).instructions,
+        )[0].instructions,
       ]),
       "Stake"
     ).to.be.fulfilled;

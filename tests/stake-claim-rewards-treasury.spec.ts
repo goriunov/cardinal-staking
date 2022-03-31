@@ -10,7 +10,13 @@ import type * as splToken from "@solana/spl-token";
 import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { initStakePool, rewardDistributor, stake, unstake } from "../src";
+import {
+  initStakeEntry,
+  initStakePool,
+  rewardDistributor,
+  stake,
+  unstake,
+} from "../src";
 import { RewardDistributorKind } from "../src/programs/rewardDistributor";
 import { getRewardDistributor } from "../src/programs/rewardDistributor/accounts";
 import { findRewardDistributorId } from "../src/programs/rewardDistributor/pda";
@@ -165,6 +171,39 @@ describe("Stake and claim rewards", () => {
     );
   });
 
+  it("Init stake entry for pool", async () => {
+    const provider = getProvider();
+
+    const [transaction, _] = await initStakeEntry(
+      provider.connection,
+      provider.wallet,
+      {
+        stakePoolId: stakePoolId,
+        originalMintId: originalMint.publicKey,
+      }
+    );
+
+    await expectTXTable(
+      new TransactionEnvelope(SolanaProvider.init(provider), [
+        ...transaction.instructions,
+      ]),
+      "Init stake entry"
+    ).to.be.fulfilled;
+
+    const stakeEntryData = await getStakeEntry(
+      provider.connection,
+      (
+        await findStakeEntryId(stakePoolId, originalMint.publicKey)
+      )[0]
+    );
+
+    expect(stakeEntryData.parsed.originalMint.toString()).to.eq(
+      originalMint.publicKey.toString()
+    );
+    expect(stakeEntryData.parsed.pool.toString()).to.eq(stakePoolId.toString());
+    expect(stakeEntryData.parsed.receiptMint).to.eq(null);
+  });
+
   it("Stake", async () => {
     const provider = getProvider();
 
@@ -176,7 +215,7 @@ describe("Stake and claim rewards", () => {
             originalMintId: originalMint.publicKey,
             userOriginalMintTokenAccountId: originalMintTokenAccountId,
           })
-        ).instructions,
+        )[0].instructions,
       ]),
       "Stake"
     ).to.be.fulfilled;

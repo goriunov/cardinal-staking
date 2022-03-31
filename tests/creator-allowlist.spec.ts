@@ -11,7 +11,7 @@ import type { PublicKey } from "@solana/web3.js";
 import { Keypair, Transaction } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { initStakePool, stake } from "../src";
+import { initStakeEntry, initStakePool, stake } from "../src";
 import {
   getStakeEntry,
   getStakePool,
@@ -20,7 +20,6 @@ import {
   findStakeEntryId,
   findStakePoolId,
 } from "../src/programs/stakePool/pda";
-import { withInitStakeEntry } from "../src/programs/stakePool/transaction";
 import { createMasterEditionIxs, createMint } from "./utils";
 import { getProvider } from "./workspace";
 
@@ -88,12 +87,10 @@ describe("Create stake pool", () => {
     );
   });
 
-  it("Init stake entry success", async () => {
+  it("Init stake entry for pool", async () => {
     const provider = getProvider();
-    const transaction = new Transaction();
 
-    await withInitStakeEntry(
-      transaction,
+    const [transaction, _] = await initStakeEntry(
       provider.connection,
       provider.wallet,
       {
@@ -134,7 +131,7 @@ describe("Create stake pool", () => {
             originalMintId: originalMint.publicKey,
             userOriginalMintTokenAccountId: originalMintTokenAccountId,
           })
-        ).instructions,
+        )[0].instructions,
       ]),
       "Stake"
     ).to.be.fulfilled;

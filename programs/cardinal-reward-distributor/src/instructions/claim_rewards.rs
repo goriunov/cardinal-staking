@@ -103,7 +103,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         }
         // update values
         reward_distributor.rewards_issued = reward_distributor.rewards_issued.checked_add(reward_amount_to_receive).unwrap();
-        reward_entry.reward_amount_receievd = reward_entry.reward_amount_receievd.checked_add(reward_amount_to_receive).unwrap();
+        reward_entry.reward_amount_received = reward_entry.reward_amount_received.checked_add(reward_amount_to_receive).unwrap();
         reward_entry.reward_seconds_received = reward_entry.reward_seconds_received.checked_add(reward_time_to_receive).unwrap();
     }
     Ok(())

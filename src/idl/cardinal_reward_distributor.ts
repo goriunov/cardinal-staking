@@ -245,7 +245,7 @@ export type CardinalRewardDistributor = {
             type: "u64";
           },
           {
-            name: "rewardAmountReceievd";
+            name: "rewardAmountReceived";
             type: "u64";
           },
           {
@@ -666,7 +666,7 @@ export const IDL: CardinalRewardDistributor = {
             type: "u64",
           },
           {
-            name: "rewardAmountReceievd",
+            name: "rewardAmountReceived",
             type: "u64",
           },
           {

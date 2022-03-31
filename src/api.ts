@@ -34,6 +34,20 @@ export const initStakePool = async (
 ): Promise<[web3.Transaction, web3.PublicKey, BN]> =>
   withInitStakePool(new web3.Transaction(), connection, wallet, params);
 
+export const initStakeEntry = async (
+  connection: web3.Connection,
+  wallet: Wallet,
+  params: {
+    stakePoolId: web3.PublicKey;
+    originalMintId: web3.PublicKey;
+  }
+): Promise<[web3.Transaction, web3.PublicKey]> => {
+  return withInitStakeEntry(new web3.Transaction(), connection, wallet, {
+    stakePoolId: params.stakePoolId,
+    originalMintId: params.originalMintId,
+  });
+};
+
 export const stake = async (
   connection: web3.Connection,
   wallet: Wallet,
@@ -42,9 +56,12 @@ export const stake = async (
     stakePoolId: web3.PublicKey;
     originalMintId: web3.PublicKey;
     userOriginalMintTokenAccountId: web3.PublicKey;
-    receiptMint?: web3.PublicKey;
+    receipt?: {
+      name?: string;
+      symbol?: string;
+    };
   }
-): Promise<web3.Transaction> => {
+): Promise<[web3.Transaction, web3.Keypair | undefined]> => {
   const transaction = new web3.Transaction();
   const [stakeEntryId] = await findStakeEntryId(
     params.stakePoolId,
@@ -59,23 +76,44 @@ export const stake = async (
       originalMintId: params.originalMintId,
     });
   }
-
   await withStake(transaction, connection, wallet, params);
 
+  let receiptMintKeypair;
   if (params.stakeType === StakeType.Escrow) {
-    const receiptMintId =
-      stakeEntryData?.parsed.receiptMint || params.receiptMint;
-    if (receiptMintId) {
-      await withClaimReceiptMint(transaction, connection, wallet, {
+    if (!stakeEntryData?.parsed.receiptMint) {
+      receiptMintKeypair = web3.Keypair.generate();
+      await withInitReceiptMint(transaction, connection, wallet, {
         stakePoolId: params.stakePoolId,
         originalMintId: params.originalMintId,
-        receiptMintId,
+        receiptMintKeypair,
+        name: params.receipt?.name || "RECEIPT",
+        symbol: params.receipt?.symbol || "RCP",
       });
-    } else {
-      throw new Error("Reciept mint needs to be initialized");
     }
   }
-  return transaction;
+
+  return [transaction, receiptMintKeypair];
+};
+
+export const claimReceiptMint = async (
+  connection: web3.Connection,
+  wallet: Wallet,
+  params: {
+    stakePoolId: web3.PublicKey;
+    originalMintId: web3.PublicKey;
+    receiptMintId: web3.PublicKey;
+  }
+): Promise<web3.Transaction> => {
+  return await withClaimReceiptMint(
+    new web3.Transaction(),
+    connection,
+    wallet,
+    {
+      stakePoolId: params.stakePoolId,
+      originalMintId: params.originalMintId,
+      receiptMintId: params.receiptMintId,
+    }
+  );
 };
 
 export const initReceiptMint = async (
