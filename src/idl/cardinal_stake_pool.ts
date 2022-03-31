@@ -80,12 +80,48 @@ export type CardinalStakePool = {
           isSigner: false;
         },
         {
+          name: "payer";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [];
+    },
+    {
+      name: "initReceiptMint";
+      accounts: [
+        {
+          name: "stakeEntry";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "stakePool";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "originalMint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "originalMintMetadata";
+          isMut: false;
+          isSigner: false;
+        },
+        {
           name: "receiptMint";
           isMut: true;
           isSigner: true;
         },
         {
-          name: "mintManager";
+          name: "receiptMintMetadata";
           isMut: true;
           isSigner: false;
         },
@@ -95,7 +131,7 @@ export type CardinalStakePool = {
           isSigner: false;
         },
         {
-          name: "receiptMintMetadata";
+          name: "mintManager";
           isMut: true;
           isSigner: false;
         },
@@ -139,7 +175,7 @@ export type CardinalStakePool = {
         {
           name: "ix";
           type: {
-            defined: "InitEntryIx";
+            defined: "InitReceiptMintIx";
           };
         }
       ];
@@ -158,17 +194,7 @@ export type CardinalStakePool = {
           isSigner: false;
         },
         {
-          name: "receiptMint";
-          isMut: true;
-          isSigner: false;
-        },
-        {
           name: "stakeEntryOriginalMintTokenAccount";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "stakeEntryReceiptMintTokenAccount";
           isMut: true;
           isSigner: false;
         },
@@ -183,12 +209,48 @@ export type CardinalStakePool = {
           isSigner: false;
         },
         {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [
+        {
+          name: "stakeType";
+          type: "u8";
+        }
+      ];
+    },
+    {
+      name: "claimReceiptMint";
+      accounts: [
+        {
+          name: "stakeEntry";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "receiptMint";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "stakeEntryReceiptMintTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "user";
+          isMut: true;
+          isSigner: true;
+        },
+        {
           name: "userReceiptMintTokenAccount";
           isMut: true;
           isSigner: false;
         },
         {
-          name: "tokenManagerMintAccount";
+          name: "tokenManagerReceiptMintTokenAccount";
           isMut: true;
           isSigner: false;
         },
@@ -213,17 +275,17 @@ export type CardinalStakePool = {
           isSigner: false;
         },
         {
-          name: "associatedToken";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "rent";
+          name: "associatedTokenProgram";
           isMut: false;
           isSigner: false;
         },
         {
           name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "rent";
           isMut: false;
           isSigner: false;
         }
@@ -239,17 +301,7 @@ export type CardinalStakePool = {
           isSigner: false;
         },
         {
-          name: "tokenManager";
-          isMut: true;
-          isSigner: false;
-        },
-        {
           name: "stakeEntryOriginalMintTokenAccount";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "stakeEntryReceiptMintTokenAccount";
           isMut: true;
           isSigner: false;
         },
@@ -264,22 +316,7 @@ export type CardinalStakePool = {
           isSigner: false;
         },
         {
-          name: "userReceiptMintTokenAccount";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "tokenManagerMintAccount";
-          isMut: true;
-          isSigner: false;
-        },
-        {
           name: "tokenProgram";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "tokenManagerProgram";
           isMut: false;
           isSigner: false;
         }
@@ -306,20 +343,30 @@ export type CardinalStakePool = {
             type: "publicKey";
           },
           {
-            name: "receiptMint";
+            name: "lastStaker";
             type: "publicKey";
-          },
-          {
-            name: "totalStakeSeconds";
-            type: "i64";
           },
           {
             name: "lastStakedAt";
             type: "i64";
           },
           {
-            name: "lastStaker";
-            type: "publicKey";
+            name: "totalStakeSeconds";
+            type: "i64";
+          },
+          {
+            name: "stakeType";
+            type: "u8";
+          },
+          {
+            name: "receiptMint";
+            type: {
+              option: "publicKey";
+            };
+          },
+          {
+            name: "receiptMintClaimed";
+            type: "bool";
           }
         ];
       };
@@ -383,22 +430,6 @@ export type CardinalStakePool = {
   ];
   types: [
     {
-      name: "InitEntryIx";
-      type: {
-        kind: "struct";
-        fields: [
-          {
-            name: "name";
-            type: "string";
-          },
-          {
-            name: "symbol";
-            type: "string";
-          }
-        ];
-      };
-    },
-    {
       name: "InitPoolIx";
       type: {
         kind: "struct";
@@ -426,6 +457,22 @@ export type CardinalStakePool = {
           {
             name: "authority";
             type: "publicKey";
+          }
+        ];
+      };
+    },
+    {
+      name: "InitReceiptMintIx";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "name";
+            type: "string";
+          },
+          {
+            name: "symbol";
+            type: "string";
           }
         ];
       };
@@ -467,6 +514,35 @@ export type CardinalStakePool = {
           },
           {
             name: "InvalidPoolAuthority";
+          },
+          {
+            name: "InvalidStakeType";
+          },
+          {
+            name: "InvalidStakeEntryReceiptTokenAccount";
+          },
+          {
+            name: "InvalidLastStaker";
+          },
+          {
+            name: "InvalidTokenManagerProgram";
+          }
+        ];
+      };
+    },
+    {
+      name: "StakeType";
+      type: {
+        kind: "enum";
+        variants: [
+          {
+            name: "Unstaked";
+          },
+          {
+            name: "Escrow";
+          },
+          {
+            name: "Locked";
           }
         ];
       };
@@ -556,12 +632,48 @@ export const IDL: CardinalStakePool = {
           isSigner: false,
         },
         {
+          name: "payer",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: "initReceiptMint",
+      accounts: [
+        {
+          name: "stakeEntry",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "stakePool",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "originalMint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "originalMintMetadata",
+          isMut: false,
+          isSigner: false,
+        },
+        {
           name: "receiptMint",
           isMut: true,
           isSigner: true,
         },
         {
-          name: "mintManager",
+          name: "receiptMintMetadata",
           isMut: true,
           isSigner: false,
         },
@@ -571,7 +683,7 @@ export const IDL: CardinalStakePool = {
           isSigner: false,
         },
         {
-          name: "receiptMintMetadata",
+          name: "mintManager",
           isMut: true,
           isSigner: false,
         },
@@ -615,7 +727,7 @@ export const IDL: CardinalStakePool = {
         {
           name: "ix",
           type: {
-            defined: "InitEntryIx",
+            defined: "InitReceiptMintIx",
           },
         },
       ],
@@ -634,17 +746,7 @@ export const IDL: CardinalStakePool = {
           isSigner: false,
         },
         {
-          name: "receiptMint",
-          isMut: true,
-          isSigner: false,
-        },
-        {
           name: "stakeEntryOriginalMintTokenAccount",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "stakeEntryReceiptMintTokenAccount",
           isMut: true,
           isSigner: false,
         },
@@ -659,12 +761,48 @@ export const IDL: CardinalStakePool = {
           isSigner: false,
         },
         {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: "stakeType",
+          type: "u8",
+        },
+      ],
+    },
+    {
+      name: "claimReceiptMint",
+      accounts: [
+        {
+          name: "stakeEntry",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "receiptMint",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "stakeEntryReceiptMintTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "user",
+          isMut: true,
+          isSigner: true,
+        },
+        {
           name: "userReceiptMintTokenAccount",
           isMut: true,
           isSigner: false,
         },
         {
-          name: "tokenManagerMintAccount",
+          name: "tokenManagerReceiptMintTokenAccount",
           isMut: true,
           isSigner: false,
         },
@@ -689,17 +827,17 @@ export const IDL: CardinalStakePool = {
           isSigner: false,
         },
         {
-          name: "associatedToken",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "rent",
+          name: "associatedTokenProgram",
           isMut: false,
           isSigner: false,
         },
         {
           name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "rent",
           isMut: false,
           isSigner: false,
         },
@@ -715,17 +853,7 @@ export const IDL: CardinalStakePool = {
           isSigner: false,
         },
         {
-          name: "tokenManager",
-          isMut: true,
-          isSigner: false,
-        },
-        {
           name: "stakeEntryOriginalMintTokenAccount",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "stakeEntryReceiptMintTokenAccount",
           isMut: true,
           isSigner: false,
         },
@@ -740,22 +868,7 @@ export const IDL: CardinalStakePool = {
           isSigner: false,
         },
         {
-          name: "userReceiptMintTokenAccount",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "tokenManagerMintAccount",
-          isMut: true,
-          isSigner: false,
-        },
-        {
           name: "tokenProgram",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "tokenManagerProgram",
           isMut: false,
           isSigner: false,
         },
@@ -782,20 +895,30 @@ export const IDL: CardinalStakePool = {
             type: "publicKey",
           },
           {
-            name: "receiptMint",
+            name: "lastStaker",
             type: "publicKey",
-          },
-          {
-            name: "totalStakeSeconds",
-            type: "i64",
           },
           {
             name: "lastStakedAt",
             type: "i64",
           },
           {
-            name: "lastStaker",
-            type: "publicKey",
+            name: "totalStakeSeconds",
+            type: "i64",
+          },
+          {
+            name: "stakeType",
+            type: "u8",
+          },
+          {
+            name: "receiptMint",
+            type: {
+              option: "publicKey",
+            },
+          },
+          {
+            name: "receiptMintClaimed",
+            type: "bool",
           },
         ],
       },
@@ -859,22 +982,6 @@ export const IDL: CardinalStakePool = {
   ],
   types: [
     {
-      name: "InitEntryIx",
-      type: {
-        kind: "struct",
-        fields: [
-          {
-            name: "name",
-            type: "string",
-          },
-          {
-            name: "symbol",
-            type: "string",
-          },
-        ],
-      },
-    },
-    {
       name: "InitPoolIx",
       type: {
         kind: "struct",
@@ -902,6 +1009,22 @@ export const IDL: CardinalStakePool = {
           {
             name: "authority",
             type: "publicKey",
+          },
+        ],
+      },
+    },
+    {
+      name: "InitReceiptMintIx",
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "name",
+            type: "string",
+          },
+          {
+            name: "symbol",
+            type: "string",
           },
         ],
       },
@@ -943,6 +1066,35 @@ export const IDL: CardinalStakePool = {
           },
           {
             name: "InvalidPoolAuthority",
+          },
+          {
+            name: "InvalidStakeType",
+          },
+          {
+            name: "InvalidStakeEntryReceiptTokenAccount",
+          },
+          {
+            name: "InvalidLastStaker",
+          },
+          {
+            name: "InvalidTokenManagerProgram",
+          },
+        ],
+      },
+    },
+    {
+      name: "StakeType",
+      type: {
+        kind: "enum",
+        variants: [
+          {
+            name: "Unstaked",
+          },
+          {
+            name: "Escrow",
+          },
+          {
+            name: "Locked",
           },
         ],
       },

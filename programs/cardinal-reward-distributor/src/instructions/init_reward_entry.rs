@@ -29,7 +29,7 @@ pub fn handler(ctx: Context<InitRewardEntryCtx>, ix: InitRewardEntryIx) -> Resul
     reward_entry.bump = *ctx.bumps.get("reward_entry").unwrap();
     reward_entry.mint = ix.mint;
     reward_entry.reward_distributor = ctx.accounts.reward_distributor.key();
-    reward_entry.reward_amount_receievd = 0;
+    reward_entry.reward_amount_received = 0;
     reward_entry.reward_seconds_received = 0;
     reward_entry.multiplier = 1;
     Ok(())

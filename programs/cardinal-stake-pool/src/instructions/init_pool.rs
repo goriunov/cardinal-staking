@@ -42,6 +42,5 @@ pub fn handler(ctx: Context<InitPoolCtx>, ix: InitPoolIx) -> Result<()> {
 
     let identifier = &mut ctx.accounts.identifier;
     identifier.count += 1;
-
     Ok(())
 }

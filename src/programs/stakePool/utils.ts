@@ -1,5 +1,16 @@
+import { withFindOrInitAssociatedTokenAccount } from "@cardinal/common";
+import {
+  getRemainingAccountsForKind,
+  TOKEN_MANAGER_ADDRESS,
+  TokenManagerKind,
+} from "@cardinal/token-manager/dist/cjs/programs/tokenManager";
+import {
+  findMintCounterId,
+  findTokenManagerAddress,
+} from "@cardinal/token-manager/dist/cjs/programs/tokenManager/pda";
 import { BN, Program, Provider } from "@project-serum/anchor";
-import type * as web3 from "@solana/web3.js";
+import type { Wallet } from "@saberhq/solana-contrib";
+import * as web3 from "@solana/web3.js";
 
 import type { REWARD_DISTRIBUTOR_PROGRAM } from "../rewardDistributor";
 import {
@@ -9,7 +20,91 @@ import {
 import { findRewardDistributorId } from "../rewardDistributor/pda";
 import type { STAKE_POOL_PROGRAM } from ".";
 import { STAKE_POOL_ADDRESS, STAKE_POOL_IDL } from ".";
+import { StakeType } from "./constants";
 import { findStakeEntryId } from "./pda";
+
+export const withRemainingAccountsForStake = async (
+  transaction: web3.Transaction,
+  connection: web3.Connection,
+  wallet: Wallet,
+  mintId: web3.PublicKey,
+  stakeType: StakeType
+): Promise<web3.AccountMeta[]> => {
+  if (stakeType === StakeType.Locked) {
+    const [[tokenManagerId], [mintCounterId]] = await Promise.all([
+      findTokenManagerAddress(mintId),
+      findMintCounterId(mintId),
+    ]);
+    const tokenManagerTokenAccountId =
+      await withFindOrInitAssociatedTokenAccount(
+        transaction,
+        connection,
+        mintId,
+        tokenManagerId,
+        wallet.publicKey,
+        true
+      );
+    const remainingAccountForKind = await getRemainingAccountsForKind(
+      mintId,
+      TokenManagerKind.Edition
+    );
+    return [
+      {
+        pubkey: TOKEN_MANAGER_ADDRESS,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: tokenManagerId,
+        isSigner: false,
+        isWritable: true,
+      },
+      {
+        pubkey: tokenManagerTokenAccountId,
+        isSigner: false,
+        isWritable: true,
+      },
+      { pubkey: mintCounterId, isSigner: false, isWritable: true },
+      {
+        pubkey: web3.SystemProgram.programId,
+        isSigner: false,
+        isWritable: false,
+      },
+      ...remainingAccountForKind,
+    ];
+  } else {
+    return [];
+  }
+};
+
+export const withRemainingAccountsForUnstake = async (
+  transaction: web3.Transaction,
+  connection: web3.Connection,
+  wallet: Wallet,
+  stakeEntryId: web3.PublicKey,
+  receiptMint: web3.PublicKey | null | undefined
+): Promise<web3.AccountMeta[]> => {
+  if (receiptMint) {
+    const stakeEntryReceiptMintTokenAccount =
+      await withFindOrInitAssociatedTokenAccount(
+        transaction,
+        connection,
+        receiptMint,
+        stakeEntryId,
+        wallet.publicKey,
+        true
+      );
+    return [
+      {
+        pubkey: stakeEntryReceiptMintTokenAccount,
+        isSigner: false,
+        isWritable: false,
+      },
+    ];
+  } else {
+    return [];
+  }
+};
 
 export const getTotalStakeSeconds = async (
   connection: web3.Connection,

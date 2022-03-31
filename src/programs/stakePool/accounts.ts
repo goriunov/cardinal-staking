@@ -1,7 +1,7 @@
+import type { AccountData } from "@cardinal/common";
 import { Program, Provider } from "@project-serum/anchor";
 import type { Connection, PublicKey } from "@solana/web3.js";
 
-import type { AccountData } from "../../utils";
 import type { STAKE_POOL_PROGRAM, StakePoolData } from ".";
 import { STAKE_POOL_ADDRESS, STAKE_POOL_IDL } from ".";
 import type { IdentifierData, StakeEntryData } from "./constants";

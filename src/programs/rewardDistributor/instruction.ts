@@ -98,7 +98,7 @@ export const claimRewards = async (
   wallet: Wallet,
   params: {
     stakePoolId: PublicKey;
-    originalMint: PublicKey;
+    originalMintId: PublicKey;
     mintTokenAccount: PublicKey;
     rewardMintId: PublicKey;
     rewardMintTokenAccountId: PublicKey;
@@ -116,8 +116,8 @@ export const claimRewards = async (
     params.stakePoolId
   );
   const [[rewardEntryId], [stakeEntryId]] = await Promise.all([
-    findRewardEntryId(rewardDistributorId, params.originalMint),
-    findStakeEntryId(params.stakePoolId, params.originalMint),
+    findRewardEntryId(rewardDistributorId, params.originalMintId),
+    findStakeEntryId(params.stakePoolId, params.originalMintId),
   ]);
 
   return rewardDistributorProgram.instruction.claimRewards({
