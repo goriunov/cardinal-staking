@@ -41,29 +41,25 @@ Cardinal stake pool is meant to be composable. A simple reward distributor is pr
 
 ## Documentation
 
-**Stake Type**
+**Stake Receipts**
 
-> Stake pool is designed to support 2 types of staking: 'Locked' and 'Escrow'
+Stake pool is designed to support general staking, as well as a enabling a concept of stake receipts.
 
-- `StakeType::Locked`
+> Receipts is a feature that allows the user to have a representation of the staked NFT in their wallet
 
-  - When staking using the "locked" stake type, at initiation of the stake, the token(s) will be locked into the staker's wallet, and the stake timer will begin.
+- `ReceiptType::Original`
+
+  - When staking using the original receipt type, when staking the user token(s) will be locked into the staker's wallet, and the stake timer will begin.
   - This allows users to continue holding their tokens while they're staked which can be advantageous for several reasons including allowing them to continue participating in DAOs and gated discord servers.
   - While it does sit in their wallet, the token is frozen while it is staked and thus cannot be traded/sent to anyone else. The locked aspect of staking that projects hope to achieve is thus not compromised in any way.
   - In order to unstake, this locked token must first be unfrozen and returned to the stake pool. The current implementation leverages the Cardinal Token Manager and the invalidation type of "Return". The way this works is that upon staking, the token is issued back to the staker from the stake pool with an associated Token Manager wrapper. Then, when the user decides to unstake, the token manager is invalidated, and the token is programatically returned back to the pool. Now back in the pool and unwrapped, the token can be freely claimed by user. The client abstracts this invalidation and return inside of the unstake api.
 
-- `StakeType::Escrow`
-  - When staking using the "escrow" stake type, the token(s) will be transferred into a token account owned by the stake entry, and wallet address of the most recent staker is recorded.
-  - The current staker can unstake at any time which increments the stake timer for that mint.
-
-**Receipts**
-
-> Receipts is a feature most useful for StakeType::Escrow that allows any staker to claim a receipt NFT representing their current stake.
-
-- Receipt metadata is dynamic by default and uses the Cardinal metadata and img-generators hosted at https://api.cardinal.so/metadata and https://api.cardinal.so/img respectively.
-- Using a receipt combined with StakeType::Escrow allows the user to maintain a record in their wallet of their stake even when the token is in escrow. This approach is additionally beneficial because the receipt can be clearly identified in the wallet as a staked NFT rather than a just locked one because of the mutable and dynamic nature of its metadata that allows for relevant markers/metrics to be displayed.
-- Receipts are not nearly as useful when using StakeType::Locked because the original token remains in the user's wallet.
-- Any unstaking requires returning the receipt before the unstake instruction can be called. This can be done via the Cardinal Token Manager with 'InvalidationType::Return'. Similar to how returning locked tokens works, this will is handled automatically by the client unstake api.
+- `ReceiptType::Receipt`
+  - Optionally the user can also claim a generated NFT receipt
+  - Using stake type of receipt, a new copy NFT will be transferred to user. The receipt metadata is dynamic by default and uses the Cardinal metadata and img-generators hosted at https://api.cardinal.so/metadata and https://api.cardinal.so/img respectively.
+  - This approach is additionally beneficial because the receipt can be clearly identified in the wallet as a staked NFT rather than a just locked one because of the mutable and dynamic nature of its metadata that allows for relevant markers/metrics to be displayed.
+  - The current staker can unstake at any time which increments the stake timer for that mint
+  - Any unstaking requires returning the receipt before the unstake instruction can be called. This can be done via the Cardinal Token Manager with 'InvalidationType::Return'. Similar to how returning locked tokens works, this will is handled automatically by the client unstake api.
 
 ## Questions & Support
 
