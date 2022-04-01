@@ -11,6 +11,7 @@ import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
 import { expect } from "chai";
 
 import { stake, unstake } from "../src";
+import { ReceiptType } from "../src/programs/stakePool";
 import {
   getStakeEntry,
   getStakePool,
@@ -121,7 +122,7 @@ describe("Create stake pool", () => {
       originalMint.publicKey.toString()
     );
     expect(stakeEntryData.parsed.pool.toString()).to.eq(stakePoolId.toString());
-    expect(stakeEntryData.parsed.receiptMint).to.eq(null);
+    expect(stakeEntryData.parsed.stakeMint).to.eq(null);
   });
 
   it("Stake", async () => {
@@ -134,8 +135,9 @@ describe("Create stake pool", () => {
             stakePoolId: stakePoolId,
             originalMintId: originalMint.publicKey,
             userOriginalMintTokenAccountId: originalMintTokenAccountId,
+            receiptType: ReceiptType.Original,
           })
-        )[0].instructions,
+        ).instructions,
       ]),
       "Stake"
     ).to.be.fulfilled;

@@ -24,7 +24,9 @@ export type StakePoolData = Accounts["stakePool"];
 export type StakeEntryData = Accounts["stakeEntry"];
 export type IdentifierData = Accounts["identifier"];
 
-export enum StakeType {
-  Escrow = 1,
-  Locked = 2,
+export enum ReceiptType {
+  // Receive the original mint wrapped in a token manager
+  Original = 1,
+  // Receive a receipt mint wrapped in a token manager
+  Receipt = 2,
 }

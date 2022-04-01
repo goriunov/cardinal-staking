@@ -2,6 +2,7 @@ import {
   tryGetAccount,
   withFindOrInitAssociatedTokenAccount,
 } from "@cardinal/common";
+import type { web3 } from "@project-serum/anchor";
 import { BN } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
 import type { Connection, PublicKey, Transaction } from "@solana/web3.js";
@@ -28,7 +29,7 @@ export const withInitRewardDistributor = async (
     kind?: RewardDistributorKind;
     maxSupply?: BN;
   }
-): Promise<Transaction> => {
+): Promise<[Transaction, web3.PublicKey]> => {
   const [rewardDistributorId] = await findRewardDistributorId(
     params.stakePoolId
   );
@@ -40,7 +41,7 @@ export const withInitRewardDistributor = async (
     params.kind || RewardDistributorKind.Mint,
     params.rewardMintId
   );
-  return transaction.add(
+  transaction.add(
     initRewardDistributor(connection, wallet, {
       rewardDistributorId,
       stakePoolId: params.stakePoolId,
@@ -52,6 +53,7 @@ export const withInitRewardDistributor = async (
       maxSupply: params.maxSupply,
     })
   );
+  return [transaction, rewardDistributorId];
 };
 
 export const withInitRewardEntry = async (

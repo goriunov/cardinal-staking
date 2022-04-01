@@ -17,12 +17,12 @@ pub struct ClaimReceiptMintCtx<'info> {
     #[account(mut)]
     stake_entry: Box<Account<'info, StakeEntry>>,
 
-    #[account(mut, constraint = receipt_mint.key() == stake_entry.receipt_mint.unwrap() @ ErrorCode::InvalidTokenManagerMint)]
+    #[account(mut)]
     receipt_mint: Box<Account<'info, Mint>>,
 
     #[account(mut, constraint =
         stake_entry_receipt_mint_token_account.amount > 0
-        && stake_entry_receipt_mint_token_account.mint == stake_entry.receipt_mint.unwrap()
+        && stake_entry_receipt_mint_token_account.mint == receipt_mint.key()
         && stake_entry_receipt_mint_token_account.owner == stake_entry.key()
         @ ErrorCode::InvalidStakeEntryMintTokenAccount)]
     stake_entry_receipt_mint_token_account: Box<Account<'info, TokenAccount>>,
@@ -62,7 +62,17 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     let stake_pool = stake_entry.pool;
     let stake_entry_seed = &[STAKE_ENTRY_PREFIX.as_bytes(), stake_pool.as_ref(), original_mint.as_ref(), &[stake_entry.bump]];
     let stake_entry_signer = &[&stake_entry_seed[..]];
-    stake_entry.receipt_mint_claimed = true;
+
+    let token_manager_kind;
+    if stake_entry.original_mint == ctx.accounts.receipt_mint.key() {
+        stake_entry.original_mint_claimed = true;
+        token_manager_kind = TokenManagerKind::Edition;
+    } else if ctx.accounts.receipt_mint.key() == stake_entry.stake_mint.unwrap() {
+        stake_entry.stake_mint_claimed = true;
+        token_manager_kind = TokenManagerKind::Managed;
+    } else {
+        return Err(error!(ErrorCode::InvalidReceiptMint));
+    }
 
     // token manager init
     let cpi_accounts = cardinal_token_manager::cpi::accounts::InitCtx {
@@ -96,7 +106,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     };
     let issue_ix = cardinal_token_manager::instructions::IssueIx {
         amount: 1,
-        kind: TokenManagerKind::Managed as u8,
+        kind: token_manager_kind as u8,
         invalidation_type: InvalidationType::Return as u8,
     };
     let cpi_ctx = CpiContext::new(ctx.accounts.token_manager_program.to_account_info(), cpi_accounts).with_signer(stake_entry_signer);

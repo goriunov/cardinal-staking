@@ -22,12 +22,12 @@ pub mod cardinal_stake_pool {
         init_entry::handler(ctx)
     }
 
-    pub fn init_receipt_mint(ctx: Context<InitReceiptMintCtx>, ix: InitReceiptMintIx) -> Result<()> {
-        init_receipt_mint::handler(ctx, ix)
+    pub fn init_stake_mint(ctx: Context<InitStakeMintCtx>, ix: InitStakeMintIx) -> Result<()> {
+        init_stake_mint::handler(ctx, ix)
     }
 
-    pub fn stake<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, StakeCtx<'info>>, stake_type: u8) -> Result<()> {
-        stake::handler(ctx, stake_type)
+    pub fn stake(ctx: Context<StakeCtx>) -> Result<()> {
+        stake::handler(ctx)
     }
 
     pub fn claim_receipt_mint<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, ClaimReceiptMintCtx<'info>>) -> Result<()> {

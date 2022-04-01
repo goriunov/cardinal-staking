@@ -11,6 +11,7 @@ import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
 import { expect } from "chai";
 
 import { initStakePool, stake, unstake } from "../src";
+import { ReceiptType } from "../src/programs/stakePool";
 import {
   getStakeEntry,
   getStakePool,
@@ -93,8 +94,9 @@ describe("Create stake pool", () => {
             stakePoolId: stakePoolId,
             originalMintId: originalMint.publicKey,
             userOriginalMintTokenAccountId: originalMintTokenAccountId,
+            receiptType: ReceiptType.Original,
           })
-        )[0].instructions,
+        ).instructions,
       ]),
       "Stake"
     ).to.be.fulfilled;

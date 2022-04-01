@@ -15,14 +15,14 @@ use {
 };
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
-pub struct InitReceiptMintIx {
+pub struct InitStakeMintIx {
     name: String,
     symbol: String,
 }
 
 #[derive(Accounts)]
-#[instruction(ix: InitReceiptMintIx)]
-pub struct InitReceiptMintCtx<'info> {
+#[instruction(ix: InitStakeMintIx)]
+pub struct InitStakeMintCtx<'info> {
     #[account(mut, constraint = stake_entry.pool == stake_pool.key() @ ErrorCode::InvalidStakePool)]
     stake_entry: Box<Account<'info, StakeEntry>>,
     #[account(mut)]
@@ -32,14 +32,14 @@ pub struct InitReceiptMintCtx<'info> {
     /// CHECK: This is not dangerous because we don't read or write from this account
     original_mint_metadata: AccountInfo<'info>,
     #[account(mut)]
-    receipt_mint: Signer<'info>,
+    stake_mint: Signer<'info>,
 
     /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
-    receipt_mint_metadata: UncheckedAccount<'info>,
+    stake_mint_metadata: UncheckedAccount<'info>,
     /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
-    stake_entry_receipt_mint_token_account: UncheckedAccount<'info>,
+    stake_entry_stake_mint_token_account: UncheckedAccount<'info>,
     /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
     mint_manager: UncheckedAccount<'info>,
@@ -56,28 +56,28 @@ pub struct InitReceiptMintCtx<'info> {
     system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<InitReceiptMintCtx>, ix: InitReceiptMintIx) -> Result<()> {
+pub fn handler(ctx: Context<InitStakeMintCtx>, ix: InitStakeMintIx) -> Result<()> {
     let stake_entry = &mut ctx.accounts.stake_entry;
     let stake_pool_identifier = ctx.accounts.stake_pool.identifier.to_le_bytes();
     let stake_pool_seeds = &[STAKE_POOL_PREFIX.as_bytes(), stake_pool_identifier.as_ref(), &[ctx.accounts.stake_pool.bump]];
     let stake_pool_signer = &[&stake_pool_seeds[..]];
-    stake_entry.receipt_mint = Some(ctx.accounts.receipt_mint.key());
+    stake_entry.stake_mint = Some(ctx.accounts.stake_mint.key());
 
     // create mint
     invoke(
         &create_account(
             ctx.accounts.payer.key,
-            ctx.accounts.receipt_mint.key,
+            ctx.accounts.stake_mint.key,
             ctx.accounts.rent.minimum_balance(spl_token::state::Mint::LEN),
             spl_token::state::Mint::LEN as u64,
             &spl_token::id(),
         ),
-        &[ctx.accounts.payer.to_account_info(), ctx.accounts.receipt_mint.to_account_info()],
+        &[ctx.accounts.payer.to_account_info(), ctx.accounts.stake_mint.to_account_info()],
     )?;
 
     // Initialize mint
     let cpi_accounts = token::InitializeMint {
-        mint: ctx.accounts.receipt_mint.to_account_info(),
+        mint: ctx.accounts.stake_mint.to_account_info(),
         rent: ctx.accounts.rent.to_account_info(),
     };
     let cpi_program = ctx.accounts.token_program.to_account_info();
@@ -87,9 +87,9 @@ pub fn handler(ctx: Context<InitReceiptMintCtx>, ix: InitReceiptMintIx) -> Resul
     // create associated token account for stake_entry
     let cpi_accounts = associated_token::Create {
         payer: ctx.accounts.payer.to_account_info(),
-        associated_token: ctx.accounts.stake_entry_receipt_mint_token_account.to_account_info(),
+        associated_token: ctx.accounts.stake_entry_stake_mint_token_account.to_account_info(),
         authority: stake_entry.to_account_info(),
-        mint: ctx.accounts.receipt_mint.to_account_info(),
+        mint: ctx.accounts.stake_mint.to_account_info(),
         system_program: ctx.accounts.system_program.to_account_info(),
         token_program: ctx.accounts.token_program.to_account_info(),
         rent: ctx.accounts.rent.to_account_info(),
@@ -109,15 +109,15 @@ pub fn handler(ctx: Context<InitReceiptMintCtx>, ix: InitReceiptMintIx) -> Resul
     invoke_signed(
         &create_metadata_accounts_v2(
             *ctx.accounts.token_metadata_program.key,
-            *ctx.accounts.receipt_mint_metadata.key,
-            *ctx.accounts.receipt_mint.key,
+            *ctx.accounts.stake_mint_metadata.key,
+            *ctx.accounts.stake_mint.key,
             ctx.accounts.stake_pool.key(),
             *ctx.accounts.payer.key,
             ctx.accounts.stake_pool.key(),
             ix.name,
             ix.symbol,
             // generative URL which will include image of the name with expiration data
-            "https://api.cardinal.so/metadata/".to_string() + &ctx.accounts.receipt_mint.key().to_string() + "?text=" + &ctx.accounts.stake_pool.overlay_text + &metadata_uri_param,
+            "https://api.cardinal.so/metadata/".to_string() + &ctx.accounts.stake_mint.key().to_string() + "?text=" + &ctx.accounts.stake_pool.overlay_text + &metadata_uri_param,
             Some(vec![
                 Creator {
                     address: ctx.accounts.stake_pool.key(),
@@ -137,8 +137,8 @@ pub fn handler(ctx: Context<InitReceiptMintCtx>, ix: InitReceiptMintIx) -> Resul
             None,
         ),
         &[
-            ctx.accounts.receipt_mint_metadata.to_account_info(),
-            ctx.accounts.receipt_mint.to_account_info(),
+            ctx.accounts.stake_mint_metadata.to_account_info(),
+            ctx.accounts.stake_mint.to_account_info(),
             ctx.accounts.stake_pool.to_account_info(),
             ctx.accounts.payer.to_account_info(),
             ctx.accounts.stake_pool.to_account_info(),
@@ -150,8 +150,8 @@ pub fn handler(ctx: Context<InitReceiptMintCtx>, ix: InitReceiptMintIx) -> Resul
 
     // mint single token to token manager mint token account
     let cpi_accounts = token::MintTo {
-        mint: ctx.accounts.receipt_mint.to_account_info(),
-        to: ctx.accounts.stake_entry_receipt_mint_token_account.to_account_info(),
+        mint: ctx.accounts.stake_mint.to_account_info(),
+        to: ctx.accounts.stake_entry_stake_mint_token_account.to_account_info(),
         authority: ctx.accounts.stake_pool.to_account_info(),
     };
     let cpi_program = ctx.accounts.token_program.to_account_info();
@@ -163,7 +163,7 @@ pub fn handler(ctx: Context<InitReceiptMintCtx>, ix: InitReceiptMintIx) -> Resul
     let token_manager_program = ctx.accounts.token_manager_program.to_account_info();
     let cpi_accounts = cardinal_token_manager::cpi::accounts::CreateMintManagerCtx {
         mint_manager: ctx.accounts.mint_manager.to_account_info(),
-        mint: ctx.accounts.receipt_mint.to_account_info(),
+        mint: ctx.accounts.stake_mint.to_account_info(),
         freeze_authority: ctx.accounts.stake_pool.to_account_info(),
         payer: ctx.accounts.payer.to_account_info(),
         token_program: ctx.accounts.token_program.to_account_info(),
