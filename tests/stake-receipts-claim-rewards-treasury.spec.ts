@@ -11,9 +11,9 @@ import * as web3 from "@solana/web3.js";
 import { expect } from "chai";
 
 import {
+  initRewardDistributorWithEntry,
   initStakeEntryAndMint,
   initStakePool,
-  rewardDistributor,
   stake,
   unstake,
 } from "../src";
@@ -105,14 +105,14 @@ describe("Stake and claim rewards from treasury", () => {
     );
   });
 
-  it("Create Reward Distributor", async () => {
+  it("Create Reward Distributor and Entry", async () => {
     const provider = getProvider();
-    const transaction = new web3.Transaction();
-    await rewardDistributor.transaction.withInitRewardDistributor(
-      transaction,
+
+    const transaction = await initRewardDistributorWithEntry(
       provider.connection,
       provider.wallet,
       {
+        mintId: originalMint.publicKey,
         stakePoolId: stakePoolId,
         rewardMintId: rewardMint.publicKey,
         kind: RewardDistributorKind.Treasury,
@@ -120,19 +120,18 @@ describe("Stake and claim rewards from treasury", () => {
       }
     );
 
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: provider.wallet,
-        opts: provider.opts,
-      }),
-      [...transaction.instructions]
-    );
+    const txEnvelope = new TransactionEnvelope(SolanaProvider.init(provider), [
+      ...transaction.instructions,
+    ]);
 
-    await expectTXTable(txEnvelope, "Create reward distributor", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
+    await expectTXTable(
+      txEnvelope,
+      "Create reward distributor and reward entry",
+      {
+        verbosity: "error",
+        formatLogs: true,
+      }
+    ).to.be.fulfilled;
 
     const [rewardDistributorId] = await findRewardDistributorId(stakePoolId);
     const rewardDistributorData = await getRewardDistributor(
@@ -142,35 +141,6 @@ describe("Stake and claim rewards from treasury", () => {
 
     expect(rewardDistributorData.parsed.rewardMint.toString()).to.eq(
       rewardMint.publicKey.toString()
-    );
-  });
-
-  it("Init Reward Entry", async () => {
-    const provider = getProvider();
-    const transaction = new web3.Transaction();
-    const [rewardDistributorId] = await findRewardDistributorId(stakePoolId);
-    await rewardDistributor.transaction.withInitRewardEntry(
-      transaction,
-      provider.connection,
-      provider.wallet,
-      {
-        mintId: originalMint.publicKey,
-        rewardDistributorId: rewardDistributorId,
-      }
-    );
-
-    const txEnvelope = new TransactionEnvelope(SolanaProvider.init(provider), [
-      ...transaction.instructions,
-    ]);
-
-    await expectTXTable(txEnvelope, "Init reward entry", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
-
-    const rewardDistributorData = await getRewardDistributor(
-      provider.connection,
-      rewardDistributorId
     );
 
     expect(rewardDistributorData.parsed.rewardMint.toString()).to.eq(
