@@ -5,8 +5,7 @@ pub const STAKE_ENTRY_PREFIX: &str = "stake-entry";
 pub const STAKE_ENTRY_SIZE: usize = 8 + std::mem::size_of::<StakeEntry>() + 8;
 
 pub const STAKE_POOL_PREFIX: &str = "stake-pool";
-// max 4 pubkeys and 256 for strings
-pub const STAKE_POOL_SIZE: usize = 8 + std::mem::size_of::<StakePool>() + 8;
+pub const STAKE_POOL_SIZE: usize = 8 + 1 + 8 + 32 * 5 + 256;
 
 pub const IDENTIFIER_PREFIX: &str = "identifier";
 pub const IDENTIFIER_SIZE: usize = 8 + std::mem::size_of::<Identifier>() + 8;
@@ -30,9 +29,9 @@ pub struct StakePool {
     pub identifier: u64,
     pub allowed_creators: Vec<Pubkey>,
     pub allowed_collections: Vec<Pubkey>,
+    pub authority: Pubkey,
     pub overlay_text: String,
     pub image_uri: String,
-    pub authority: Pubkey,
 }
 
 #[account]
