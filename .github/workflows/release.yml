@@ -77,7 +77,7 @@ jobs:
       - uses: ./.github/actions/install-anchor
         with:
           anchor_git: ${{ env.ANCHOR_GIT }}
-
+      - run: sudo apt install libudev-dev
       - name: Build programs
         run: anchor build --verifiable
       - name: Release
