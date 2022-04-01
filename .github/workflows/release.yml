@@ -66,6 +66,7 @@ jobs:
     name: Release verifiable binaries
     steps:
       - uses: actions/checkout@v3
+      - uses: ./.github/actions/install-linux-build-deps
       - uses: actions-rs/toolchain@v1
         with:
           override: true
@@ -77,7 +78,6 @@ jobs:
       - uses: ./.github/actions/install-anchor
         with:
           anchor_git: ${{ env.ANCHOR_GIT }}
-
       - name: Build programs
         run: anchor build --verifiable
       - name: Release
