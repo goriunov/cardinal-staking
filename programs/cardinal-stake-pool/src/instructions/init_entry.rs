@@ -28,7 +28,11 @@ pub struct InitEntryCtx<'info> {
 }
 
 pub fn handler(ctx: Context<InitEntryCtx>) -> Result<()> {
+    let stake_entry = &mut ctx.accounts.stake_entry;
     let stake_pool = &ctx.accounts.stake_pool;
+    stake_entry.bump = *ctx.bumps.get("stake_entry").unwrap();
+    stake_entry.pool = ctx.accounts.stake_pool.key();
+    stake_entry.original_mint = ctx.accounts.original_mint.key();
 
     // check allowlist
     if !stake_pool.allowed_creators.is_empty() || !stake_pool.allowed_collections.is_empty() {
@@ -52,10 +56,14 @@ pub fn handler(ctx: Context<InitEntryCtx>) -> Result<()> {
         }
     }
 
-    let stake_entry = &mut ctx.accounts.stake_entry;
-    stake_entry.bump = *ctx.bumps.get("stake_entry").unwrap();
-    stake_entry.pool = ctx.accounts.stake_pool.key();
-    stake_entry.original_mint = ctx.accounts.original_mint.key();
+    if stake_pool.requires_authorization {
+        let remaining_accs = &mut ctx.remaining_accounts.iter();
+        let stake_entry_authorization_info = next_account_info(remaining_accs)?;
+        let stake_entry_authorization_account = Account::<StakeAuthorizationRecord>::try_from(stake_entry_authorization_info)?;
+        if stake_entry_authorization_account.pool != stake_entry.pool || stake_entry_authorization_account.mint != stake_entry.original_mint {
+            return Err(error!(ErrorCode::MintNotAllowedInPool));
+        }
+    }
 
     Ok(())
 }

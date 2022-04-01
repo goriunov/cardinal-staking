@@ -4,7 +4,11 @@ import type { Connection, PublicKey } from "@solana/web3.js";
 
 import type { STAKE_POOL_PROGRAM, StakePoolData } from ".";
 import { STAKE_POOL_ADDRESS, STAKE_POOL_IDL } from ".";
-import type { IdentifierData, StakeEntryData } from "./constants";
+import type {
+  IdentifierData,
+  StakeAuthorizationData,
+  StakeEntryData,
+} from "./constants";
 import { findIdentifierId } from "./pda";
 
 export const getStakePool = async (
@@ -107,5 +111,26 @@ export const getPoolIdentifier = async (
   return {
     parsed,
     pubkey: identifierId,
+  };
+};
+
+export const getStakeAuthorization = async (
+  connection: Connection,
+  stakeAuthorizationId: PublicKey
+): Promise<AccountData<StakeAuthorizationData>> => {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  const provider = new Provider(connection, null, {});
+  const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
+    STAKE_POOL_IDL,
+    STAKE_POOL_ADDRESS,
+    provider
+  );
+  const parsed = await stakePoolProgram.account.stakeAuthorizationRecord.fetch(
+    stakeAuthorizationId
+  );
+  return {
+    parsed,
+    pubkey: stakeAuthorizationId,
   };
 };

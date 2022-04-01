@@ -1,6 +1,6 @@
 import { tryGetAccount } from "@cardinal/common";
 import type { BN } from "@project-serum/anchor";
-import type * as solanaContrib from "@saberhq/solana-contrib";
+import type { Wallet } from "@saberhq/solana-contrib";
 import type { Connection, PublicKey } from "@solana/web3.js";
 import { Keypair, Transaction } from "@solana/web3.js";
 
@@ -13,6 +13,7 @@ import { ReceiptType } from "./programs/stakePool";
 import { getStakeEntry, getStakePool } from "./programs/stakePool/accounts";
 import { findStakeEntryId } from "./programs/stakePool/pda";
 import {
+  withAuthorizeStakeEntry,
   withClaimReceiptMint,
   withInitPoolIdentifier,
   withInitStakeEntry,
@@ -24,16 +25,17 @@ import {
 
 export const initPoolIdentifier = async (
   connection: Connection,
-  wallet: solanaContrib.Wallet
+  wallet: Wallet
 ): Promise<[Transaction, PublicKey]> =>
   withInitPoolIdentifier(new Transaction(), connection, wallet);
 
 export const initStakePool = async (
   connection: Connection,
-  wallet: solanaContrib.Wallet,
+  wallet: Wallet,
   params: {
     allowedCollections?: PublicKey[];
     allowedCreators?: PublicKey[];
+    requiresAuthorization?: boolean;
     overlayText?: string;
     imageUri?: string;
   }
@@ -42,7 +44,7 @@ export const initStakePool = async (
 
 export const initStakeEntry = async (
   connection: Connection,
-  wallet: solanaContrib.Wallet,
+  wallet: Wallet,
   params: {
     stakePoolId: PublicKey;
     originalMintId: PublicKey;
@@ -54,9 +56,23 @@ export const initStakeEntry = async (
   });
 };
 
+export const authorizeStakeEntry = async (
+  connection: Connection,
+  wallet: Wallet,
+  params: {
+    stakePoolId: PublicKey;
+    originalMintId: PublicKey;
+  }
+): Promise<Transaction> => {
+  return withAuthorizeStakeEntry(new Transaction(), connection, wallet, {
+    stakePoolId: params.stakePoolId,
+    originalMintId: params.originalMintId,
+  });
+};
+
 export const initStakeEntryAndMint = async (
   connection: Connection,
-  wallet: solanaContrib.Wallet,
+  wallet: Wallet,
   params: {
     stakePoolId: PublicKey;
     originalMintId: PublicKey;
@@ -99,7 +115,7 @@ export const initStakeEntryAndMint = async (
 
 export const stake = async (
   connection: Connection,
-  wallet: solanaContrib.Wallet,
+  wallet: Wallet,
   params: {
     stakePoolId: PublicKey;
     originalMintId: PublicKey;
@@ -147,7 +163,7 @@ export const stake = async (
 
 export const unstake = async (
   connection: Connection,
-  wallet: solanaContrib.Wallet,
+  wallet: Wallet,
   params: {
     stakePoolId: PublicKey;
     originalMintId: PublicKey;
@@ -157,7 +173,7 @@ export const unstake = async (
 
 export const initRewardDistributorWithEntry = async (
   connection: Connection,
-  wallet: solanaContrib.Wallet,
+  wallet: Wallet,
   params: {
     mintId: PublicKey;
     stakePoolId: PublicKey;

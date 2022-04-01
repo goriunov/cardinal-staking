@@ -1,5 +1,5 @@
 export type CardinalStakePool = {
-  version: "0.1.0";
+  version: "0.0.4";
   name: "cardinal_stake_pool";
   instructions: [
     {
@@ -177,6 +177,37 @@ export type CardinalStakePool = {
           type: {
             defined: "InitStakeMintIx";
           };
+        }
+      ];
+    },
+    {
+      name: "authorizeMint";
+      accounts: [
+        {
+          name: "stakePool";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "stakeAuthorizationRecord";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "payer";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [
+        {
+          name: "mint";
+          type: "publicKey";
         }
       ];
     },
@@ -375,6 +406,10 @@ export type CardinalStakePool = {
             type: "u64";
           },
           {
+            name: "authority";
+            type: "publicKey";
+          },
+          {
             name: "allowedCreators";
             type: {
               vec: "publicKey";
@@ -387,15 +422,35 @@ export type CardinalStakePool = {
             };
           },
           {
+            name: "requiresAuthorization";
+            type: "bool";
+          },
+          {
             name: "overlayText";
             type: "string";
           },
           {
             name: "imageUri";
             type: "string";
+          }
+        ];
+      };
+    },
+    {
+      name: "stakeAuthorizationRecord";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "bump";
+            type: "u8";
           },
           {
-            name: "authority";
+            name: "pool";
+            type: "publicKey";
+          },
+          {
+            name: "mint";
             type: "publicKey";
           }
         ];
@@ -443,6 +498,10 @@ export type CardinalStakePool = {
             type: {
               vec: "publicKey";
             };
+          },
+          {
+            name: "requiresAuthorization";
+            type: "bool";
           },
           {
             name: "authority";
@@ -553,7 +612,7 @@ export type CardinalStakePool = {
 };
 
 export const IDL: CardinalStakePool = {
-  version: "0.1.0",
+  version: "0.0.4",
   name: "cardinal_stake_pool",
   instructions: [
     {
@@ -731,6 +790,37 @@ export const IDL: CardinalStakePool = {
           type: {
             defined: "InitStakeMintIx",
           },
+        },
+      ],
+    },
+    {
+      name: "authorizeMint",
+      accounts: [
+        {
+          name: "stakePool",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "stakeAuthorizationRecord",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "payer",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: "mint",
+          type: "publicKey",
         },
       ],
     },
@@ -929,6 +1019,10 @@ export const IDL: CardinalStakePool = {
             type: "u64",
           },
           {
+            name: "authority",
+            type: "publicKey",
+          },
+          {
             name: "allowedCreators",
             type: {
               vec: "publicKey",
@@ -941,6 +1035,10 @@ export const IDL: CardinalStakePool = {
             },
           },
           {
+            name: "requiresAuthorization",
+            type: "bool",
+          },
+          {
             name: "overlayText",
             type: "string",
           },
@@ -948,8 +1046,24 @@ export const IDL: CardinalStakePool = {
             name: "imageUri",
             type: "string",
           },
+        ],
+      },
+    },
+    {
+      name: "stakeAuthorizationRecord",
+      type: {
+        kind: "struct",
+        fields: [
           {
-            name: "authority",
+            name: "bump",
+            type: "u8",
+          },
+          {
+            name: "pool",
+            type: "publicKey",
+          },
+          {
+            name: "mint",
             type: "publicKey",
           },
         ],
@@ -997,6 +1111,10 @@ export const IDL: CardinalStakePool = {
             type: {
               vec: "publicKey",
             },
+          },
+          {
+            name: "requiresAuthorization",
+            type: "bool",
           },
           {
             name: "authority",

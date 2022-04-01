@@ -6,6 +6,7 @@ pub struct InitPoolIx {
     image_uri: String,
     allowed_collections: Vec<Pubkey>,
     allowed_creators: Vec<Pubkey>,
+    requires_authorization: bool,
     authority: Pubkey,
 }
 
@@ -36,6 +37,7 @@ pub fn handler(ctx: Context<InitPoolCtx>, ix: InitPoolIx) -> Result<()> {
     stake_pool.identifier = identifier.count;
     stake_pool.allowed_collections = ix.allowed_collections;
     stake_pool.allowed_creators = ix.allowed_creators;
+    stake_pool.requires_authorization = ix.requires_authorization;
     stake_pool.overlay_text = ix.overlay_text;
     stake_pool.image_uri = ix.image_uri;
     stake_pool.authority = ix.authority;
