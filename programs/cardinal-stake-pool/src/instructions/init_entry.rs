@@ -28,34 +28,41 @@ pub struct InitEntryCtx<'info> {
 }
 
 pub fn handler(ctx: Context<InitEntryCtx>) -> Result<()> {
+    let stake_entry = &mut ctx.accounts.stake_entry;
     let stake_pool = &ctx.accounts.stake_pool;
+    stake_entry.bump = *ctx.bumps.get("stake_entry").unwrap();
+    stake_entry.pool = ctx.accounts.stake_pool.key();
+    stake_entry.original_mint = ctx.accounts.original_mint.key();
 
     // check allowlist
-    if !stake_pool.allowed_creators.is_empty() || !stake_pool.allowed_collections.is_empty() {
+    if !stake_pool.requires_creators.is_empty() || !stake_pool.requires_collections.is_empty() || stake_pool.requires_authorization {
+        let mut allowed = false;
         if ctx.accounts.original_mint_metadata.data_is_empty() {
             return Err(error!(ErrorCode::NoMintMetadata));
         }
         let original_mint_metadata = Metadata::from_account_info(&ctx.accounts.original_mint_metadata.to_account_info())?;
-        let mut allowed = false;
-        if !stake_pool.allowed_creators.is_empty() && original_mint_metadata.data.creators != None {
+        if !stake_pool.requires_creators.is_empty() && original_mint_metadata.data.creators != None {
             let creators = original_mint_metadata.data.creators.unwrap();
-            let find = creators.iter().find(|c| stake_pool.allowed_creators.contains(&c.address));
+            let find = creators.iter().find(|c| stake_pool.requires_creators.contains(&c.address));
             if find != None {
                 allowed = true
             };
         }
-        if !stake_pool.allowed_collections.is_empty() && original_mint_metadata.collection != None && stake_pool.allowed_collections.contains(&original_mint_metadata.collection.unwrap().key) {
+        if !stake_pool.requires_collections.is_empty() && original_mint_metadata.collection != None && stake_pool.requires_collections.contains(&original_mint_metadata.collection.unwrap().key) {
             allowed = true
+        }
+        if stake_pool.requires_authorization || !allowed {
+            let remaining_accs = &mut ctx.remaining_accounts.iter();
+            let stake_entry_authorization_info = next_account_info(remaining_accs)?;
+            let stake_entry_authorization_account = Account::<StakeAuthorizationRecord>::try_from(stake_entry_authorization_info)?;
+            if stake_entry_authorization_account.pool == stake_entry.pool && stake_entry_authorization_account.mint == stake_entry.original_mint {
+                allowed = true;
+            }
         }
         if !allowed {
             return Err(error!(ErrorCode::MintNotAllowedInPool));
         }
     }
-
-    let stake_entry = &mut ctx.accounts.stake_entry;
-    stake_entry.bump = *ctx.bumps.get("stake_entry").unwrap();
-    stake_entry.pool = ctx.accounts.stake_pool.key();
-    stake_entry.original_mint = ctx.accounts.original_mint.key();
 
     Ok(())
 }

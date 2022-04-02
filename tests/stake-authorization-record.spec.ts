@@ -11,20 +11,27 @@ import type { PublicKey } from "@solana/web3.js";
 import { Keypair, Transaction } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { initStakeEntry, initStakePool, stake } from "../src";
+import {
+  authorizeStakeEntry,
+  initStakeEntry,
+  initStakePool,
+  stake,
+} from "../src";
 import { ReceiptType } from "../src/programs/stakePool";
 import {
+  getStakeAuthorization,
   getStakeEntry,
   getStakePool,
 } from "../src/programs/stakePool/accounts";
 import {
+  findStakeAuthorizationId,
   findStakeEntryId,
   findStakePoolId,
 } from "../src/programs/stakePool/pda";
 import { createMasterEditionIxs, createMint } from "./utils";
 import { getProvider } from "./workspace";
 
-describe("Create stake pool", () => {
+describe("Requires authorization success", () => {
   let poolIdentifier: BN;
   const overlayText = "staking";
   let originalMintTokenAccountId: PublicKey;
@@ -70,7 +77,8 @@ describe("Create stake pool", () => {
       provider.wallet,
       {
         overlayText: overlayText,
-        requiresCreators: [originalMintAuthority.publicKey],
+        requiresCreators: [],
+        requiresAuthorization: true,
       }
     );
     await expectTXTable(
@@ -86,6 +94,35 @@ describe("Create stake pool", () => {
     expect(stakePoolData.parsed.identifier.toNumber()).to.eq(
       poolIdentifier.toNumber()
     );
+  });
+
+  it("Authorize mint for stake", async () => {
+    const provider = getProvider();
+
+    const transaction = await authorizeStakeEntry(
+      provider.connection,
+      provider.wallet,
+      {
+        stakePoolId: stakePoolId,
+        originalMintId: originalMint.publicKey,
+      }
+    );
+
+    await expectTXTable(
+      new TransactionEnvelope(SolanaProvider.init(provider), [
+        ...transaction.instructions,
+      ]),
+      "Init stake entry"
+    ).to.be.fulfilled;
+
+    const stakeAuthorizationData = await getStakeAuthorization(
+      provider.connection,
+      (
+        await findStakeAuthorizationId(stakePoolId, originalMint.publicKey)
+      )[0]
+    );
+
+    expect(stakeAuthorizationData).to.not.eq(null);
   });
 
   it("Init stake entry for pool", async () => {

@@ -19,6 +19,7 @@ import { withRemainingAccountsForKind } from "../rewardDistributor/utils";
 import { getPoolIdentifier, getStakeEntry } from "./accounts";
 import type { ReceiptType } from "./constants";
 import {
+  authorizeStakeEntry,
   claimReceiptMint,
   initPoolIdentifier,
   initStakeEntry,
@@ -50,8 +51,9 @@ export const withInitStakePool = async (
   connection: web3.Connection,
   wallet: Wallet,
   params: {
-    allowedCollections?: web3.PublicKey[];
-    allowedCreators?: web3.PublicKey[];
+    requiresCollections?: web3.PublicKey[];
+    requiresCreators?: web3.PublicKey[];
+    requiresAuthorization?: boolean;
     overlayText?: string;
     imageUri?: string;
   }
@@ -75,8 +77,9 @@ export const withInitStakePool = async (
     initStakePool(connection, wallet, {
       identifierId: identifierId,
       stakePoolId: stakePoolId,
-      allowedCreators: params.allowedCreators || [],
-      allowedCollections: params.allowedCollections || [],
+      requiresCreators: params.requiresCreators || [],
+      requiresCollections: params.requiresCollections || [],
+      requiresAuthorization: params.requiresAuthorization,
       overlayText: params.overlayText || "",
       imageUri: params.imageUri || "",
       authority: wallet.publicKey,
@@ -100,7 +103,7 @@ export const withInitStakeEntry = async (
   ]);
 
   transaction.add(
-    initStakeEntry(connection, wallet, {
+    await initStakeEntry(connection, wallet, {
       stakePoolId: params.stakePoolId,
       stakeEntryId: stakeEntryId,
       originalMintId: params.originalMintId,
@@ -108,6 +111,24 @@ export const withInitStakeEntry = async (
     })
   );
   return [transaction, stakeEntryId];
+};
+
+export const withAuthorizeStakeEntry = async (
+  transaction: web3.Transaction,
+  connection: web3.Connection,
+  wallet: Wallet,
+  params: {
+    stakePoolId: web3.PublicKey;
+    originalMintId: web3.PublicKey;
+  }
+): Promise<web3.Transaction> => {
+  transaction.add(
+    await authorizeStakeEntry(connection, wallet, {
+      stakePoolId: params.stakePoolId,
+      originalMintId: params.originalMintId,
+    })
+  );
+  return transaction;
 };
 
 export const withInitStakeMint = async (

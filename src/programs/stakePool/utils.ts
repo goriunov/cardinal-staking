@@ -11,7 +11,24 @@ import {
 import { findRewardDistributorId } from "../rewardDistributor/pda";
 import type { STAKE_POOL_PROGRAM } from ".";
 import { STAKE_POOL_ADDRESS, STAKE_POOL_IDL } from ".";
-import { findStakeEntryId } from "./pda";
+import { findStakeAuthorizationId, findStakeEntryId } from "./pda";
+
+export const remainingAccountsForInitStakeEntry = async (
+  stakePoolId: web3.PublicKey,
+  originalMintId: web3.PublicKey
+): Promise<web3.AccountMeta[]> => {
+  const [stakeAuthorizationRecordId] = await findStakeAuthorizationId(
+    stakePoolId,
+    originalMintId
+  );
+  return [
+    {
+      pubkey: stakeAuthorizationRecordId,
+      isSigner: false,
+      isWritable: false,
+    },
+  ];
+};
 
 export const withRemainingAccountsForUnstake = async (
   transaction: web3.Transaction,

@@ -26,6 +26,8 @@ import { SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 import type { STAKE_POOL_PROGRAM } from ".";
 import { STAKE_POOL_ADDRESS, STAKE_POOL_IDL } from ".";
 import { ReceiptType } from "./constants";
+import { findStakeAuthorizationId } from "./pda";
+import { remainingAccountsForInitStakeEntry } from "./utils";
 
 export const initPoolIdentifier = (
   connection: Connection,
@@ -55,8 +57,9 @@ export const initStakePool = (
   params: {
     identifierId: PublicKey;
     stakePoolId: PublicKey;
-    allowedCreators: PublicKey[];
-    allowedCollections: PublicKey[];
+    requiresCreators: PublicKey[];
+    requiresCollections: PublicKey[];
+    requiresAuthorization?: boolean;
     overlayText: string;
     imageUri: string;
     authority: PublicKey;
@@ -68,13 +71,13 @@ export const initStakePool = (
     STAKE_POOL_ADDRESS,
     provider
   );
-
   return stakePoolProgram.instruction.initPool(
     {
       overlayText: params.overlayText,
       imageUri: params.imageUri,
-      allowedCollections: params.allowedCollections,
-      allowedCreators: params.allowedCreators,
+      requiresCollections: params.requiresCollections,
+      requiresCreators: params.requiresCreators,
+      requiresAuthorization: params.requiresAuthorization ?? false,
       authority: params.authority,
     },
     {
@@ -88,7 +91,36 @@ export const initStakePool = (
   );
 };
 
-export const initStakeEntry = (
+export const authorizeStakeEntry = async (
+  connection: Connection,
+  wallet: Wallet,
+  params: {
+    stakePoolId: PublicKey;
+    originalMintId: PublicKey;
+  }
+): Promise<TransactionInstruction> => {
+  const provider = new Provider(connection, wallet, {});
+  const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
+    STAKE_POOL_IDL,
+    STAKE_POOL_ADDRESS,
+    provider
+  );
+
+  const [stakeAuthorizationId] = await findStakeAuthorizationId(
+    params.stakePoolId,
+    params.originalMintId
+  );
+  return stakePoolProgram.instruction.authorizeMint(params.originalMintId, {
+    accounts: {
+      stakePool: params.stakePoolId,
+      stakeAuthorizationRecord: stakeAuthorizationId,
+      payer: wallet.publicKey,
+      systemProgram: SystemProgram.programId,
+    },
+  });
+};
+
+export const initStakeEntry = async (
   connection: Connection,
   wallet: Wallet,
   params: {
@@ -97,14 +129,17 @@ export const initStakeEntry = (
     originalMintId: PublicKey;
     originalMintMetadatId: PublicKey;
   }
-): TransactionInstruction => {
+): Promise<TransactionInstruction> => {
   const provider = new Provider(connection, wallet, {});
   const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
     STAKE_POOL_IDL,
     STAKE_POOL_ADDRESS,
     provider
   );
-
+  const remainingAccounts = await remainingAccountsForInitStakeEntry(
+    params.stakePoolId,
+    params.originalMintId
+  );
   return stakePoolProgram.instruction.initEntry({
     accounts: {
       stakeEntry: params.stakeEntryId,
@@ -114,6 +149,7 @@ export const initStakeEntry = (
       payer: wallet.publicKey,
       systemProgram: SystemProgram.programId,
     },
+    remainingAccounts,
   });
 };
 

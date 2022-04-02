@@ -26,6 +26,10 @@ pub mod cardinal_stake_pool {
         init_stake_mint::handler(ctx, ix)
     }
 
+    pub fn authorize_mint(ctx: Context<AuthorizeMintCtx>, mint: Pubkey) -> Result<()> {
+        authorize_mint::handler(ctx, mint)
+    }
+
     pub fn stake(ctx: Context<StakeCtx>) -> Result<()> {
         stake::handler(ctx)
     }

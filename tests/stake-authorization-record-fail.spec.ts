@@ -10,14 +10,13 @@ import type { PublicKey } from "@solana/web3.js";
 import { Keypair, Transaction } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { initStakePool } from "../src";
+import { initStakeEntry, initStakePool } from "../src";
 import { getStakePool } from "../src/programs/stakePool/accounts";
 import { findStakePoolId } from "../src/programs/stakePool/pda";
-import { withInitStakeEntry } from "../src/programs/stakePool/transaction";
 import { createMasterEditionIxs, createMint } from "./utils";
 import { getProvider } from "./workspace";
 
-describe("Create stake pool", () => {
+describe("Requires authorization fail", () => {
   let poolIdentifier: BN;
   const overlayText = "staking";
   let originalMint: splToken.Token;
@@ -62,7 +61,8 @@ describe("Create stake pool", () => {
       provider.wallet,
       {
         overlayText: overlayText,
-        requiresCreators: [Keypair.generate().publicKey],
+        requiresCreators: [],
+        requiresAuthorization: true,
       }
     );
     await expectTXTable(
@@ -82,10 +82,8 @@ describe("Create stake pool", () => {
 
   it("Init stake entry for pool", async () => {
     const provider = getProvider();
-    const transaction = new Transaction();
 
-    await withInitStakeEntry(
-      transaction,
+    const [transaction, _] = await initStakeEntry(
       provider.connection,
       provider.wallet,
       {
@@ -93,7 +91,6 @@ describe("Create stake pool", () => {
         originalMintId: originalMint.publicKey,
       }
     );
-
     expect(async () => {
       await expectTXTable(
         new TransactionEnvelope(SolanaProvider.init(provider), [
