@@ -57,8 +57,8 @@ export const initStakePool = (
   params: {
     identifierId: PublicKey;
     stakePoolId: PublicKey;
-    allowedCreators: PublicKey[];
-    allowedCollections: PublicKey[];
+    requiresCreators: PublicKey[];
+    requiresCollections: PublicKey[];
     requiresAuthorization?: boolean;
     overlayText: string;
     imageUri: string;
@@ -75,8 +75,8 @@ export const initStakePool = (
     {
       overlayText: params.overlayText,
       imageUri: params.imageUri,
-      allowedCollections: params.allowedCollections,
-      allowedCreators: params.allowedCreators,
+      requiresCollections: params.requiresCollections,
+      requiresCreators: params.requiresCreators,
       requiresAuthorization: params.requiresAuthorization ?? false,
       authority: params.authority,
     },
@@ -128,7 +128,6 @@ export const initStakeEntry = async (
     stakeEntryId: PublicKey;
     originalMintId: PublicKey;
     originalMintMetadatId: PublicKey;
-    requiresAuthorization?: boolean;
   }
 ): Promise<TransactionInstruction> => {
   const provider = new Provider(connection, wallet, {});
@@ -139,8 +138,7 @@ export const initStakeEntry = async (
   );
   const remainingAccounts = await remainingAccountsForInitStakeEntry(
     params.stakePoolId,
-    params.originalMintId,
-    params.requiresAuthorization
+    params.originalMintId
   );
   return stakePoolProgram.instruction.initEntry({
     accounts: {

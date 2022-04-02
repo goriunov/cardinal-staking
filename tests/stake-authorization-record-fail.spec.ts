@@ -61,7 +61,7 @@ describe("Requires authorization fail", () => {
       provider.wallet,
       {
         overlayText: overlayText,
-        allowedCreators: [],
+        requiresCreators: [],
         requiresAuthorization: true,
       }
     );

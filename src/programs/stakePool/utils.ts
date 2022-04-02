@@ -15,24 +15,19 @@ import { findStakeAuthorizationId, findStakeEntryId } from "./pda";
 
 export const remainingAccountsForInitStakeEntry = async (
   stakePoolId: web3.PublicKey,
-  originalMintId: web3.PublicKey,
-  requiresAuthorization?: boolean
+  originalMintId: web3.PublicKey
 ): Promise<web3.AccountMeta[]> => {
-  if (requiresAuthorization) {
-    const [stakeAuthorizationRecordId] = await findStakeAuthorizationId(
-      stakePoolId,
-      originalMintId
-    );
-    return [
-      {
-        pubkey: stakeAuthorizationRecordId,
-        isSigner: false,
-        isWritable: false,
-      },
-    ];
-  } else {
-    return [];
-  }
+  const [stakeAuthorizationRecordId] = await findStakeAuthorizationId(
+    stakePoolId,
+    originalMintId
+  );
+  return [
+    {
+      pubkey: stakeAuthorizationRecordId,
+      isSigner: false,
+      isWritable: false,
+    },
+  ];
 };
 
 export const withRemainingAccountsForUnstake = async (

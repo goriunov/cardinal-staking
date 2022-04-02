@@ -62,7 +62,7 @@ describe("Create stake pool", () => {
       provider.wallet,
       {
         overlayText: overlayText,
-        allowedCreators: [Keypair.generate().publicKey],
+        requiresCreators: [Keypair.generate().publicKey],
       }
     );
     await expectTXTable(

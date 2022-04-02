@@ -410,13 +410,13 @@ export type CardinalStakePool = {
             type: "publicKey";
           },
           {
-            name: "allowedCreators";
+            name: "requiresCreators";
             type: {
               vec: "publicKey";
             };
           },
           {
-            name: "allowedCollections";
+            name: "requiresCollections";
             type: {
               vec: "publicKey";
             };
@@ -488,13 +488,13 @@ export type CardinalStakePool = {
             type: "string";
           },
           {
-            name: "allowedCollections";
+            name: "requiresCollections";
             type: {
               vec: "publicKey";
             };
           },
           {
-            name: "allowedCreators";
+            name: "requiresCreators";
             type: {
               vec: "publicKey";
             };
@@ -1023,13 +1023,13 @@ export const IDL: CardinalStakePool = {
             type: "publicKey",
           },
           {
-            name: "allowedCreators",
+            name: "requiresCreators",
             type: {
               vec: "publicKey",
             },
           },
           {
-            name: "allowedCollections",
+            name: "requiresCollections",
             type: {
               vec: "publicKey",
             },
@@ -1101,13 +1101,13 @@ export const IDL: CardinalStakePool = {
             type: "string",
           },
           {
-            name: "allowedCollections",
+            name: "requiresCollections",
             type: {
               vec: "publicKey",
             },
           },
           {
-            name: "allowedCreators",
+            name: "requiresCreators",
             type: {
               vec: "publicKey",
             },

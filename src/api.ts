@@ -33,8 +33,8 @@ export const initStakePool = async (
   connection: Connection,
   wallet: Wallet,
   params: {
-    allowedCollections?: PublicKey[];
-    allowedCreators?: PublicKey[];
+    requiresCollections?: PublicKey[];
+    requiresCreators?: PublicKey[];
     requiresAuthorization?: boolean;
     overlayText?: string;
     imageUri?: string;
