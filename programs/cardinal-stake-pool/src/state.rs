@@ -17,6 +17,7 @@ pub const STAKE_AUTHORIZATION_SIZE: usize = 8 + std::mem::size_of::<StakeAuthori
 pub struct StakeEntry {
     pub bump: u8,
     pub pool: Pubkey,
+    pub amount: u64,
     pub original_mint: Pubkey,
     pub original_mint_claimed: bool,
     pub last_staker: Pubkey,
