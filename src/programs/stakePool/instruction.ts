@@ -9,6 +9,7 @@ import {
   findTokenManagerAddress,
 } from "@cardinal/token-manager/dist/cjs/programs/tokenManager/pda";
 import { MetadataProgram } from "@metaplex-foundation/mpl-token-metadata";
+import type { BN } from "@project-serum/anchor";
 import { Program, Provider } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
 import {
@@ -141,6 +142,40 @@ export const initStakeEntry = async (
     params.originalMintId
   );
   return stakePoolProgram.instruction.initEntry({
+    accounts: {
+      stakeEntry: params.stakeEntryId,
+      stakePool: params.stakePoolId,
+      originalMint: params.originalMintId,
+      originalMintMetadata: params.originalMintMetadatId,
+      payer: wallet.publicKey,
+      systemProgram: SystemProgram.programId,
+    },
+    remainingAccounts,
+  });
+};
+
+export const initFungibleStakeEntry = async (
+  connection: Connection,
+  wallet: Wallet,
+  params: {
+    stakePoolId: PublicKey;
+    stakeEntryId: PublicKey;
+    originalMintId: PublicKey;
+    originalMintMetadatId: PublicKey;
+    amount: BN;
+  }
+): Promise<TransactionInstruction> => {
+  const provider = new Provider(connection, wallet, {});
+  const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
+    STAKE_POOL_IDL,
+    STAKE_POOL_ADDRESS,
+    provider
+  );
+  const remainingAccounts = await remainingAccountsForInitStakeEntry(
+    params.stakePoolId,
+    params.originalMintId
+  );
+  return stakePoolProgram.instruction.initFtEntry(params.amount, {
     accounts: {
       stakeEntry: params.stakeEntryId,
       stakePool: params.stakePoolId,

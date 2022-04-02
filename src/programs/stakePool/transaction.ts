@@ -21,6 +21,7 @@ import type { ReceiptType } from "./constants";
 import {
   authorizeStakeEntry,
   claimReceiptMint,
+  initFungibleStakeEntry,
   initPoolIdentifier,
   initStakeEntry,
   initStakeMint,
@@ -28,7 +29,12 @@ import {
   stake,
   unstake,
 } from "./instruction";
-import { findIdentifierId, findStakeEntryId, findStakePoolId } from "./pda";
+import {
+  findFtStakeEntryId,
+  findIdentifierId,
+  findStakeEntryId,
+  findStakePoolId,
+} from "./pda";
 import { withInvalidate } from "./token-manager";
 import { withRemainingAccountsForUnstake } from "./utils";
 
@@ -108,6 +114,33 @@ export const withInitStakeEntry = async (
       stakeEntryId: stakeEntryId,
       originalMintId: params.originalMintId,
       originalMintMetadatId: originalMintMetadatId,
+    })
+  );
+  return [transaction, stakeEntryId];
+};
+
+export const withInitFungibleStakeEntry = async (
+  transaction: web3.Transaction,
+  connection: web3.Connection,
+  wallet: Wallet,
+  params: {
+    stakePoolId: web3.PublicKey;
+    originalMintId: web3.PublicKey;
+    amount: BN;
+  }
+): Promise<[web3.Transaction, web3.PublicKey]> => {
+  const [[stakeEntryId], originalMintMetadatId] = await Promise.all([
+    findFtStakeEntryId(params.stakePoolId, wallet.publicKey),
+    metaplex.Metadata.getPDA(params.originalMintId),
+  ]);
+
+  transaction.add(
+    await initFungibleStakeEntry(connection, wallet, {
+      stakePoolId: params.stakePoolId,
+      stakeEntryId: stakeEntryId,
+      originalMintId: params.originalMintId,
+      originalMintMetadatId: originalMintMetadatId,
+      amount: params.amount,
     })
   );
   return [transaction, stakeEntryId];

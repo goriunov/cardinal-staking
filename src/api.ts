@@ -15,6 +15,7 @@ import { findStakeEntryId } from "./programs/stakePool/pda";
 import {
   withAuthorizeStakeEntry,
   withClaimReceiptMint,
+  withInitFungibleStakeEntry,
   withInitPoolIdentifier,
   withInitStakeEntry,
   withInitStakeMint,
@@ -48,12 +49,21 @@ export const initStakeEntry = async (
   params: {
     stakePoolId: PublicKey;
     originalMintId: PublicKey;
+    amount?: BN;
   }
 ): Promise<[Transaction, PublicKey]> => {
-  return withInitStakeEntry(new Transaction(), connection, wallet, {
-    stakePoolId: params.stakePoolId,
-    originalMintId: params.originalMintId,
-  });
+  if (params.amount) {
+    return withInitFungibleStakeEntry(new Transaction(), connection, wallet, {
+      stakePoolId: params.stakePoolId,
+      originalMintId: params.originalMintId,
+      amount: params.amount,
+    });
+  } else {
+    return withInitStakeEntry(new Transaction(), connection, wallet, {
+      stakePoolId: params.stakePoolId,
+      originalMintId: params.originalMintId,
+    });
+  }
 };
 
 export const authorizeStakeEntry = async (

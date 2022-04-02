@@ -7,12 +7,12 @@ use {
 };
 
 #[derive(Accounts)]
-pub struct InitEntryCtx<'info> {
+pub struct InitFtEntryCtx<'info> {
     #[account(
         init,
         payer = payer,
         space = STAKE_ENTRY_SIZE,
-        seeds = [STAKE_ENTRY_PREFIX.as_bytes(), stake_pool.key().as_ref(), original_mint.key().as_ref()],
+        seeds = [STAKE_ENTRY_PREFIX.as_bytes(), stake_pool.key().as_ref(), payer.key().as_ref()],
         bump,
     )]
     stake_entry: Box<Account<'info, StakeEntry>>,
@@ -28,13 +28,13 @@ pub struct InitEntryCtx<'info> {
     system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<InitEntryCtx>) -> Result<()> {
+pub fn handler(ctx: Context<InitFtEntryCtx>, amount: u64) -> Result<()> {
     let stake_entry = &mut ctx.accounts.stake_entry;
     let stake_pool = &ctx.accounts.stake_pool;
     stake_entry.bump = *ctx.bumps.get("stake_entry").unwrap();
     stake_entry.pool = ctx.accounts.stake_pool.key();
     stake_entry.original_mint = ctx.accounts.original_mint.key();
-    stake_entry.amount = 1;
+    stake_entry.amount = amount;
 
     // check allowlist
     if !stake_pool.requires_creators.is_empty() || !stake_pool.requires_collections.is_empty() || stake_pool.requires_authorization {

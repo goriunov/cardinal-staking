@@ -52,6 +52,24 @@ export const findStakeEntryId = async (
 };
 
 /**
+ * Finds the stake entry id.
+ * @returns
+ */
+export const findFtStakeEntryId = async (
+  stakePoolId: web3.PublicKey,
+  wallet: web3.PublicKey
+): Promise<[web3.PublicKey, number]> => {
+  return web3.PublicKey.findProgramAddress(
+    [
+      utils.bytes.utf8.encode(STAKE_ENTRY_SEED),
+      stakePoolId.toBuffer(),
+      wallet.toBuffer(),
+    ],
+    STAKE_POOL_ADDRESS
+  );
+};
+
+/**
  * Finds the identifier id.
  * @returns
  */

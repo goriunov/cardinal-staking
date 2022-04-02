@@ -4,7 +4,7 @@ pub mod state;
 
 use {anchor_lang::prelude::*, instructions::*};
 
-declare_id!("stkBL96RZkjY5ine4TvPihGqW8UHJfch2cokjAPzV8i");
+declare_id!("t1LVbNwJZT3pxFQHfY65jp6QbvcTvda6oPSbaeKbYEs");
 
 #[program]
 pub mod cardinal_stake_pool {
@@ -20,6 +20,10 @@ pub mod cardinal_stake_pool {
 
     pub fn init_entry(ctx: Context<InitEntryCtx>) -> Result<()> {
         init_entry::handler(ctx)
+    }
+
+    pub fn init_ft_entry(ctx: Context<InitFtEntryCtx>, amount: u64) -> Result<()> {
+        init_ft_entry::handler(ctx, amount)
     }
 
     pub fn init_stake_mint(ctx: Context<InitStakeMintCtx>, ix: InitStakeMintIx) -> Result<()> {

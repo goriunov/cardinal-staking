@@ -1,5 +1,5 @@
 export type CardinalStakePool = {
-  version: "0.0.4";
+  version: "0.0.0";
   name: "cardinal_stake_pool";
   instructions: [
     {
@@ -91,6 +91,47 @@ export type CardinalStakePool = {
         }
       ];
       args: [];
+    },
+    {
+      name: "initFtEntry";
+      accounts: [
+        {
+          name: "stakeEntry";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "stakePool";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "originalMint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "originalMintMetadata";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "payer";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [
+        {
+          name: "amount";
+          type: "u64";
+        }
+      ];
     },
     {
       name: "initStakeMint";
@@ -360,6 +401,10 @@ export type CardinalStakePool = {
             type: "publicKey";
           },
           {
+            name: "amount";
+            type: "u64";
+          },
+          {
             name: "originalMint";
             type: "publicKey";
           },
@@ -525,94 +570,68 @@ export type CardinalStakePool = {
           }
         ];
       };
-    }
-  ];
-  errors: [
-    {
-      code: 6000;
-      name: "InvalidOriginalMint";
-      msg: "Original mint is invalid";
     },
     {
-      code: 6001;
-      name: "InvalidTokenManagerMint";
-      msg: "Token Manager mint is invalid";
-    },
-    {
-      code: 6002;
-      name: "InvalidUserOriginalMintTokenAccount";
-      msg: "Invalid user original mint token account";
-    },
-    {
-      code: 6003;
-      name: "InvalidUserMintTokenAccount";
-      msg: "Invalid user token manager mint account";
-    },
-    {
-      code: 6004;
-      name: "InvalidStakeEntryOriginalMintTokenAccount";
-      msg: "Invalid stake entry original mint token account";
-    },
-    {
-      code: 6005;
-      name: "InvalidStakeEntryMintTokenAccount";
-      msg: "Invalid stake entry token manager mint token account";
-    },
-    {
-      code: 6006;
-      name: "InvalidUnstakeUser";
-      msg: "Invalid unstake user only last staker can unstake";
-    },
-    {
-      code: 6007;
-      name: "InvalidStakePool";
-      msg: "Invalid stake pool";
-    },
-    {
-      code: 6008;
-      name: "NoMintMetadata";
-      msg: "No mint metadata";
-    },
-    {
-      code: 6009;
-      name: "MintNotAllowedInPool";
-      msg: "Mint not allowed in this pool";
-    },
-    {
-      code: 6010;
-      name: "InvalidPoolAuthority";
-      msg: "Invalid stake pool authority";
-    },
-    {
-      code: 6011;
-      name: "InvalidStakeType";
-      msg: "Invalid stake type";
-    },
-    {
-      code: 6012;
-      name: "InvalidStakeEntryStakeTokenAccount";
-      msg: "Invalid stake entry stake token account";
-    },
-    {
-      code: 6013;
-      name: "InvalidLastStaker";
-      msg: "Invalid last staker";
-    },
-    {
-      code: 6014;
-      name: "InvalidTokenManagerProgram";
-      msg: "Invalid token manager program";
-    },
-    {
-      code: 6015;
-      name: "InvalidReceiptMint";
-      msg: "Invalid receipt mint";
+      name: "ErrorCode";
+      type: {
+        kind: "enum";
+        variants: [
+          {
+            name: "InvalidOriginalMint";
+          },
+          {
+            name: "InvalidTokenManagerMint";
+          },
+          {
+            name: "InvalidUserOriginalMintTokenAccount";
+          },
+          {
+            name: "InvalidUserMintTokenAccount";
+          },
+          {
+            name: "InvalidStakeEntryOriginalMintTokenAccount";
+          },
+          {
+            name: "InvalidStakeEntryMintTokenAccount";
+          },
+          {
+            name: "InvalidUnstakeUser";
+          },
+          {
+            name: "InvalidStakePool";
+          },
+          {
+            name: "NoMintMetadata";
+          },
+          {
+            name: "MintNotAllowedInPool";
+          },
+          {
+            name: "InvalidPoolAuthority";
+          },
+          {
+            name: "InvalidStakeType";
+          },
+          {
+            name: "InvalidStakeEntryStakeTokenAccount";
+          },
+          {
+            name: "InvalidLastStaker";
+          },
+          {
+            name: "InvalidTokenManagerProgram";
+          },
+          {
+            name: "InvalidReceiptMint";
+          }
+        ];
+      };
     }
   ];
 };
 
 export const IDL: CardinalStakePool = {
-  version: "0.0.4",
+  version: "0.0.0",
   name: "cardinal_stake_pool",
   instructions: [
     {
@@ -704,6 +723,47 @@ export const IDL: CardinalStakePool = {
         },
       ],
       args: [],
+    },
+    {
+      name: "initFtEntry",
+      accounts: [
+        {
+          name: "stakeEntry",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "stakePool",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "originalMint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "originalMintMetadata",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "payer",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: "amount",
+          type: "u64",
+        },
+      ],
     },
     {
       name: "initStakeMint",
@@ -973,6 +1033,10 @@ export const IDL: CardinalStakePool = {
             type: "publicKey",
           },
           {
+            name: "amount",
+            type: "u64",
+          },
+          {
             name: "originalMint",
             type: "publicKey",
           },
@@ -1139,87 +1203,61 @@ export const IDL: CardinalStakePool = {
         ],
       },
     },
-  ],
-  errors: [
     {
-      code: 6000,
-      name: "InvalidOriginalMint",
-      msg: "Original mint is invalid",
-    },
-    {
-      code: 6001,
-      name: "InvalidTokenManagerMint",
-      msg: "Token Manager mint is invalid",
-    },
-    {
-      code: 6002,
-      name: "InvalidUserOriginalMintTokenAccount",
-      msg: "Invalid user original mint token account",
-    },
-    {
-      code: 6003,
-      name: "InvalidUserMintTokenAccount",
-      msg: "Invalid user token manager mint account",
-    },
-    {
-      code: 6004,
-      name: "InvalidStakeEntryOriginalMintTokenAccount",
-      msg: "Invalid stake entry original mint token account",
-    },
-    {
-      code: 6005,
-      name: "InvalidStakeEntryMintTokenAccount",
-      msg: "Invalid stake entry token manager mint token account",
-    },
-    {
-      code: 6006,
-      name: "InvalidUnstakeUser",
-      msg: "Invalid unstake user only last staker can unstake",
-    },
-    {
-      code: 6007,
-      name: "InvalidStakePool",
-      msg: "Invalid stake pool",
-    },
-    {
-      code: 6008,
-      name: "NoMintMetadata",
-      msg: "No mint metadata",
-    },
-    {
-      code: 6009,
-      name: "MintNotAllowedInPool",
-      msg: "Mint not allowed in this pool",
-    },
-    {
-      code: 6010,
-      name: "InvalidPoolAuthority",
-      msg: "Invalid stake pool authority",
-    },
-    {
-      code: 6011,
-      name: "InvalidStakeType",
-      msg: "Invalid stake type",
-    },
-    {
-      code: 6012,
-      name: "InvalidStakeEntryStakeTokenAccount",
-      msg: "Invalid stake entry stake token account",
-    },
-    {
-      code: 6013,
-      name: "InvalidLastStaker",
-      msg: "Invalid last staker",
-    },
-    {
-      code: 6014,
-      name: "InvalidTokenManagerProgram",
-      msg: "Invalid token manager program",
-    },
-    {
-      code: 6015,
-      name: "InvalidReceiptMint",
-      msg: "Invalid receipt mint",
+      name: "ErrorCode",
+      type: {
+        kind: "enum",
+        variants: [
+          {
+            name: "InvalidOriginalMint",
+          },
+          {
+            name: "InvalidTokenManagerMint",
+          },
+          {
+            name: "InvalidUserOriginalMintTokenAccount",
+          },
+          {
+            name: "InvalidUserMintTokenAccount",
+          },
+          {
+            name: "InvalidStakeEntryOriginalMintTokenAccount",
+          },
+          {
+            name: "InvalidStakeEntryMintTokenAccount",
+          },
+          {
+            name: "InvalidUnstakeUser",
+          },
+          {
+            name: "InvalidStakePool",
+          },
+          {
+            name: "NoMintMetadata",
+          },
+          {
+            name: "MintNotAllowedInPool",
+          },
+          {
+            name: "InvalidPoolAuthority",
+          },
+          {
+            name: "InvalidStakeType",
+          },
+          {
+            name: "InvalidStakeEntryStakeTokenAccount",
+          },
+          {
+            name: "InvalidLastStaker",
+          },
+          {
+            name: "InvalidTokenManagerProgram",
+          },
+          {
+            name: "InvalidReceiptMint",
+          },
+        ],
+      },
     },
   ],
 };
