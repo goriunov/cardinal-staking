@@ -11,6 +11,7 @@ import { getRewardDistributor } from "./accounts";
 import { RewardDistributorKind } from "./constants";
 import {
   claimRewards,
+  close,
   initRewardDistributor,
   initRewardEntry,
 } from "./instruction";
@@ -28,6 +29,7 @@ export const withInitRewardDistributor = async (
     rewardDurationSeconds?: BN;
     kind?: RewardDistributorKind;
     maxSupply?: BN;
+    supply?: BN;
   }
 ): Promise<[Transaction, web3.PublicKey]> => {
   const [rewardDistributorId] = await findRewardDistributorId(
@@ -51,6 +53,7 @@ export const withInitRewardDistributor = async (
       kind: params.kind || RewardDistributorKind.Mint,
       remainingAccountsForKind,
       maxSupply: params.maxSupply,
+      supply: params.supply,
     })
   );
   return [transaction, rewardDistributorId];
@@ -117,6 +120,42 @@ export const withClaimRewards = async (
         mintTokenAccount: params.originalMintTokenAccount,
         rewardMintId: rewardDistributorData.parsed.rewardMint,
         rewardMintTokenAccountId: rewardMintTokenAccountId,
+        remainingAccountsForKind,
+      })
+    );
+  }
+  return transaction;
+};
+
+export const withClose = async (
+  transaction: Transaction,
+  connection: Connection,
+  wallet: Wallet,
+  params: {
+    stakePoolId: PublicKey;
+  }
+): Promise<Transaction> => {
+  const [rewardDistributorId] = await findRewardDistributorId(
+    params.stakePoolId
+  );
+  const rewardDistributorData = await tryGetAccount(() =>
+    getRewardDistributor(connection, rewardDistributorId)
+  );
+
+  if (rewardDistributorData) {
+    const remainingAccountsForKind = await withRemainingAccountsForKind(
+      transaction,
+      connection,
+      wallet,
+      rewardDistributorId,
+      rewardDistributorData.parsed.kind,
+      rewardDistributorData.parsed.rewardMint
+    );
+
+    transaction.add(
+      await close(connection, wallet, {
+        stakePoolId: params.stakePoolId,
+        rewardMintId: rewardDistributorData.parsed.rewardMint,
         remainingAccountsForKind,
       })
     );
