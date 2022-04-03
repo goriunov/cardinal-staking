@@ -140,47 +140,6 @@ export type CardinalRewardDistributor = {
       args: [];
     },
     {
-      name: "reopen";
-      accounts: [
-        {
-          name: "rewardDistributor";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "stakePool";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "rewardMint";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "rewardDistributorTokenAccount";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "authorityTokenAccount";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "signer";
-          isMut: true;
-          isSigner: true;
-        },
-        {
-          name: "tokenProgram";
-          isMut: false;
-          isSigner: false;
-        }
-      ];
-      args: [];
-    },
-    {
       name: "close";
       accounts: [
         {
@@ -196,16 +155,6 @@ export type CardinalRewardDistributor = {
         {
           name: "rewardMint";
           isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "rewardDistributorTokenAccount";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "authorityTokenAccount";
-          isMut: false;
           isSigner: false;
         },
         {
@@ -297,10 +246,6 @@ export type CardinalRewardDistributor = {
             type: {
               option: "u64";
             };
-          },
-          {
-            name: "closed";
-            type: "bool";
           }
         ];
       };
@@ -323,6 +268,12 @@ export type CardinalRewardDistributor = {
           {
             name: "kind";
             type: "u8";
+          },
+          {
+            name: "supply";
+            type: {
+              option: "u64";
+            };
           },
           {
             name: "maxSupply";
@@ -409,8 +360,8 @@ export type CardinalRewardDistributor = {
     },
     {
       code: 6006;
-      name: "MaxSupplyRequired";
-      msg: "Max supply required for kind treasury";
+      name: "SupplyRequired";
+      msg: "Initial supply required for kind treasury";
     },
     {
       code: 6007;
@@ -577,47 +528,6 @@ export const IDL: CardinalRewardDistributor = {
       args: [],
     },
     {
-      name: "reopen",
-      accounts: [
-        {
-          name: "rewardDistributor",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "stakePool",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "rewardMint",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "rewardDistributorTokenAccount",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "authorityTokenAccount",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "signer",
-          isMut: true,
-          isSigner: true,
-        },
-        {
-          name: "tokenProgram",
-          isMut: false,
-          isSigner: false,
-        },
-      ],
-      args: [],
-    },
-    {
       name: "close",
       accounts: [
         {
@@ -633,16 +543,6 @@ export const IDL: CardinalRewardDistributor = {
         {
           name: "rewardMint",
           isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "rewardDistributorTokenAccount",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "authorityTokenAccount",
-          isMut: false,
           isSigner: false,
         },
         {
@@ -735,10 +635,6 @@ export const IDL: CardinalRewardDistributor = {
               option: "u64",
             },
           },
-          {
-            name: "closed",
-            type: "bool",
-          },
         ],
       },
     },
@@ -760,6 +656,12 @@ export const IDL: CardinalRewardDistributor = {
           {
             name: "kind",
             type: "u8",
+          },
+          {
+            name: "supply",
+            type: {
+              option: "u64",
+            },
           },
           {
             name: "maxSupply",
@@ -846,8 +748,8 @@ export const IDL: CardinalRewardDistributor = {
     },
     {
       code: 6006,
-      name: "MaxSupplyRequired",
-      msg: "Max supply required for kind treasury",
+      name: "SupplyRequired",
+      msg: "Initial supply required for kind treasury",
     },
     {
       code: 6007,
