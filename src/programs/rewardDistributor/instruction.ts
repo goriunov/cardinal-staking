@@ -28,6 +28,7 @@ export const initRewardDistributor = (
     kind: RewardDistributorKind;
     remainingAccountsForKind: AccountMeta[];
     maxSupply?: BN;
+    supply?: BN;
   }
 ): TransactionInstruction => {
   const provider = new Provider(connection, wallet, {});
@@ -41,6 +42,7 @@ export const initRewardDistributor = (
       rewardAmount: params.rewardAmount,
       rewardDurationSeconds: params.rewardDurationSeconds,
       maxSupply: params.maxSupply || null,
+      supply: params.supply || null,
       kind: params.kind,
     },
     {
@@ -132,6 +134,37 @@ export const claimRewards = async (
       user: wallet.publicKey,
       tokenProgram: TOKEN_PROGRAM_ID,
       systemProgram: SystemProgram.programId,
+    },
+    remainingAccounts: params.remainingAccountsForKind,
+  });
+};
+
+export const close = async (
+  connection: Connection,
+  wallet: Wallet,
+  params: {
+    stakePoolId: PublicKey;
+    rewardMintId: PublicKey;
+    remainingAccountsForKind: AccountMeta[];
+  }
+): Promise<TransactionInstruction> => {
+  const provider = new Provider(connection, wallet, {});
+  const rewardDistributorProgram = new Program<REWARD_DISTRIBUTOR_PROGRAM>(
+    REWARD_DISTRIBUTOR_IDL,
+    REWARD_DISTRIBUTOR_ADDRESS,
+    provider
+  );
+
+  const [rewardDistributorId] = await findRewardDistributorId(
+    params.stakePoolId
+  );
+  return rewardDistributorProgram.instruction.close({
+    accounts: {
+      rewardDistributor: rewardDistributorId,
+      stakePool: params.stakePoolId,
+      rewardMint: params.rewardMintId,
+      signer: wallet.publicKey,
+      tokenProgram: TOKEN_PROGRAM_ID,
     },
     remainingAccounts: params.remainingAccountsForKind,
   });

@@ -11,6 +11,7 @@ pub struct InitRewardDistributorIx {
     pub reward_amount: u64,
     pub reward_duration_seconds: u64,
     pub kind: u8,
+    pub supply: Option<u64>,
     pub max_supply: Option<u64>,
 }
 
@@ -59,8 +60,8 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             token::set_authority(cpi_context, AuthorityType::MintTokens, Some(reward_distributor.key()))?;
         }
         k if k == RewardDistributorKind::Treasury as u8 => {
-            if ix.max_supply == None {
-                return Err(error!(ErrorCode::MaxSupplyRequired));
+            if ix.supply == None && ix.max_supply == None {
+                return Err(error!(ErrorCode::SupplyRequired));
             }
             let reward_distributor_token_account_info = next_account_info(remaining_accs)?;
             let reward_distributor_token_account = Account::<TokenAccount>::try_from(reward_distributor_token_account_info)?;
@@ -74,7 +75,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             };
             let cpi_program = ctx.accounts.token_program.to_account_info();
             let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-            token::transfer(cpi_context, ix.max_supply.unwrap())?;
+            token::transfer(cpi_context, ix.supply.unwrap_or_else(|| ix.max_supply.unwrap()))?;
         }
         _ => return Err(error!(ErrorCode::InvalidRewardDistributorKind)),
     }

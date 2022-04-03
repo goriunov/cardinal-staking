@@ -48,7 +48,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     let reward_duration_seconds = reward_distributor.reward_duration_seconds;
 
     let reward_seconds_received = reward_entry.reward_seconds_received;
-    if reward_seconds_received <= stake_entry.total_stake_seconds as u64 && !reward_distributor.closed {
+    if reward_seconds_received <= stake_entry.total_stake_seconds as u64 && (reward_distributor.max_supply == None || reward_distributor.rewards_issued < reward_distributor.max_supply.unwrap()) {
         let mut reward_time_to_receive = (stake_entry.total_stake_seconds as u64).checked_sub(reward_seconds_received).unwrap();
         let mut reward_amount_to_receive = reward_time_to_receive
             .checked_div(reward_duration_seconds)
@@ -56,13 +56,12 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             .checked_mul(reward_amount)
             .unwrap()
             .checked_mul(reward_entry.multiplier)
-            .unwrap()
-            .checked_mul(stake_entry.amount)
             .unwrap();
+        // .checked_mul(stake_entry.amount)
+        // .unwrap();
 
         // if this will go over max supply give rewards up to max supply
         if reward_distributor.max_supply != None && reward_distributor.rewards_issued.checked_add(reward_amount_to_receive).unwrap() >= reward_distributor.max_supply.unwrap() {
-            reward_distributor.closed = true;
             reward_amount_to_receive = reward_distributor.max_supply.unwrap().checked_sub(reward_distributor.rewards_issued).unwrap();
 
             // this is nuanced about if the rewards are closed, should they get the reward time for that time even though they didnt get any rewards?
