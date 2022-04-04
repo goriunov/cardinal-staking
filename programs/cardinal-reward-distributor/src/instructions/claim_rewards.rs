@@ -57,8 +57,6 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             .unwrap()
             .checked_mul(reward_entry.multiplier)
             .unwrap();
-        // .checked_mul(stake_entry.amount)
-        // .unwrap();
 
         // if this will go over max supply give rewards up to max supply
         if reward_distributor.max_supply != None && reward_distributor.rewards_issued.checked_add(reward_amount_to_receive).unwrap() >= reward_distributor.max_supply.unwrap() {
@@ -108,5 +106,6 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         reward_entry.reward_amount_received = reward_entry.reward_amount_received.checked_add(reward_amount_to_receive).unwrap();
         reward_entry.reward_seconds_received = reward_entry.reward_seconds_received.checked_add(reward_time_to_receive).unwrap();
     }
+
     Ok(())
 }

@@ -34,7 +34,6 @@ pub fn handler(ctx: Context<InitEntryCtx>) -> Result<()> {
     stake_entry.bump = *ctx.bumps.get("stake_entry").unwrap();
     stake_entry.pool = ctx.accounts.stake_pool.key();
     stake_entry.original_mint = ctx.accounts.original_mint.key();
-    stake_entry.amount = 1;
 
     // check allowlist
     if !stake_pool.requires_creators.is_empty() || !stake_pool.requires_collections.is_empty() || stake_pool.requires_authorization {

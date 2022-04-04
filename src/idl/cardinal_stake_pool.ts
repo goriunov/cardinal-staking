@@ -126,12 +126,7 @@ export type CardinalStakePool = {
           isSigner: false;
         }
       ];
-      args: [
-        {
-          name: "amount";
-          type: "u64";
-        }
-      ];
+      args: [];
     },
     {
       name: "initStakeMint";
@@ -281,7 +276,12 @@ export type CardinalStakePool = {
           isSigner: false;
         }
       ];
-      args: [];
+      args: [
+        {
+          name: "amount";
+          type: "u64";
+        }
+      ];
     },
     {
       name: "claimReceiptMint";
@@ -758,12 +758,7 @@ export const IDL: CardinalStakePool = {
           isSigner: false,
         },
       ],
-      args: [
-        {
-          name: "amount",
-          type: "u64",
-        },
-      ],
+      args: [],
     },
     {
       name: "initStakeMint",
@@ -913,7 +908,12 @@ export const IDL: CardinalStakePool = {
           isSigner: false,
         },
       ],
-      args: [],
+      args: [
+        {
+          name: "amount",
+          type: "u64",
+        },
+      ],
     },
     {
       name: "claimReceiptMint",

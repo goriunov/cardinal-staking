@@ -57,11 +57,13 @@ pub fn handler(ctx: Context<UnstakeCtx>) -> Result<()> {
     };
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(stake_entry_signer);
-    token::transfer(cpi_context, 1)?;
+    token::transfer(cpi_context, stake_entry.amount)?;
 
-    stake_entry.total_stake_seconds = stake_entry
+    stake_entry.total_stake_seconds = (stake_entry
         .total_stake_seconds
-        .saturating_add(Clock::get().unwrap().unix_timestamp.checked_sub(stake_entry.last_staked_at).unwrap());
+        .saturating_add(Clock::get().unwrap().unix_timestamp.checked_sub(stake_entry.last_staked_at).unwrap()))
+    .checked_mul(stake_entry.amount.try_into().unwrap())
+    .unwrap();
     stake_entry.last_staker = Pubkey::default();
     stake_entry.original_mint_claimed = false;
     stake_entry.stake_mint_claimed = false;

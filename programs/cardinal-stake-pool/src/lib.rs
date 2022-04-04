@@ -22,8 +22,8 @@ pub mod cardinal_stake_pool {
         init_entry::handler(ctx)
     }
 
-    pub fn init_ft_entry(ctx: Context<InitFtEntryCtx>, amount: u64) -> Result<()> {
-        init_ft_entry::handler(ctx, amount)
+    pub fn init_ft_entry(ctx: Context<InitFtEntryCtx>) -> Result<()> {
+        init_ft_entry::handler(ctx)
     }
 
     pub fn init_stake_mint(ctx: Context<InitStakeMintCtx>, ix: InitStakeMintIx) -> Result<()> {
@@ -34,8 +34,8 @@ pub mod cardinal_stake_pool {
         authorize_mint::handler(ctx, mint)
     }
 
-    pub fn stake(ctx: Context<StakeCtx>) -> Result<()> {
-        stake::handler(ctx)
+    pub fn stake(ctx: Context<StakeCtx>, amount: u64) -> Result<()> {
+        stake::handler(ctx, amount)
     }
 
     pub fn claim_receipt_mint<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, ClaimReceiptMintCtx<'info>>) -> Result<()> {

@@ -28,13 +28,12 @@ pub struct InitFtEntryCtx<'info> {
     system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<InitFtEntryCtx>, amount: u64) -> Result<()> {
+pub fn handler(ctx: Context<InitFtEntryCtx>) -> Result<()> {
     let stake_entry = &mut ctx.accounts.stake_entry;
     let stake_pool = &ctx.accounts.stake_pool;
     stake_entry.bump = *ctx.bumps.get("stake_entry").unwrap();
     stake_entry.pool = ctx.accounts.stake_pool.key();
     stake_entry.original_mint = ctx.accounts.original_mint.key();
-    stake_entry.amount = amount;
 
     // check allowlist
     if !stake_pool.requires_creators.is_empty() || !stake_pool.requires_collections.is_empty() || stake_pool.requires_authorization {
