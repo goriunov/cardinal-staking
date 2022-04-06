@@ -12,7 +12,7 @@ import { expect } from "chai";
 
 import {
   initRewardDistributorWithEntry,
-  initStakeEntryAndMint,
+  initStakeEntryAndStakeMint,
   initStakePool,
   stake,
   unstake,
@@ -152,13 +152,12 @@ describe("Stake and claim rewards from treasury", () => {
     const provider = getProvider();
     let transaction: web3.Transaction;
 
-    [transaction, stakeMintKeypair] = await initStakeEntryAndMint(
+    [transaction, stakeMintKeypair] = await initStakeEntryAndStakeMint(
       provider.connection,
       provider.wallet,
       {
         stakePoolId: stakePoolId,
         originalMintId: originalMint.publicKey,
-        receiptType: ReceiptType.Receipt,
       }
     );
 

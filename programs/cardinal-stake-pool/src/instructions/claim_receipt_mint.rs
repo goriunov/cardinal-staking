@@ -19,6 +19,8 @@ pub struct ClaimReceiptMintCtx<'info> {
 
     #[account(mut)]
     receipt_mint: Box<Account<'info, Mint>>,
+    #[account(mut)]
+    receipt_mint_authority: Signer<'info>,
 
     #[account(mut, constraint =
         stake_entry_receipt_mint_token_account.amount > 0

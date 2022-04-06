@@ -1,5 +1,5 @@
 export type CardinalRewardDistributor = {
-  version: "0.0.0";
+  version: "0.0.6";
   name: "cardinal_reward_distributor";
   instructions: [
     {
@@ -313,47 +313,6 @@ export type CardinalRewardDistributor = {
       };
     },
     {
-      name: "ErrorCode";
-      type: {
-        kind: "enum";
-        variants: [
-          {
-            name: "InvalidTokenAccount";
-          },
-          {
-            name: "InvalidRewardMint";
-          },
-          {
-            name: "InvalidUserRewardMintTokenAccount";
-          },
-          {
-            name: "InvalidRewardDistributor";
-          },
-          {
-            name: "InvalidRewardDistributorAuthority";
-          },
-          {
-            name: "InvalidRewardDistributorKind";
-          },
-          {
-            name: "SupplyRequired";
-          },
-          {
-            name: "InvalidAuthority";
-          },
-          {
-            name: "InvalidPoolDistributor";
-          },
-          {
-            name: "DistributorNotClosed";
-          },
-          {
-            name: "DistributorAlreadyClosed";
-          }
-        ];
-      };
-    },
-    {
       name: "RewardDistributorKind";
       type: {
         kind: "enum";
@@ -368,10 +327,67 @@ export type CardinalRewardDistributor = {
       };
     }
   ];
+  errors: [
+    {
+      code: 6000;
+      name: "InvalidTokenAccount";
+      msg: "Invalid token account";
+    },
+    {
+      code: 6001;
+      name: "InvalidRewardMint";
+      msg: "Invalid reward mint";
+    },
+    {
+      code: 6002;
+      name: "InvalidUserRewardMintTokenAccount";
+      msg: "Invalid user reward mint token account";
+    },
+    {
+      code: 6003;
+      name: "InvalidRewardDistributor";
+      msg: "Invalid reward distributor";
+    },
+    {
+      code: 6004;
+      name: "InvalidRewardDistributorAuthority";
+      msg: "Invalid reward distributor authority";
+    },
+    {
+      code: 6005;
+      name: "InvalidRewardDistributorKind";
+      msg: "Invalid reward distributor kind";
+    },
+    {
+      code: 6006;
+      name: "SupplyRequired";
+      msg: "Initial supply required for kind treasury";
+    },
+    {
+      code: 6007;
+      name: "InvalidAuthority";
+      msg: "Invalid authority";
+    },
+    {
+      code: 6008;
+      name: "InvalidPoolDistributor";
+      msg: "Invalid distributor for pool";
+    },
+    {
+      code: 6009;
+      name: "DistributorNotClosed";
+      msg: "Distributor is already open";
+    },
+    {
+      code: 6010;
+      name: "DistributorAlreadyClosed";
+      msg: "Distributor is already closed";
+    }
+  ];
 };
 
 export const IDL: CardinalRewardDistributor = {
-  version: "0.0.0",
+  version: "0.0.6",
   name: "cardinal_reward_distributor",
   instructions: [
     {
@@ -685,47 +701,6 @@ export const IDL: CardinalRewardDistributor = {
       },
     },
     {
-      name: "ErrorCode",
-      type: {
-        kind: "enum",
-        variants: [
-          {
-            name: "InvalidTokenAccount",
-          },
-          {
-            name: "InvalidRewardMint",
-          },
-          {
-            name: "InvalidUserRewardMintTokenAccount",
-          },
-          {
-            name: "InvalidRewardDistributor",
-          },
-          {
-            name: "InvalidRewardDistributorAuthority",
-          },
-          {
-            name: "InvalidRewardDistributorKind",
-          },
-          {
-            name: "SupplyRequired",
-          },
-          {
-            name: "InvalidAuthority",
-          },
-          {
-            name: "InvalidPoolDistributor",
-          },
-          {
-            name: "DistributorNotClosed",
-          },
-          {
-            name: "DistributorAlreadyClosed",
-          },
-        ],
-      },
-    },
-    {
       name: "RewardDistributorKind",
       type: {
         kind: "enum",
@@ -738,6 +713,63 @@ export const IDL: CardinalRewardDistributor = {
           },
         ],
       },
+    },
+  ],
+  errors: [
+    {
+      code: 6000,
+      name: "InvalidTokenAccount",
+      msg: "Invalid token account",
+    },
+    {
+      code: 6001,
+      name: "InvalidRewardMint",
+      msg: "Invalid reward mint",
+    },
+    {
+      code: 6002,
+      name: "InvalidUserRewardMintTokenAccount",
+      msg: "Invalid user reward mint token account",
+    },
+    {
+      code: 6003,
+      name: "InvalidRewardDistributor",
+      msg: "Invalid reward distributor",
+    },
+    {
+      code: 6004,
+      name: "InvalidRewardDistributorAuthority",
+      msg: "Invalid reward distributor authority",
+    },
+    {
+      code: 6005,
+      name: "InvalidRewardDistributorKind",
+      msg: "Invalid reward distributor kind",
+    },
+    {
+      code: 6006,
+      name: "SupplyRequired",
+      msg: "Initial supply required for kind treasury",
+    },
+    {
+      code: 6007,
+      name: "InvalidAuthority",
+      msg: "Invalid authority",
+    },
+    {
+      code: 6008,
+      name: "InvalidPoolDistributor",
+      msg: "Invalid distributor for pool",
+    },
+    {
+      code: 6009,
+      name: "DistributorNotClosed",
+      msg: "Distributor is already open",
+    },
+    {
+      code: 6010,
+      name: "DistributorAlreadyClosed",
+      msg: "Distributor is already closed",
     },
   ],
 };

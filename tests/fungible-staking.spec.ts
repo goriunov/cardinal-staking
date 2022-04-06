@@ -1,31 +1,19 @@
-import { findAta } from "@cardinal/common";
 import { BN } from "@project-serum/anchor";
 import { expectTXTable } from "@saberhq/chai-solana";
-import {
-  SignerWallet,
-  SolanaProvider,
-  TransactionEnvelope,
-} from "@saberhq/solana-contrib";
+import { SolanaProvider, TransactionEnvelope } from "@saberhq/solana-contrib";
 import type * as splToken from "@solana/spl-token";
-import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
+import type { PublicKey } from "@solana/web3.js";
+import { Keypair, Transaction } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { initStakeEntry, rewardDistributor, stake, unstake } from "../src";
+import { rewardDistributor } from "../src";
 import { RewardDistributorKind } from "../src/programs/rewardDistributor";
 import { getRewardDistributor } from "../src/programs/rewardDistributor/accounts";
 import { findRewardDistributorId } from "../src/programs/rewardDistributor/pda";
-import { ReceiptType } from "../src/programs/stakePool";
-import {
-  getStakeEntry,
-  getStakePool,
-} from "../src/programs/stakePool/accounts";
-import {
-  findFtStakeEntryId,
-  findStakeEntryId,
-  findStakePoolId,
-} from "../src/programs/stakePool/pda";
+import { getStakePool } from "../src/programs/stakePool/accounts";
+import { findStakePoolId } from "../src/programs/stakePool/pda";
 import { withInitStakePool } from "../src/programs/stakePool/transaction";
-import { createMasterEditionIxs, createMint } from "./utils";
+import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
 /**
@@ -39,42 +27,25 @@ import { getProvider } from "./workspace";
 describe("Create stake pool", () => {
   let poolIdentifier: BN;
   let stakePoolId: PublicKey;
-  let originalMintTokenAccountId: PublicKey;
+  // let originalMintTokenAccountId: PublicKey;
   let originalMint: splToken.Token;
   let rewardMint: splToken.Token;
 
   const maxSupply = 100;
+  const stakingAmount = 10;
   const originalMintAuthority = Keypair.generate();
   const rewardMintAuthority = Keypair.generate();
 
   before(async () => {
     const provider = getProvider();
     // original mint
-    [originalMintTokenAccountId, originalMint] = await createMint(
+    [, originalMint] = await createMint(
       provider.connection,
       originalMintAuthority,
       provider.wallet.publicKey,
-      1,
+      stakingAmount,
       originalMintAuthority.publicKey
     );
-
-    // master edition
-    const ixs = await createMasterEditionIxs(
-      originalMint.publicKey,
-      originalMintAuthority.publicKey
-    );
-    const txEnvelope = new TransactionEnvelope(
-      SolanaProvider.init({
-        connection: provider.connection,
-        wallet: new SignerWallet(originalMintAuthority),
-        opts: provider.opts,
-      }),
-      ixs
-    );
-    await expectTXTable(txEnvelope, "before", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
 
     // reward mint
     [, rewardMint] = await createMint(
@@ -82,7 +53,7 @@ describe("Create stake pool", () => {
       rewardMintAuthority,
       provider.wallet.publicKey,
       maxSupply,
-      provider.wallet.publicKey
+      rewardMintAuthority.publicKey
     );
   });
 
@@ -185,118 +156,149 @@ describe("Create stake pool", () => {
     );
   });
 
-  it("Init fungible stake entry for pool", async () => {
-    const provider = getProvider();
+  // it("Init fungible stake entry", async () => {
+  //   const provider = getProvider();
 
-    const [transaction] = await initStakeEntry(
-      provider.connection,
-      provider.wallet,
-      {
-        stakePoolId: stakePoolId,
-        originalMintId: originalMint.publicKey,
-        amount: new BN(10),
-      }
-    );
+  //   const [transaction] = await initStakeEntry(
+  //     provider.connection,
+  //     provider.wallet,
+  //     {
+  //       stakePoolId: stakePoolId,
+  //       originalMintId: originalMint.publicKey,
+  //     }
+  //   );
 
-    await expectTXTable(
-      new TransactionEnvelope(SolanaProvider.init(provider), [
-        ...transaction.instructions,
-      ]),
-      "Init fungible stake entry"
-    ).to.be.fulfilled;
+  //   await expectTXTable(
+  //     new TransactionEnvelope(SolanaProvider.init(provider), [
+  //       ...transaction.instructions,
+  //     ]),
+  //     "Init fungible stake entry"
+  //   ).to.be.fulfilled;
 
-    const stakeEntryData = await getStakeEntry(
-      provider.connection,
-      (
-        await findFtStakeEntryId(stakePoolId, provider.wallet.publicKey)
-      )[0]
-    );
+  //   const stakeEntryData = await getStakeEntry(
+  //     provider.connection,
+  //     (
+  //       await findFtStakeEntryId(stakePoolId, provider.wallet.publicKey)
+  //     )[0]
+  //   );
 
-    expect(stakeEntryData.parsed.originalMint.toString()).to.eq(
-      originalMint.publicKey.toString()
-    );
-    expect(stakeEntryData.parsed.pool.toString()).to.eq(stakePoolId.toString());
-    expect(stakeEntryData.parsed.stakeMint).to.eq(null);
-  });
+  //   expect(stakeEntryData.parsed.originalMint.toString()).to.eq(
+  //     originalMint.publicKey.toString()
+  //   );
+  //   expect(stakeEntryData.parsed.pool.toString()).to.eq(stakePoolId.toString());
+  //   expect(stakeEntryData.parsed.stakeMint).to.eq(null);
+  // });
 
-  it("Stake", async () => {
-    const provider = getProvider();
+  // it("Init stake mint", async () => {
+  //   const provider = getProvider();
 
-    await expectTXTable(
-      new TransactionEnvelope(SolanaProvider.init(provider), [
-        ...(
-          await stake(provider.connection, provider.wallet, {
-            stakePoolId: stakePoolId,
-            originalMintId: originalMint.publicKey,
-            userOriginalMintTokenAccountId: originalMintTokenAccountId,
-            receiptType: ReceiptType.Original,
-            amount: new BN(10),
-          })
-        ).instructions,
-      ]),
-      "Stake"
-    ).to.be.fulfilled;
+  //   const [transaction, stakeMintKeypair] = await initStakeMint(
+  //     provider.connection,
+  //     provider.wallet,
+  //     {
+  //       stakePoolId: stakePoolId,
+  //       originalMintId: originalMint.publicKey,
+  //       amount: new BN(stakingAmount),
+  //     }
+  //   );
 
-    const stakeEntryData = await getStakeEntry(
-      provider.connection,
-      (
-        await findStakeEntryId(stakePoolId, originalMint.publicKey)
-      )[0]
-    );
+  //   await expectTXTable(
+  //     new TransactionEnvelope(SolanaProvider.init(provider), [
+  //       ...transaction.instructions,
+  //     ]),
+  //     "Init stake mint"
+  //   ).to.be.fulfilled;
 
-    const userOriginalMintTokenAccountId = await findAta(
-      originalMint.publicKey,
-      provider.wallet.publicKey,
-      true
-    );
+  //   const checkMint = new splToken.Token(
+  //     provider.connection,
+  //     stakeMintKeypair.publicKey,
+  //     splToken.TOKEN_PROGRAM_ID,
+  //     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //     // @ts-ignore
+  //     null
+  //   );
 
-    expect(stakeEntryData.parsed.amount.toNumber()).to.eq(10);
-    expect(stakeEntryData.parsed.lastStakedAt.toNumber()).to.be.greaterThan(0);
-    expect(stakeEntryData.parsed.lastStaker.toString()).to.eq(
-      provider.wallet.publicKey.toString()
-    );
+  //   checkMint.getMintInfo()
+  // });
 
-    const checkUserOriginalTokenAccount = await originalMint.getAccountInfo(
-      userOriginalMintTokenAccountId
-    );
-    expect(checkUserOriginalTokenAccount.amount.toNumber()).to.eq(1);
-    expect(checkUserOriginalTokenAccount.isFrozen).to.eq(true);
-  });
+  // it("Stake", async () => {
+  //   const provider = getProvider();
 
-  it("Unstake", async () => {
-    const provider = getProvider();
-    await expectTXTable(
-      new TransactionEnvelope(SolanaProvider.init(provider), [
-        ...(
-          await unstake(provider.connection, provider.wallet, {
-            stakePoolId: stakePoolId,
-            originalMintId: originalMint.publicKey,
-          })
-        ).instructions,
-      ]),
-      "Unstake"
-    ).to.be.fulfilled;
+  //   await expectTXTable(
+  //     new TransactionEnvelope(SolanaProvider.init(provider), [
+  //       ...(
+  //         await stake(provider.connection, provider.wallet, {
+  //           stakePoolId: stakePoolId,
+  //           originalMintId: originalMint.publicKey,
+  //           userOriginalMintTokenAccountId: originalMintTokenAccountId,
+  //           receiptType: ReceiptType.Receipt,
+  //           amount: new BN(stakingAmount),
+  //         })
+  //       ).instructions,
+  //     ]),
+  //     "Stake"
+  //   ).to.be.fulfilled;
 
-    const stakeEntryData = await getStakeEntry(
-      provider.connection,
-      (
-        await findStakeEntryId(stakePoolId, originalMint.publicKey)
-      )[0]
-    );
-    expect(stakeEntryData.parsed.lastStaker.toString()).to.eq(
-      PublicKey.default.toString()
-    );
-    expect(stakeEntryData.parsed.lastStakedAt.toNumber()).to.gt(0);
+  // const stakeEntryData = await getStakeEntry(
+  //   provider.connection,
+  //   (
+  //     await findStakeEntryId(stakePoolId, originalMint.publicKey)
+  //   )[0]
+  // );
 
-    const userOriginalMintTokenAccountId = await findAta(
-      originalMint.publicKey,
-      provider.wallet.publicKey,
-      true
-    );
-    const checkUserOriginalTokenAccount = await originalMint.getAccountInfo(
-      userOriginalMintTokenAccountId
-    );
-    expect(checkUserOriginalTokenAccount.amount.toNumber()).to.eq(1);
-    expect(checkUserOriginalTokenAccount.isFrozen).to.eq(false);
-  });
+  // const userOriginalMintTokenAccountId = await findAta(
+  //   originalMint.publicKey,
+  //   provider.wallet.publicKey,
+  //   true
+  // );
+
+  // expect(stakeEntryData.parsed.amount.toNumber()).to.eq(10);
+  // expect(stakeEntryData.parsed.lastStakedAt.toNumber()).to.be.greaterThan(0);
+  // expect(stakeEntryData.parsed.lastStaker.toString()).to.eq(
+  //   provider.wallet.publicKey.toString()
+  // );
+
+  // const checkUserOriginalTokenAccount = await originalMint.getAccountInfo(
+  //   userOriginalMintTokenAccountId
+  // );
+  // expect(checkUserOriginalTokenAccount.amount.toNumber()).to.eq(1);
+  // expect(checkUserOriginalTokenAccount.isFrozen).to.eq(true);
+  // });
+
+  // it("Unstake", async () => {
+  //   const provider = getProvider();
+  //   await expectTXTable(
+  //     new TransactionEnvelope(SolanaProvider.init(provider), [
+  //       ...(
+  //         await unstake(provider.connection, provider.wallet, {
+  //           stakePoolId: stakePoolId,
+  //           originalMintId: originalMint.publicKey,
+  //         })
+  //       ).instructions,
+  //     ]),
+  //     "Unstake"
+  //   ).to.be.fulfilled;
+
+  //   const stakeEntryData = await getStakeEntry(
+  //     provider.connection,
+  //     (
+  //       await findStakeEntryId(stakePoolId, originalMint.publicKey)
+  //     )[0]
+  //   );
+  //   expect(stakeEntryData.parsed.lastStaker.toString()).to.eq(
+  //     PublicKey.default.toString()
+  //   );
+  //   expect(stakeEntryData.parsed.lastStakedAt.toNumber()).to.gt(0);
+
+  //   const userOriginalMintTokenAccountId = await findAta(
+  //     originalMint.publicKey,
+  //     provider.wallet.publicKey,
+  //     true
+  //   );
+  //   const checkUserOriginalTokenAccount = await originalMint.getAccountInfo(
+  //     userOriginalMintTokenAccountId
+  //   );
+  //   expect(checkUserOriginalTokenAccount.amount.toNumber()).to.eq(1);
+  //   expect(checkUserOriginalTokenAccount.isFrozen).to.eq(false);
+  // });
 });

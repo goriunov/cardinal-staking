@@ -4,6 +4,11 @@ import type { Wallet } from "@saberhq/solana-contrib";
 import type { Connection, PublicKey } from "@solana/web3.js";
 import { Keypair, Transaction } from "@solana/web3.js";
 
+import type { RewardDistributorKind } from "./programs/rewardDistributor";
+import {
+  withInitRewardDistributor,
+  withInitRewardEntry,
+} from "./programs/rewardDistributor/transaction";
 import { ReceiptType } from "./programs/stakePool";
 import { getStakeEntry, getStakePool } from "./programs/stakePool/accounts";
 import { findStakeEntryId } from "./programs/stakePool/pda";
@@ -74,16 +79,15 @@ export const authorizeStakeEntry = async (
   });
 };
 
-export const initStakeEntryAndMint = async (
+export const initStakeEntryAndStakeMint = async (
   connection: Connection,
   wallet: Wallet,
   params: {
     stakePoolId: PublicKey;
     originalMintId: PublicKey;
-    receiptType?: ReceiptType;
+    amount?: BN;
   }
-): Promise<[Transaction, Keypair | undefined]> => {
-  const transaction = new Transaction();
+): Promise<[Transaction, Keypair]> => {
   const [stakeEntryId] = await findStakeEntryId(
     params.stakePoolId,
     params.originalMintId
@@ -91,28 +95,25 @@ export const initStakeEntryAndMint = async (
   const stakeEntryData = await tryGetAccount(() =>
     getStakeEntry(connection, stakeEntryId)
   );
-  if (!stakeEntryData) {
-    await withInitStakeEntry(transaction, connection, wallet, {
-      stakePoolId: params.stakePoolId,
-      originalMintId: params.originalMintId,
-    });
+  if (stakeEntryData) {
+    throw new Error("Stake entry already exists");
   }
+  const [transaction] = await initStakeEntry(connection, wallet, {
+    stakePoolId: params.stakePoolId,
+    originalMintId: params.originalMintId,
+    amount: params.amount,
+  });
 
-  let stakeMintKeypair;
-  if (params.receiptType === ReceiptType.Receipt) {
-    if (!stakeEntryData?.parsed.stakeMint) {
-      stakeMintKeypair = Keypair.generate();
-      const stakePool = await getStakePool(connection, params.stakePoolId);
+  const stakeMintKeypair = Keypair.generate();
+  const stakePool = await getStakePool(connection, params.stakePoolId);
 
-      await withInitStakeMint(transaction, connection, wallet, {
-        stakePoolId: params.stakePoolId,
-        originalMintId: params.originalMintId,
-        stakeMintKeypair,
-        name: `POOl${stakePool.parsed.identifier.toString()} RECEIPT`,
-        symbol: `POOl${stakePool.parsed.identifier.toString()}`,
-      });
-    }
-  }
+  await withInitStakeMint(transaction, connection, wallet, {
+    stakePoolId: params.stakePoolId,
+    originalMintId: params.originalMintId,
+    stakeMintKeypair,
+    name: `POOl${stakePool.parsed.identifier.toString()} RECEIPT`,
+    symbol: `POOl${stakePool.parsed.identifier.toString()}`,
+  });
 
   return [transaction, stakeMintKeypair];
 };
@@ -177,32 +178,32 @@ export const unstake = async (
 ): Promise<Transaction> =>
   withUnstake(new Transaction(), connection, wallet, params);
 
-// export const initRewardDistributorWithEntry = async (
-//   connection: Connection,
-//   wallet: Wallet,
-//   params: {
-//     mintId: PublicKey;
-//     stakePoolId: PublicKey;
-//     rewardMintId: PublicKey;
-//     rewardAmount?: BN;
-//     rewardDurationSeconds?: BN;
-//     kind?: RewardDistributorKind;
-//     maxSupply?: BN;
-//     multiplier?: BN;
-//   }
-// ): Promise<Transaction> => {
-//   const [transaction, rewardDistributorId] = await withInitRewardDistributor(
-//     new Transaction(),
-//     connection,
-//     wallet,
-//     params
-//   );
+export const initRewardDistributorWithEntry = async (
+  connection: Connection,
+  wallet: Wallet,
+  params: {
+    mintId: PublicKey;
+    stakePoolId: PublicKey;
+    rewardMintId: PublicKey;
+    rewardAmount?: BN;
+    rewardDurationSeconds?: BN;
+    kind?: RewardDistributorKind;
+    maxSupply?: BN;
+    multiplier?: BN;
+  }
+): Promise<Transaction> => {
+  const [transaction, rewardDistributorId] = await withInitRewardDistributor(
+    new Transaction(),
+    connection,
+    wallet,
+    params
+  );
 
-//   await withInitRewardEntry(transaction, connection, wallet, {
-//     mintId: params.mintId,
-//     rewardDistributorId: rewardDistributorId,
-//     multiplier: params.multiplier,
-//   });
+  await withInitRewardEntry(transaction, connection, wallet, {
+    mintId: params.mintId,
+    rewardDistributorId: rewardDistributorId,
+    multiplier: params.multiplier,
+  });
 
-//   return transaction;
-// };
+  return transaction;
+};

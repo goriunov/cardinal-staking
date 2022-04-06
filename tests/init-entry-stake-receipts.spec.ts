@@ -6,7 +6,7 @@ import * as splToken from "@solana/spl-token";
 import * as web3 from "@solana/web3.js";
 import { expect } from "chai";
 
-import { initStakeEntryAndMint, stake, unstake } from "../src";
+import { initStakeEntryAndStakeMint, stake, unstake } from "../src";
 import { ReceiptType } from "../src/programs/stakePool";
 import {
   getStakeEntry,
@@ -64,17 +64,16 @@ describe("Create stake pool", () => {
     );
   });
 
-  it("Init stake entry abd mint", async () => {
+  it("Init stake entry and mint", async () => {
     const provider = getProvider();
     let transaction: web3.Transaction;
 
-    [transaction, stakeMintKeypair] = await initStakeEntryAndMint(
+    [transaction, stakeMintKeypair] = await initStakeEntryAndStakeMint(
       provider.connection,
       provider.wallet,
       {
         stakePoolId: stakePoolId,
         originalMintId: originalMint.publicKey,
-        receiptType: ReceiptType.Receipt,
       }
     );
 
@@ -82,9 +81,9 @@ describe("Create stake pool", () => {
       new TransactionEnvelope(
         SolanaProvider.init(provider),
         transaction.instructions,
-        stakeMintKeypair ? [stakeMintKeypair] : []
+        [stakeMintKeypair]
       ),
-      "Init stake entry"
+      "Init stake entry and mint"
     ).to.be.fulfilled;
 
     const stakeEntryData = await getStakeEntry(
@@ -101,6 +100,17 @@ describe("Create stake pool", () => {
     expect(stakeEntryData.parsed.stakeMint?.toString()).to.eq(
       stakeMintKeypair?.publicKey.toString()
     );
+
+    const checkMint = new splToken.Token(
+      provider.connection,
+      stakeMintKeypair.publicKey,
+      splToken.TOKEN_PROGRAM_ID,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      null
+    );
+
+    expect((await checkMint.getMintInfo()).isInitialized).to.eq(true);
   });
 
   it("Stake", async () => {
