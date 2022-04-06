@@ -162,7 +162,6 @@ export const initFungibleStakeEntry = async (
     stakeEntryId: PublicKey;
     originalMintId: PublicKey;
     originalMintMetadatId: PublicKey;
-    amount: BN;
   }
 ): Promise<TransactionInstruction> => {
   const provider = new Provider(connection, wallet, {});
@@ -175,7 +174,7 @@ export const initFungibleStakeEntry = async (
     params.stakePoolId,
     params.originalMintId
   );
-  return stakePoolProgram.instruction.initFtEntry(params.amount, {
+  return stakePoolProgram.instruction.initFtEntry({
     accounts: {
       stakeEntry: params.stakeEntryId,
       stakePool: params.stakePoolId,
@@ -300,6 +299,7 @@ export const stake = (
     stakeEntryId: PublicKey;
     stakeEntryOriginalMintTokenAccountId: PublicKey;
     userOriginalMintTokenAccountId: PublicKey;
+    amount: BN;
   }
 ): TransactionInstruction => {
   const provider = new Provider(connection, wallet, {});
@@ -309,7 +309,7 @@ export const stake = (
     provider
   );
 
-  return stakePoolProgram.instruction.stake({
+  return stakePoolProgram.instruction.stake(params.amount, {
     accounts: {
       stakeEntry: params.stakeEntryId,
       stakeEntryOriginalMintTokenAccount:

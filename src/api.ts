@@ -4,11 +4,6 @@ import type { Wallet } from "@saberhq/solana-contrib";
 import type { Connection, PublicKey } from "@solana/web3.js";
 import { Keypair, Transaction } from "@solana/web3.js";
 
-import type { RewardDistributorKind } from "./programs/rewardDistributor";
-import {
-  withInitRewardDistributor,
-  withInitRewardEntry,
-} from "./programs/rewardDistributor/transaction";
 import { ReceiptType } from "./programs/stakePool";
 import { getStakeEntry, getStakePool } from "./programs/stakePool/accounts";
 import { findStakeEntryId } from "./programs/stakePool/pda";
@@ -56,7 +51,6 @@ export const initStakeEntry = async (
     return withInitFungibleStakeEntry(new Transaction(), connection, wallet, {
       stakePoolId: params.stakePoolId,
       originalMintId: params.originalMintId,
-      amount: params.amount,
     });
   } else {
     return withInitStakeEntry(new Transaction(), connection, wallet, {
@@ -131,6 +125,7 @@ export const stake = async (
     originalMintId: PublicKey;
     userOriginalMintTokenAccountId: PublicKey;
     receiptType?: ReceiptType;
+    amount?: BN;
   }
 ): Promise<Transaction> => {
   const transaction = new Transaction();
@@ -152,6 +147,7 @@ export const stake = async (
     stakePoolId: params.stakePoolId,
     originalMintId: params.originalMintId,
     userOriginalMintTokenAccountId: params.userOriginalMintTokenAccountId,
+    amount: params.amount,
   });
 
   if (params.receiptType) {
@@ -181,32 +177,32 @@ export const unstake = async (
 ): Promise<Transaction> =>
   withUnstake(new Transaction(), connection, wallet, params);
 
-export const initRewardDistributorWithEntry = async (
-  connection: Connection,
-  wallet: Wallet,
-  params: {
-    mintId: PublicKey;
-    stakePoolId: PublicKey;
-    rewardMintId: PublicKey;
-    rewardAmount?: BN;
-    rewardDurationSeconds?: BN;
-    kind?: RewardDistributorKind;
-    maxSupply?: BN;
-    multiplier?: BN;
-  }
-): Promise<Transaction> => {
-  const [transaction, rewardDistributorId] = await withInitRewardDistributor(
-    new Transaction(),
-    connection,
-    wallet,
-    params
-  );
+// export const initRewardDistributorWithEntry = async (
+//   connection: Connection,
+//   wallet: Wallet,
+//   params: {
+//     mintId: PublicKey;
+//     stakePoolId: PublicKey;
+//     rewardMintId: PublicKey;
+//     rewardAmount?: BN;
+//     rewardDurationSeconds?: BN;
+//     kind?: RewardDistributorKind;
+//     maxSupply?: BN;
+//     multiplier?: BN;
+//   }
+// ): Promise<Transaction> => {
+//   const [transaction, rewardDistributorId] = await withInitRewardDistributor(
+//     new Transaction(),
+//     connection,
+//     wallet,
+//     params
+//   );
 
-  await withInitRewardEntry(transaction, connection, wallet, {
-    mintId: params.mintId,
-    rewardDistributorId: rewardDistributorId,
-    multiplier: params.multiplier,
-  });
+//   await withInitRewardEntry(transaction, connection, wallet, {
+//     mintId: params.mintId,
+//     rewardDistributorId: rewardDistributorId,
+//     multiplier: params.multiplier,
+//   });
 
-  return transaction;
-};
+//   return transaction;
+// };

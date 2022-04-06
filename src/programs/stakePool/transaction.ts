@@ -126,7 +126,6 @@ export const withInitFungibleStakeEntry = async (
   params: {
     stakePoolId: web3.PublicKey;
     originalMintId: web3.PublicKey;
-    amount: BN;
   }
 ): Promise<[web3.Transaction, web3.PublicKey]> => {
   const [[stakeEntryId], originalMintMetadatId] = await Promise.all([
@@ -140,7 +139,6 @@ export const withInitFungibleStakeEntry = async (
       stakeEntryId: stakeEntryId,
       originalMintId: params.originalMintId,
       originalMintMetadatId: originalMintMetadatId,
-      amount: params.amount,
     })
   );
   return [transaction, stakeEntryId];
@@ -254,6 +252,7 @@ export const withStake = async (
     stakePoolId: web3.PublicKey;
     originalMintId: web3.PublicKey;
     userOriginalMintTokenAccountId: web3.PublicKey;
+    amount?: BN;
   }
 ): Promise<web3.Transaction> => {
   const [stakeEntryId] = await findStakeEntryId(
@@ -276,6 +275,7 @@ export const withStake = async (
       stakeEntryOriginalMintTokenAccountId:
         stakeEntryOriginalMintTokenAccountId,
       userOriginalMintTokenAccountId: params.userOriginalMintTokenAccountId,
+      amount: params.amount || new BN(1),
     })
   );
 
