@@ -262,7 +262,7 @@ export const claimReceiptMint = async (
     findTokenManagerAddress(params.receiptMintId),
     findMintCounterId(params.receiptMintId),
     findAta(params.receiptMintId, params.stakeEntryId, true),
-    findAta(params.receiptMintId, wallet.publicKey),
+    findAta(params.receiptMintId, wallet.publicKey, true),
     getRemainingAccountsForKind(
       params.receiptMintId,
       params.receiptType === ReceiptType.Original
@@ -270,7 +270,6 @@ export const claimReceiptMint = async (
         : TokenManagerKind.Managed
     ),
   ]);
-
   return stakePoolProgram.instruction.claimReceiptMint({
     accounts: {
       stakeEntry: params.stakeEntryId,

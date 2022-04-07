@@ -83,7 +83,7 @@ describe("Create stake pool", () => {
         transaction.instructions,
         [stakeMintKeypair]
       ),
-      "Init stake entry and mint"
+      "Init stake entry"
     ).to.be.fulfilled;
 
     const stakeEntryData = await getStakeEntry(
@@ -100,17 +100,6 @@ describe("Create stake pool", () => {
     expect(stakeEntryData.parsed.stakeMint?.toString()).to.eq(
       stakeMintKeypair?.publicKey.toString()
     );
-
-    const checkMint = new splToken.Token(
-      provider.connection,
-      stakeMintKeypair.publicKey,
-      splToken.TOKEN_PROGRAM_ID,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      null
-    );
-
-    expect((await checkMint.getMintInfo()).isInitialized).to.eq(true);
   });
 
   it("Stake", async () => {

@@ -168,34 +168,30 @@ export const withInitStakeMint = async (
   wallet: Wallet,
   params: {
     stakePoolId: web3.PublicKey;
+    stakeEntryId: web3.PublicKey;
     originalMintId: web3.PublicKey;
     stakeMintKeypair: web3.Keypair;
     name: string;
     symbol: string;
   }
 ): Promise<[web3.Transaction, web3.Keypair]> => {
-  const [
-    [stakeEntryId],
-    [mintManagerId],
-    originalMintMetadataId,
-    stakeMintMetadataId,
-  ] = await Promise.all([
-    findStakeEntryId(params.stakePoolId, params.originalMintId),
-    findMintManagerId(params.stakeMintKeypair.publicKey),
-    metaplex.Metadata.getPDA(params.originalMintId),
-    metaplex.Metadata.getPDA(params.stakeMintKeypair.publicKey),
-  ]);
+  const [[mintManagerId], originalMintMetadataId, stakeMintMetadataId] =
+    await Promise.all([
+      findMintManagerId(params.stakeMintKeypair.publicKey),
+      metaplex.Metadata.getPDA(params.originalMintId),
+      metaplex.Metadata.getPDA(params.stakeMintKeypair.publicKey),
+    ]);
 
   const stakeEntryStakeMintTokenAccountId = await findAta(
     params.stakeMintKeypair.publicKey,
-    stakeEntryId,
+    params.stakeEntryId,
     true
   );
 
   transaction.add(
     initStakeMint(connection, wallet, {
       stakePoolId: params.stakePoolId,
-      stakeEntryId: stakeEntryId,
+      stakeEntryId: params.stakeEntryId,
       originalMintId: params.originalMintId,
       originalMintMetadatId: originalMintMetadataId,
       stakeEntryStakeMintTokenAccountId: stakeEntryStakeMintTokenAccountId,
@@ -255,10 +251,9 @@ export const withStake = async (
     amount?: BN;
   }
 ): Promise<web3.Transaction> => {
-  const [stakeEntryId] = await findStakeEntryId(
-    params.stakePoolId,
-    params.originalMintId
-  );
+  const [stakeEntryId] = params.amount
+    ? await findFtStakeEntryId(params.stakePoolId, wallet.publicKey)
+    : await findStakeEntryId(params.stakePoolId, params.originalMintId);
   const stakeEntryOriginalMintTokenAccountId =
     await withFindOrInitAssociatedTokenAccount(
       transaction,
@@ -289,10 +284,13 @@ export const withUnstake = async (
   params: {
     stakePoolId: web3.PublicKey;
     originalMintId: web3.PublicKey;
+    amount?: BN;
   }
 ): Promise<web3.Transaction> => {
   const [[stakeEntryId], [rewardDistributorId]] = await Promise.all([
-    findStakeEntryId(params.stakePoolId, params.originalMintId),
+    params.amount
+      ? await findFtStakeEntryId(params.stakePoolId, wallet.publicKey)
+      : await findStakeEntryId(params.stakePoolId, params.originalMintId),
     await findRewardDistributorId(params.stakePoolId),
   ]);
 

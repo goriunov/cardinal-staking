@@ -11,7 +11,7 @@ import {
 } from "./programs/rewardDistributor/transaction";
 import { ReceiptType } from "./programs/stakePool";
 import { getStakeEntry, getStakePool } from "./programs/stakePool/accounts";
-import { findStakeEntryId } from "./programs/stakePool/pda";
+import { findFtStakeEntryId, findStakeEntryId } from "./programs/stakePool/pda";
 import {
   withAuthorizeStakeEntry,
   withClaimReceiptMint,
@@ -88,10 +88,9 @@ export const initStakeEntryAndStakeMint = async (
     amount?: BN;
   }
 ): Promise<[Transaction, Keypair]> => {
-  const [stakeEntryId] = await findStakeEntryId(
-    params.stakePoolId,
-    params.originalMintId
-  );
+  const [stakeEntryId] = params.amount
+    ? await findFtStakeEntryId(params.stakePoolId, wallet.publicKey)
+    : await findStakeEntryId(params.stakePoolId, params.originalMintId);
   const stakeEntryData = await tryGetAccount(() =>
     getStakeEntry(connection, stakeEntryId)
   );
@@ -109,6 +108,7 @@ export const initStakeEntryAndStakeMint = async (
 
   await withInitStakeMint(transaction, connection, wallet, {
     stakePoolId: params.stakePoolId,
+    stakeEntryId: stakeEntryId,
     originalMintId: params.originalMintId,
     stakeMintKeypair,
     name: `POOl${stakePool.parsed.identifier.toString()} RECEIPT`,
@@ -130,10 +130,9 @@ export const stake = async (
   }
 ): Promise<Transaction> => {
   const transaction = new Transaction();
-  const [stakeEntryId] = await findStakeEntryId(
-    params.stakePoolId,
-    params.originalMintId
-  );
+  const [stakeEntryId] = params.amount
+    ? await findFtStakeEntryId(params.stakePoolId, wallet.publicKey)
+    : await findStakeEntryId(params.stakePoolId, params.originalMintId);
   const stakeEntryData = await tryGetAccount(() =>
     getStakeEntry(connection, stakeEntryId)
   );
@@ -174,6 +173,7 @@ export const unstake = async (
   params: {
     stakePoolId: PublicKey;
     originalMintId: PublicKey;
+    amount?: BN;
   }
 ): Promise<Transaction> =>
   withUnstake(new Transaction(), connection, wallet, params);

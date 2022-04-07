@@ -19,8 +19,6 @@ pub struct ClaimReceiptMintCtx<'info> {
 
     #[account(mut)]
     receipt_mint: Box<Account<'info, Mint>>,
-    #[account(mut)]
-    receipt_mint_authority: Signer<'info>,
 
     #[account(mut, constraint =
         stake_entry_receipt_mint_token_account.amount > 0
@@ -36,10 +34,9 @@ pub struct ClaimReceiptMintCtx<'info> {
         init_if_needed,
         payer = user,
         associated_token::mint = receipt_mint,
-        associated_token::authority = user
+        associated_token::authority = user,
     )]
     user_receipt_mint_token_account: Box<Account<'info, TokenAccount>>,
-
     #[account(mut)]
     token_manager_receipt_mint_token_account: Box<Account<'info, TokenAccount>>,
 
@@ -62,6 +59,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     let stake_entry = &mut ctx.accounts.stake_entry;
     let original_mint = stake_entry.original_mint;
     let stake_pool = stake_entry.pool;
+
     let stake_entry_seed = &[STAKE_ENTRY_PREFIX.as_bytes(), stake_pool.as_ref(), original_mint.as_ref(), &[stake_entry.bump]];
     let stake_entry_signer = &[&stake_entry_seed[..]];
 
