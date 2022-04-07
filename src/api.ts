@@ -4,14 +4,9 @@ import type { Wallet } from "@saberhq/solana-contrib";
 import type { Connection, PublicKey } from "@solana/web3.js";
 import { Keypair, Transaction } from "@solana/web3.js";
 
-import type { RewardDistributorKind } from "./programs/rewardDistributor";
-import {
-  withInitRewardDistributor,
-  withInitRewardEntry,
-} from "./programs/rewardDistributor/transaction";
 import { ReceiptType } from "./programs/stakePool";
 import { getStakeEntry, getStakePool } from "./programs/stakePool/accounts";
-import { findFtStakeEntryId, findStakeEntryId } from "./programs/stakePool/pda";
+import { findStakeEntryId } from "./programs/stakePool/pda";
 import {
   withAuthorizeStakeEntry,
   withClaimReceiptMint,
@@ -23,6 +18,7 @@ import {
   withStake,
   withUnstake,
 } from "./programs/stakePool/transaction";
+import { getMintSupply } from "./utils";
 
 export const initPoolIdentifier = async (
   connection: Connection,
@@ -40,7 +36,7 @@ export const initStakePool = async (
     overlayText?: string;
     imageUri?: string;
   }
-): Promise<[Transaction, PublicKey, BN]> =>
+): Promise<[Transaction, PublicKey]> =>
   withInitStakePool(new Transaction(), connection, wallet, params);
 
 export const initStakeEntry = async (
@@ -49,13 +45,15 @@ export const initStakeEntry = async (
   params: {
     stakePoolId: PublicKey;
     originalMintId: PublicKey;
-    amount?: BN;
+    user?: PublicKey;
   }
 ): Promise<[Transaction, PublicKey]> => {
-  if (params.amount) {
+  const supply = await getMintSupply(connection, params.originalMintId);
+  if (supply > 1) {
     return withInitFungibleStakeEntry(new Transaction(), connection, wallet, {
       stakePoolId: params.stakePoolId,
       originalMintId: params.originalMintId,
+      user: params.user || wallet.publicKey,
     });
   } else {
     return withInitStakeEntry(new Transaction(), connection, wallet, {
@@ -85,12 +83,15 @@ export const initStakeEntryAndStakeMint = async (
   params: {
     stakePoolId: PublicKey;
     originalMintId: PublicKey;
-    amount?: BN;
+    amount?: number;
   }
-): Promise<[Transaction, Keypair]> => {
-  const [stakeEntryId] = params.amount
-    ? await findFtStakeEntryId(params.stakePoolId, wallet.publicKey)
-    : await findStakeEntryId(params.stakePoolId, params.originalMintId);
+): Promise<[Transaction, Keypair, PublicKey]> => {
+  const [stakeEntryId] = await findStakeEntryId(
+    connection,
+    wallet.publicKey,
+    params.stakePoolId,
+    params.originalMintId
+  );
   const stakeEntryData = await tryGetAccount(() =>
     getStakeEntry(connection, stakeEntryId)
   );
@@ -100,7 +101,6 @@ export const initStakeEntryAndStakeMint = async (
   const [transaction] = await initStakeEntry(connection, wallet, {
     stakePoolId: params.stakePoolId,
     originalMintId: params.originalMintId,
-    amount: params.amount,
   });
 
   const stakeMintKeypair = Keypair.generate();
@@ -113,9 +113,10 @@ export const initStakeEntryAndStakeMint = async (
     stakeMintKeypair,
     name: `POOl${stakePool.parsed.identifier.toString()} RECEIPT`,
     symbol: `POOl${stakePool.parsed.identifier.toString()}`,
+    amount: params.amount,
   });
 
-  return [transaction, stakeMintKeypair];
+  return [transaction, stakeMintKeypair, stakeEntryId];
 };
 
 export const stake = async (
@@ -130,9 +131,12 @@ export const stake = async (
   }
 ): Promise<Transaction> => {
   const transaction = new Transaction();
-  const [stakeEntryId] = params.amount
-    ? await findFtStakeEntryId(params.stakePoolId, wallet.publicKey)
-    : await findStakeEntryId(params.stakePoolId, params.originalMintId);
+  const [stakeEntryId] = await findStakeEntryId(
+    connection,
+    wallet.publicKey,
+    params.stakePoolId,
+    params.originalMintId
+  );
   const stakeEntryData = await tryGetAccount(() =>
     getStakeEntry(connection, stakeEntryId)
   );
@@ -173,37 +177,6 @@ export const unstake = async (
   params: {
     stakePoolId: PublicKey;
     originalMintId: PublicKey;
-    amount?: BN;
   }
 ): Promise<Transaction> =>
   withUnstake(new Transaction(), connection, wallet, params);
-
-export const initRewardDistributorWithEntry = async (
-  connection: Connection,
-  wallet: Wallet,
-  params: {
-    mintId: PublicKey;
-    stakePoolId: PublicKey;
-    rewardMintId: PublicKey;
-    rewardAmount?: BN;
-    rewardDurationSeconds?: BN;
-    kind?: RewardDistributorKind;
-    maxSupply?: BN;
-    multiplier?: BN;
-  }
-): Promise<Transaction> => {
-  const [transaction, rewardDistributorId] = await withInitRewardDistributor(
-    new Transaction(),
-    connection,
-    wallet,
-    params
-  );
-
-  await withInitRewardEntry(transaction, connection, wallet, {
-    mintId: params.mintId,
-    rewardDistributorId: rewardDistributorId,
-    multiplier: params.multiplier,
-  });
-
-  return transaction;
-};

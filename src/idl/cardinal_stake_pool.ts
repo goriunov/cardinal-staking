@@ -116,6 +116,11 @@ export type CardinalStakePool = {
           isSigner: false;
         },
         {
+          name: "user";
+          isMut: false;
+          isSigner: false;
+        },
+        {
           name: "payer";
           isMut: true;
           isSigner: true;
@@ -567,6 +572,10 @@ export type CardinalStakePool = {
           {
             name: "symbol";
             type: "string";
+          },
+          {
+            name: "amount";
+            type: "u64";
           }
         ];
       };
@@ -770,6 +779,11 @@ export const IDL: CardinalStakePool = {
         },
         {
           name: "originalMintMetadata",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "user",
           isMut: false,
           isSigner: false,
         },
@@ -1225,6 +1239,10 @@ export const IDL: CardinalStakePool = {
           {
             name: "symbol",
             type: "string",
+          },
+          {
+            name: "amount",
+            type: "u64",
           },
         ],
       },

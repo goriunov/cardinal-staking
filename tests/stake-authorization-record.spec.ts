@@ -1,5 +1,4 @@
 import { findAta } from "@cardinal/common";
-import type { BN } from "@project-serum/anchor";
 import { expectTXTable } from "@saberhq/chai-solana";
 import {
   SignerWallet,
@@ -26,13 +25,11 @@ import {
 import {
   findStakeAuthorizationId,
   findStakeEntryId,
-  findStakePoolId,
 } from "../src/programs/stakePool/pda";
 import { createMasterEditionIxs, createMint } from "./utils";
 import { getProvider } from "./workspace";
 
 describe("Requires authorization success", () => {
-  let poolIdentifier: BN;
   const overlayText = "staking";
   let originalMintTokenAccountId: PublicKey;
   let originalMint: splToken.Token;
@@ -72,7 +69,7 @@ describe("Requires authorization success", () => {
   it("Create Pool", async () => {
     const provider = getProvider();
     let transaction = new Transaction();
-    [transaction, , poolIdentifier] = await initStakePool(
+    [transaction, stakePoolId] = await initStakePool(
       provider.connection,
       provider.wallet,
       {
@@ -88,12 +85,9 @@ describe("Requires authorization success", () => {
       "Create pool"
     ).to.be.fulfilled;
 
-    [stakePoolId] = await findStakePoolId(poolIdentifier);
     const stakePoolData = await getStakePool(provider.connection, stakePoolId);
-
-    expect(stakePoolData.parsed.identifier.toNumber()).to.eq(
-      poolIdentifier.toNumber()
-    );
+    expect(stakePoolData.parsed.overlayText).to.be.eq(overlayText);
+    expect(stakePoolData.parsed.requiresAuthorization).to.be.true;
   });
 
   it("Authorize mint for stake", async () => {
@@ -147,7 +141,12 @@ describe("Requires authorization success", () => {
     const stakeEntryData = await getStakeEntry(
       provider.connection,
       (
-        await findStakeEntryId(stakePoolId, originalMint.publicKey)
+        await findStakeEntryId(
+          provider.connection,
+          provider.wallet.publicKey,
+          stakePoolId,
+          originalMint.publicKey
+        )
       )[0]
     );
 
@@ -178,7 +177,12 @@ describe("Requires authorization success", () => {
     const stakeEntryData = await getStakeEntry(
       provider.connection,
       (
-        await findStakeEntryId(stakePoolId, originalMint.publicKey)
+        await findStakeEntryId(
+          provider.connection,
+          provider.wallet.publicKey,
+          stakePoolId,
+          originalMint.publicKey
+        )
       )[0]
     );
 

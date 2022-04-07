@@ -12,7 +12,7 @@ pub struct InitFtEntryCtx<'info> {
         init,
         payer = payer,
         space = STAKE_ENTRY_SIZE,
-        seeds = [STAKE_ENTRY_PREFIX.as_bytes(), stake_pool.key().as_ref(), payer.key().as_ref()],
+        seeds = [STAKE_ENTRY_PREFIX.as_bytes(), stake_pool.key().as_ref(), user.key().as_ref()],
         bump,
     )]
     stake_entry: Box<Account<'info, StakeEntry>>,
@@ -23,7 +23,10 @@ pub struct InitFtEntryCtx<'info> {
     /// CHECK: This is not dangerous because we don't read or write from this account
     original_mint_metadata: AccountInfo<'info>,
 
-    #[account(mut, constraint = payer.key() == stake_pool.authority)]
+    /// CHECK: This is not dangerous because we don't read or write from this account
+    user: UncheckedAccount<'info>,
+
+    #[account(mut)]
     payer: Signer<'info>,
     system_program: Program<'info, System>,
 }

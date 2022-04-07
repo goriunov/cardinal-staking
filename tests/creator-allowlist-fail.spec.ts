@@ -1,4 +1,3 @@
-import type { BN } from "@project-serum/anchor";
 import { expectTXTable } from "@saberhq/chai-solana";
 import {
   SignerWallet,
@@ -12,13 +11,11 @@ import { expect } from "chai";
 
 import { initStakePool } from "../src";
 import { getStakePool } from "../src/programs/stakePool/accounts";
-import { findStakePoolId } from "../src/programs/stakePool/pda";
 import { withInitStakeEntry } from "../src/programs/stakePool/transaction";
 import { createMasterEditionIxs, createMint } from "./utils";
 import { getProvider } from "./workspace";
 
 describe("Create stake pool", () => {
-  let poolIdentifier: BN;
   const overlayText = "staking";
   let originalMint: splToken.Token;
   let stakePoolId: PublicKey;
@@ -57,12 +54,13 @@ describe("Create stake pool", () => {
   it("Create Pool", async () => {
     const provider = getProvider();
     let transaction = new Transaction();
-    [transaction, , poolIdentifier] = await initStakePool(
+    const creator = Keypair.generate();
+    [transaction, stakePoolId] = await initStakePool(
       provider.connection,
       provider.wallet,
       {
         overlayText: overlayText,
-        requiresCreators: [Keypair.generate().publicKey],
+        requiresCreators: [creator.publicKey],
       }
     );
     await expectTXTable(
@@ -72,11 +70,9 @@ describe("Create stake pool", () => {
       "Create pool"
     ).to.be.fulfilled;
 
-    [stakePoolId] = await findStakePoolId(poolIdentifier);
     const stakePoolData = await getStakePool(provider.connection, stakePoolId);
-
-    expect(stakePoolData.parsed.identifier.toNumber()).to.eq(
-      poolIdentifier.toNumber()
+    expect(stakePoolData.parsed.requiresCreators[0]?.toString()).to.eq(
+      creator.publicKey.toString()
     );
   });
 

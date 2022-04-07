@@ -16,14 +16,8 @@ import { RewardDistributorKind } from "../src/programs/rewardDistributor";
 import { getRewardDistributor } from "../src/programs/rewardDistributor/accounts";
 import { findRewardDistributorId } from "../src/programs/rewardDistributor/pda";
 import { ReceiptType } from "../src/programs/stakePool";
-import {
-  getStakeEntry,
-  getStakePool,
-} from "../src/programs/stakePool/accounts";
-import {
-  findFtStakeEntryId,
-  findStakePoolId,
-} from "../src/programs/stakePool/pda";
+import { getStakeEntry } from "../src/programs/stakePool/accounts";
+import { findStakeEntryId } from "../src/programs/stakePool/pda";
 import { withInitStakePool } from "../src/programs/stakePool/transaction";
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
@@ -37,7 +31,6 @@ import { getProvider } from "./workspace";
  */
 
 describe("Create stake pool", () => {
-  let poolIdentifier: BN;
   let stakePoolId: PublicKey;
   let originalMintTokenAccountId: PublicKey;
   let originalMint: splToken.Token;
@@ -74,7 +67,7 @@ describe("Create stake pool", () => {
     const provider = getProvider();
     const transaction = new Transaction();
 
-    [, , poolIdentifier] = await withInitStakePool(
+    [, stakePoolId] = await withInitStakePool(
       transaction,
       provider.connection,
       provider.wallet,
@@ -87,13 +80,6 @@ describe("Create stake pool", () => {
       ]),
       "Create pool"
     ).to.be.fulfilled;
-
-    [stakePoolId] = await findStakePoolId(poolIdentifier);
-    const stakePoolData = await getStakePool(provider.connection, stakePoolId);
-
-    expect(stakePoolData.parsed.identifier.toNumber()).to.eq(
-      poolIdentifier.toNumber()
-    );
   });
 
   it("Create Reward Distributor", async () => {
@@ -172,16 +158,14 @@ describe("Create stake pool", () => {
   it("Init fungible stake entry and stake mint", async () => {
     const provider = getProvider();
     let transaction: Transaction;
+    let stakeEntryId: PublicKey;
 
-    [transaction, stakeMintKeypair] = await initStakeEntryAndStakeMint(
-      provider.connection,
-      provider.wallet,
-      {
+    [transaction, stakeMintKeypair, stakeEntryId] =
+      await initStakeEntryAndStakeMint(provider.connection, provider.wallet, {
         stakePoolId: stakePoolId,
         originalMintId: originalMint.publicKey,
-        amount: new BN(stakingAmount),
-      }
-    );
+        amount: stakingAmount,
+      });
 
     await expectTXTable(
       new TransactionEnvelope(
@@ -195,7 +179,12 @@ describe("Create stake pool", () => {
     const stakeEntryData = await getStakeEntry(
       provider.connection,
       (
-        await findFtStakeEntryId(stakePoolId, provider.wallet.publicKey)
+        await findStakeEntryId(
+          provider.connection,
+          provider.wallet.publicKey,
+          stakePoolId,
+          originalMint.publicKey
+        )
       )[0]
     );
 
@@ -217,6 +206,9 @@ describe("Create stake pool", () => {
     );
 
     expect((await checkMint.getMintInfo()).isInitialized).to.be.true;
+    const acc = await findAta(stakeMintKeypair.publicKey, stakeEntryId, true);
+    const a = await checkMint.getAccountInfo(acc);
+    console.log("here", a.amount.toNumber());
   });
 
   it("Stake", async () => {
@@ -240,7 +232,12 @@ describe("Create stake pool", () => {
     const stakeEntryData = await getStakeEntry(
       provider.connection,
       (
-        await findFtStakeEntryId(stakePoolId, provider.wallet.publicKey)
+        await findStakeEntryId(
+          provider.connection,
+          provider.wallet.publicKey,
+          stakePoolId,
+          originalMint.publicKey
+        )
       )[0]
     );
 
@@ -299,7 +296,6 @@ describe("Create stake pool", () => {
           await unstake(provider.connection, provider.wallet, {
             stakePoolId: stakePoolId,
             originalMintId: originalMint.publicKey,
-            amount: new BN(stakingAmount),
           })
         ).instructions,
       ]),
@@ -309,7 +305,12 @@ describe("Create stake pool", () => {
     const stakeEntryData = await getStakeEntry(
       provider.connection,
       (
-        await findFtStakeEntryId(stakePoolId, provider.wallet.publicKey)
+        await findStakeEntryId(
+          provider.connection,
+          provider.wallet.publicKey,
+          stakePoolId,
+          originalMint.publicKey
+        )
       )[0]
     );
     expect(stakeEntryData.parsed.lastStaker.toString()).to.eq(

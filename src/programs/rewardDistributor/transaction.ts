@@ -85,7 +85,6 @@ export const withClaimRewards = async (
   params: {
     stakePoolId: PublicKey;
     originalMint: PublicKey;
-    originalMintTokenAccount: PublicKey;
   }
 ): Promise<Transaction> => {
   const [rewardDistributorId] = await findRewardDistributorId(
@@ -117,7 +116,6 @@ export const withClaimRewards = async (
       await claimRewards(connection, wallet, {
         stakePoolId: params.stakePoolId,
         originalMintId: params.originalMint,
-        mintTokenAccount: params.originalMintTokenAccount,
         rewardMintId: rewardDistributorData.parsed.rewardMint,
         rewardMintTokenAccountId: rewardMintTokenAccountId,
         remainingAccountsForKind,

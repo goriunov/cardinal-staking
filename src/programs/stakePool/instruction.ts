@@ -162,6 +162,7 @@ export const initFungibleStakeEntry = async (
     stakeEntryId: PublicKey;
     originalMintId: PublicKey;
     originalMintMetadatId: PublicKey;
+    user: PublicKey;
   }
 ): Promise<TransactionInstruction> => {
   const provider = new Provider(connection, wallet, {});
@@ -180,6 +181,7 @@ export const initFungibleStakeEntry = async (
       stakePool: params.stakePoolId,
       originalMint: params.originalMintId,
       originalMintMetadata: params.originalMintMetadatId,
+      user: params.user,
       payer: wallet.publicKey,
       systemProgram: SystemProgram.programId,
     },
@@ -201,6 +203,7 @@ export const initStakeMint = (
     mintManagerId: PublicKey;
     name: string;
     symbol: string;
+    amount: BN;
   }
 ): TransactionInstruction => {
   const provider = new Provider(connection, wallet, {});
@@ -211,7 +214,7 @@ export const initStakeMint = (
   );
 
   return stakePoolProgram.instruction.initStakeMint(
-    { name: params.name, symbol: params.symbol },
+    { name: params.name, symbol: params.symbol, amount: params.amount },
     {
       accounts: {
         stakeEntry: params.stakeEntryId,

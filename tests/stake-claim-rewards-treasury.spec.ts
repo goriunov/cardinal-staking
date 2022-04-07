@@ -21,19 +21,12 @@ import { RewardDistributorKind } from "../src/programs/rewardDistributor";
 import { getRewardDistributor } from "../src/programs/rewardDistributor/accounts";
 import { findRewardDistributorId } from "../src/programs/rewardDistributor/pda";
 import { ReceiptType } from "../src/programs/stakePool";
-import {
-  getStakeEntry,
-  getStakePool,
-} from "../src/programs/stakePool/accounts";
-import {
-  findStakeEntryId,
-  findStakePoolId,
-} from "../src/programs/stakePool/pda";
+import { getStakeEntry } from "../src/programs/stakePool/accounts";
+import { findStakeEntryId } from "../src/programs/stakePool/pda";
 import { createMasterEditionIxs, createMint, delay } from "./utils";
 import { getProvider } from "./workspace";
 
 describe("Stake and claim rewards", () => {
-  let poolIdentifier: BN;
   let originalMintTokenAccountId: PublicKey;
   let originalMint: splToken.Token;
   let rewardMint: splToken.Token;
@@ -85,7 +78,7 @@ describe("Stake and claim rewards", () => {
   it("Create Pool", async () => {
     const provider = getProvider();
     let transaction = new Transaction();
-    [transaction, , poolIdentifier] = await initStakePool(
+    [transaction, stakePoolId] = await initStakePool(
       provider.connection,
       provider.wallet,
       {}
@@ -97,13 +90,6 @@ describe("Stake and claim rewards", () => {
       ]),
       "Create pool"
     ).to.be.fulfilled;
-
-    [stakePoolId] = await findStakePoolId(poolIdentifier);
-    const stakePoolData = await getStakePool(provider.connection, stakePoolId);
-
-    expect(stakePoolData.parsed.identifier.toNumber()).to.eq(
-      poolIdentifier.toNumber()
-    );
   });
 
   it("Create Reward Distributor", async () => {
@@ -201,7 +187,12 @@ describe("Stake and claim rewards", () => {
     const stakeEntryData = await getStakeEntry(
       provider.connection,
       (
-        await findStakeEntryId(stakePoolId, originalMint.publicKey)
+        await findStakeEntryId(
+          provider.connection,
+          provider.wallet.publicKey,
+          stakePoolId,
+          originalMint.publicKey
+        )
       )[0]
     );
 
@@ -232,7 +223,12 @@ describe("Stake and claim rewards", () => {
     const stakeEntryData = await getStakeEntry(
       provider.connection,
       (
-        await findStakeEntryId(stakePoolId, originalMint.publicKey)
+        await findStakeEntryId(
+          provider.connection,
+          provider.wallet.publicKey,
+          stakePoolId,
+          originalMint.publicKey
+        )
       )[0]
     );
 
@@ -272,7 +268,12 @@ describe("Stake and claim rewards", () => {
     const stakeEntryData = await getStakeEntry(
       provider.connection,
       (
-        await findStakeEntryId(stakePoolId, originalMint.publicKey)
+        await findStakeEntryId(
+          provider.connection,
+          provider.wallet.publicKey,
+          stakePoolId,
+          originalMint.publicKey
+        )
       )[0]
     );
     expect(stakeEntryData.parsed.lastStaker.toString()).to.eq(

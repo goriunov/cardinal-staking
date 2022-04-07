@@ -52,10 +52,10 @@ pub struct Identifier {
     pub count: u64,
 }
 
-// pub fn get_stake_entry_seeds<'a>(stake_pool: &Pubkey, user: &Pubkey, original_mint: &Pubkey, bump: u8, amount: u64) -> [&'a [u8]; 4] {
-//     if amount > 1 {
-//         return [STAKE_ENTRY_PREFIX.as_bytes(), stake_pool.as_ref(), user.as_ref(), &[bump]];
-//     } else {
-//         return [STAKE_ENTRY_PREFIX.as_bytes(), stake_pool.as_ref(), original_mint.as_ref(), &[bump]];
-//     };
-// }
+pub fn get_stake_seed(supply: u64, original_mint: Pubkey, user: Pubkey) -> Pubkey {
+    if supply > 1 {
+        return user;
+    } else {
+        return original_mint;
+    };
+}

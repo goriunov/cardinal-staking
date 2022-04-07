@@ -58,9 +58,12 @@ pub struct ClaimReceiptMintCtx<'info> {
 pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, ClaimReceiptMintCtx<'info>>) -> Result<()> {
     let stake_entry = &mut ctx.accounts.stake_entry;
     let original_mint = stake_entry.original_mint;
+    let user = ctx.accounts.user.key();
     let stake_pool = stake_entry.pool;
+    let supply = ctx.accounts.receipt_mint.supply;
+    let seed = get_stake_seed(supply, original_mint, user);
 
-    let stake_entry_seed = &[STAKE_ENTRY_PREFIX.as_bytes(), stake_pool.as_ref(), original_mint.as_ref(), &[stake_entry.bump]];
+    let stake_entry_seed = [STAKE_ENTRY_PREFIX.as_bytes(), stake_pool.as_ref(), seed.as_ref(), &[stake_entry.bump]];
     let stake_entry_signer = &[&stake_entry_seed[..]];
 
     let token_manager_kind;
@@ -76,7 +79,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
 
     // token manager init
     let init_ix = cardinal_token_manager::instructions::InitIx {
-        amount: 1,
+        amount: stake_entry.amount,
         kind: token_manager_kind as u8,
         invalidation_type: InvalidationType::Return as u8,
         num_invalidators: 1,

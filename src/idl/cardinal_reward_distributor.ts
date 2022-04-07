@@ -107,11 +107,6 @@ export type CardinalRewardDistributor = {
           isSigner: false;
         },
         {
-          name: "mintTokenAccount";
-          isMut: true;
-          isSigner: false;
-        },
-        {
           name: "rewardMint";
           isMut: true;
           isSigner: false;
@@ -492,11 +487,6 @@ export const IDL: CardinalRewardDistributor = {
         {
           name: "stakePool",
           isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "mintTokenAccount",
-          isMut: true,
           isSigner: false,
         },
         {

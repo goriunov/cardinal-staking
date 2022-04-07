@@ -11,30 +11,33 @@ import * as web3 from "@solana/web3.js";
 import { expect } from "chai";
 
 import {
-  initRewardDistributorWithEntry,
   initStakeEntryAndStakeMint,
   initStakePool,
   stake,
   unstake,
 } from "../src";
 import { RewardDistributorKind } from "../src/programs/rewardDistributor";
-import { getRewardDistributor } from "../src/programs/rewardDistributor/accounts";
-import { findRewardDistributorId } from "../src/programs/rewardDistributor/pda";
+import {
+  getRewardDistributor,
+  getRewardEntry,
+} from "../src/programs/rewardDistributor/accounts";
+import {
+  findRewardDistributorId,
+  findRewardEntryId,
+} from "../src/programs/rewardDistributor/pda";
+import {
+  withInitRewardDistributor,
+  withInitRewardEntry,
+} from "../src/programs/rewardDistributor/transaction";
 import { ReceiptType } from "../src/programs/stakePool";
-import {
-  getStakeEntry,
-  getStakePool,
-} from "../src/programs/stakePool/accounts";
-import {
-  findStakeEntryId,
-  findStakePoolId,
-} from "../src/programs/stakePool/pda";
+import { getStakeEntry } from "../src/programs/stakePool/accounts";
+import { findStakeEntryId } from "../src/programs/stakePool/pda";
 import { createMasterEditionIxs, createMint, delay } from "./utils";
 import { getProvider } from "./workspace";
 
 describe("Stake and claim rewards from treasury", () => {
   const maxSupply = 100;
-  let poolIdentifier: BN;
+
   let stakePoolId: web3.PublicKey;
   let originalMintTokenAccountId: web3.PublicKey;
   let originalMint: splToken.Token;
@@ -84,7 +87,7 @@ describe("Stake and claim rewards from treasury", () => {
   it("Create Pool", async () => {
     const provider = getProvider();
     let transaction = new web3.Transaction();
-    [transaction, , poolIdentifier] = await initStakePool(
+    [transaction, stakePoolId] = await initStakePool(
       provider.connection,
       provider.wallet,
       {}
@@ -96,23 +99,17 @@ describe("Stake and claim rewards from treasury", () => {
       ]),
       "Create pool"
     ).to.be.fulfilled;
-
-    [stakePoolId] = await findStakePoolId(poolIdentifier);
-    const stakePoolData = await getStakePool(provider.connection, stakePoolId);
-
-    expect(stakePoolData.parsed.identifier.toNumber()).to.eq(
-      poolIdentifier.toNumber()
-    );
   });
 
-  it("Create Reward Distributor and Entry", async () => {
+  it("Create Reward Distributor", async () => {
     const provider = getProvider();
+    const transaction = new web3.Transaction();
 
-    const transaction = await initRewardDistributorWithEntry(
+    await withInitRewardDistributor(
+      transaction,
       provider.connection,
       provider.wallet,
       {
-        mintId: originalMint.publicKey,
         stakePoolId: stakePoolId,
         rewardMintId: rewardMint.publicKey,
         kind: RewardDistributorKind.Treasury,
@@ -148,6 +145,54 @@ describe("Stake and claim rewards from treasury", () => {
     );
   });
 
+  it("Create Reward Entry", async () => {
+    const provider = getProvider();
+    const transaction = new web3.Transaction();
+
+    const [rewardDistributorId] = await findRewardDistributorId(stakePoolId);
+
+    await withInitRewardEntry(
+      transaction,
+      provider.connection,
+      provider.wallet,
+      {
+        mintId: originalMint.publicKey,
+        rewardDistributorId: rewardDistributorId,
+      }
+    );
+
+    const txEnvelope = new TransactionEnvelope(SolanaProvider.init(provider), [
+      ...transaction.instructions,
+    ]);
+
+    await expectTXTable(
+      txEnvelope,
+      "Create reward distributor and reward entry",
+      {
+        verbosity: "error",
+        formatLogs: true,
+      }
+    ).to.be.fulfilled;
+
+    const [rewardEntryId] = await findRewardEntryId(
+      rewardDistributorId,
+      originalMint.publicKey
+    );
+
+    const rewardEntryData = await getRewardEntry(
+      provider.connection,
+      rewardEntryId
+    );
+
+    expect(rewardEntryData.parsed.rewardDistributor.toString()).to.eq(
+      rewardDistributorId.toString()
+    );
+
+    expect(rewardEntryData.parsed.mint.toString()).to.eq(
+      originalMint.publicKey.toString()
+    );
+  });
+
   it("Init stake entry abd mint", async () => {
     const provider = getProvider();
     let transaction: web3.Transaction;
@@ -173,7 +218,12 @@ describe("Stake and claim rewards from treasury", () => {
     const stakeEntryData = await getStakeEntry(
       provider.connection,
       (
-        await findStakeEntryId(stakePoolId, originalMint.publicKey)
+        await findStakeEntryId(
+          provider.connection,
+          provider.wallet.publicKey,
+          stakePoolId,
+          originalMint.publicKey
+        )
       )[0]
     );
 
@@ -204,7 +254,12 @@ describe("Stake and claim rewards from treasury", () => {
     const stakeEntryData = await getStakeEntry(
       provider.connection,
       (
-        await findStakeEntryId(stakePoolId, originalMint.publicKey)
+        await findStakeEntryId(
+          provider.connection,
+          provider.wallet.publicKey,
+          stakePoolId,
+          originalMint.publicKey
+        )
       )[0]
     );
 
@@ -246,6 +301,8 @@ describe("Stake and claim rewards from treasury", () => {
     );
 
     const [stakeEntryId] = await findStakeEntryId(
+      provider.connection,
+      provider.wallet.publicKey,
       stakePoolId,
       originalMint.publicKey
     );
@@ -290,7 +347,12 @@ describe("Stake and claim rewards from treasury", () => {
     const stakeEntryData = await getStakeEntry(
       provider.connection,
       (
-        await findStakeEntryId(stakePoolId, originalMint.publicKey)
+        await findStakeEntryId(
+          provider.connection,
+          provider.wallet.publicKey,
+          stakePoolId,
+          originalMint.publicKey
+        )
       )[0]
     );
 

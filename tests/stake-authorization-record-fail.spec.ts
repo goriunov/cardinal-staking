@@ -1,4 +1,3 @@
-import type { BN } from "@project-serum/anchor";
 import { expectTXTable } from "@saberhq/chai-solana";
 import {
   SignerWallet,
@@ -12,12 +11,10 @@ import { expect } from "chai";
 
 import { initStakeEntry, initStakePool } from "../src";
 import { getStakePool } from "../src/programs/stakePool/accounts";
-import { findStakePoolId } from "../src/programs/stakePool/pda";
 import { createMasterEditionIxs, createMint } from "./utils";
 import { getProvider } from "./workspace";
 
 describe("Requires authorization fail", () => {
-  let poolIdentifier: BN;
   const overlayText = "staking";
   let originalMint: splToken.Token;
   let stakePoolId: PublicKey;
@@ -56,12 +53,11 @@ describe("Requires authorization fail", () => {
   it("Create Pool", async () => {
     const provider = getProvider();
     let transaction = new Transaction();
-    [transaction, , poolIdentifier] = await initStakePool(
+    [transaction, stakePoolId] = await initStakePool(
       provider.connection,
       provider.wallet,
       {
         overlayText: overlayText,
-        requiresCreators: [],
         requiresAuthorization: true,
       }
     );
@@ -72,12 +68,9 @@ describe("Requires authorization fail", () => {
       "Create pool"
     ).to.be.fulfilled;
 
-    [stakePoolId] = await findStakePoolId(poolIdentifier);
     const stakePoolData = await getStakePool(provider.connection, stakePoolId);
-
-    expect(stakePoolData.parsed.identifier.toNumber()).to.eq(
-      poolIdentifier.toNumber()
-    );
+    expect(stakePoolData.parsed.requiresAuthorization).to.be.true;
+    expect(stakePoolData.parsed.overlayText).to.eq(overlayText);
   });
 
   it("Init stake entry for pool", async () => {

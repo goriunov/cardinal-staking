@@ -23,7 +23,7 @@ pub struct InitEntryCtx<'info> {
     /// CHECK: This is not dangerous because we don't read or write from this account
     original_mint_metadata: AccountInfo<'info>,
 
-    #[account(mut, constraint = payer.key() == stake_pool.authority)]
+    #[account(mut)]
     payer: Signer<'info>,
     system_program: Program<'info, System>,
 }
