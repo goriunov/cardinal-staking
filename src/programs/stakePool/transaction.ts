@@ -12,11 +12,12 @@ import { BN } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
 import type * as web3 from "@solana/web3.js";
 
+import { getMintSupply } from "../../utils";
 import { getRewardDistributor } from "../rewardDistributor/accounts";
 import { findRewardDistributorId } from "../rewardDistributor/pda";
 import { withClaimRewards } from "../rewardDistributor/transaction";
 import { getPoolIdentifier, getStakeEntry } from "./accounts";
-import type { ReceiptType } from "./constants";
+import { ReceiptType } from "./constants";
 import {
   authorizeStakeEntry,
   claimReceiptMint,
@@ -271,6 +272,15 @@ export const withClaimReceiptMint = async (
     receiptType: ReceiptType;
   }
 ): Promise<web3.Transaction> => {
+  if (
+    params.receiptType === ReceiptType.Original &&
+    (await getMintSupply(connection, params.receiptMintId)) > 1
+  ) {
+    throw new Error(
+      "Fungible staking and locked reecipt type not supported yet"
+    );
+  }
+
   const tokenManagerReceiptMintTokenAccountId =
     await withFindOrInitAssociatedTokenAccount(
       transaction,
