@@ -9,7 +9,7 @@ import type * as splToken from "@solana/spl-token";
 import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { initStakePool, stake, unstake } from "../src";
+import { createStakePool, stake, unstake } from "../src";
 import {
   getRewardDistributor,
   getRewardEntry,
@@ -77,8 +77,9 @@ describe("Stake and claim rewards", () => {
 
   it("Create Pool", async () => {
     const provider = getProvider();
-    let transaction = new Transaction();
-    [transaction, stakePoolId] = await initStakePool(
+
+    let transaction: Transaction;
+    [transaction, stakePoolId] = await createStakePool(
       provider.connection,
       provider.wallet,
       {}
@@ -110,14 +111,10 @@ describe("Stake and claim rewards", () => {
       ...transaction.instructions,
     ]);
 
-    await expectTXTable(
-      txEnvelope,
-      "Create reward distributor and reward entry",
-      {
-        verbosity: "error",
-        formatLogs: true,
-      }
-    ).to.be.fulfilled;
+    await expectTXTable(txEnvelope, "Create reward distributor", {
+      verbosity: "error",
+      formatLogs: true,
+    }).to.be.fulfilled;
 
     const [rewardDistributorId] = await findRewardDistributorId(stakePoolId);
     const rewardDistributorData = await getRewardDistributor(
@@ -154,14 +151,10 @@ describe("Stake and claim rewards", () => {
       ...transaction.instructions,
     ]);
 
-    await expectTXTable(
-      txEnvelope,
-      "Create reward distributor and reward entry",
-      {
-        verbosity: "error",
-        formatLogs: true,
-      }
-    ).to.be.fulfilled;
+    await expectTXTable(txEnvelope, "Create reward entry", {
+      verbosity: "error",
+      formatLogs: true,
+    }).to.be.fulfilled;
 
     const [rewardEntryId] = await findRewardEntryId(
       rewardDistributorId,

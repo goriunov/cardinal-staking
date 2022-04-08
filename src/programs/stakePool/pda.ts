@@ -42,7 +42,7 @@ export const findStakeEntryIdForPoolIdentifier = async (
 };
 
 /**
- * Finds the stake entry id.
+ * Finds the non-fungible stake entry id.
  * @returns
  */
 export const findNFTStakeEntryId = async (
@@ -60,7 +60,7 @@ export const findNFTStakeEntryId = async (
 };
 
 /**
- * Finds the stake entry id.
+ * Finds the fungible stake entry id.
  * @returns
  */
 export const findFTStakeEntryId = async (
@@ -77,6 +77,10 @@ export const findFTStakeEntryId = async (
   );
 };
 
+/**
+ * Convenience method to find the fungible/non-fungible stake entry id.
+ * @returns
+ */
 export const findStakeEntryId = async (
   connection: web3.Connection,
   wallet: web3.PublicKey,

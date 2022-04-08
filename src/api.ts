@@ -11,8 +11,7 @@ import {
   withAuthorizeStakeEntry,
   withClaimReceiptMint,
   withInitFungibleStakeEntry,
-  withInitPoolIdentifier,
-  withInitStakeEntry,
+  withInitNFTStakeEntry,
   withInitStakeMint,
   withInitStakePool,
   withStake,
@@ -20,13 +19,18 @@ import {
 } from "./programs/stakePool/transaction";
 import { getMintSupply } from "./utils";
 
-export const initPoolIdentifier = async (
-  connection: Connection,
-  wallet: Wallet
-): Promise<[Transaction, PublicKey]> =>
-  withInitPoolIdentifier(new Transaction(), connection, wallet);
-
-export const initStakePool = async (
+/**
+ * Convenience call to create a stake pool
+ * @param connection - Connection to use
+ * @param wallet - Wallet to use
+ * @param requiresCollections - (Optional) List of required collections pubkeys
+ * @param requiresCreators - (Optional) List of required creators pubkeys
+ * @param requiresAuthorization - (Optional) Boolean to require authorization
+ * @param overlayText - (Optional) Text to overlay on receipt mint tokens
+ * @param imageUri - (Optional) Image URI for stake pool
+ * @returns
+ */
+export const createStakePool = async (
   connection: Connection,
   wallet: Wallet,
   params: {
@@ -39,7 +43,17 @@ export const initStakePool = async (
 ): Promise<[Transaction, PublicKey]> =>
   withInitStakePool(new Transaction(), connection, wallet, params);
 
-export const initStakeEntry = async (
+/**
+ * Convenience call to create a stake entry
+ * @param connection - Connection to use
+ * @param wallet - Wallet to use
+ * @param stakePoolId - Stake pool ID
+ * @param originalMintId - Original mint ID
+ * @param user - (Optional) User pubkey in case the person paying for the transaction and
+ * stake entry owner are different
+ * @returns
+ */
+export const createStakeEntry = async (
   connection: Connection,
   wallet: Wallet,
   params: {
@@ -56,13 +70,21 @@ export const initStakeEntry = async (
       user: params.user || wallet.publicKey,
     });
   } else {
-    return withInitStakeEntry(new Transaction(), connection, wallet, {
+    return withInitNFTStakeEntry(new Transaction(), connection, wallet, {
       stakePoolId: params.stakePoolId,
       originalMintId: params.originalMintId,
     });
   }
 };
 
+/**
+ * Convenience call to authorize a stake entry
+ * @param connection - Connection to use
+ * @param wallet - Wallet to use
+ * @param stakePoolId - Stake pool ID
+ * @param originalMintId - Original mint ID
+ * @returns
+ */
 export const authorizeStakeEntry = async (
   connection: Connection,
   wallet: Wallet,
@@ -77,7 +99,16 @@ export const authorizeStakeEntry = async (
   });
 };
 
-export const initStakeEntryAndStakeMint = async (
+/**
+ * Convenience call to create a stake entry and a stake mint
+ * @param connection - Connection to use
+ * @param wallet - Wallet to use
+ * @param stakePoolId - Stake pool ID
+ * @param originalMintId - Original mint ID
+ * @param amount - (Optional) Amount of tokens to be staked, defaults to 1
+ * @returns
+ */
+export const createStakeEntryAndStakeMint = async (
   connection: Connection,
   wallet: Wallet,
   params: {
@@ -98,7 +129,7 @@ export const initStakeEntryAndStakeMint = async (
   if (stakeEntryData) {
     throw new Error("Stake entry already exists");
   }
-  const [transaction] = await initStakeEntry(connection, wallet, {
+  const [transaction] = await createStakeEntry(connection, wallet, {
     stakePoolId: params.stakePoolId,
     originalMintId: params.originalMintId,
   });
@@ -119,6 +150,19 @@ export const initStakeEntryAndStakeMint = async (
   return [transaction, stakeMintKeypair, stakeEntryId];
 };
 
+/**
+ * Convenience method to stake tokens
+ * @param connection - Connection to use
+ * @param wallet - Wallet to use
+ * @param stakePoolId - Stake pool id
+ * @param originalMintId - Original mint id
+ * @param userOriginalMintTokenAccountId - User's original mint token account id
+ * @param receiptType - (Optional) ReceiptType to be received back. If none provided, none will be claimed
+ * @param user - (Optional) User pubkey in case the person paying for the transaction and
+ * stake entry owner are different
+ * @param amount - (Optional) Amount of tokens to be staked, defaults to 1
+ * @returns
+ */
 export const stake = async (
   connection: Connection,
   wallet: Wallet,
@@ -127,10 +171,11 @@ export const stake = async (
     originalMintId: PublicKey;
     userOriginalMintTokenAccountId: PublicKey;
     receiptType?: ReceiptType;
+    user?: PublicKey;
     amount?: BN;
   }
 ): Promise<Transaction> => {
-  const transaction = new Transaction();
+  let transaction = new Transaction();
   const [stakeEntryId] = await findStakeEntryId(
     connection,
     wallet.publicKey,
@@ -141,9 +186,10 @@ export const stake = async (
     getStakeEntry(connection, stakeEntryId)
   );
   if (!stakeEntryData) {
-    await withInitStakeEntry(transaction, connection, wallet, {
+    [transaction] = await createStakeEntry(connection, wallet, {
       stakePoolId: params.stakePoolId,
       originalMintId: params.originalMintId,
+      user: params.user,
     });
   }
 
@@ -171,6 +217,14 @@ export const stake = async (
   return transaction;
 };
 
+/**
+ * Convenience method to unstake tokens
+ * @param connection - Connection to use
+ * @param wallet - Wallet to use
+ * @param stakePoolId - Stake pool ID
+ * @param originalMintId - Original mint ID
+ * @returns
+ */
 export const unstake = async (
   connection: Connection,
   wallet: Wallet,

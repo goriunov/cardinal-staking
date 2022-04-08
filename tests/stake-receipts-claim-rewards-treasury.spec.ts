@@ -11,8 +11,8 @@ import * as web3 from "@solana/web3.js";
 import { expect } from "chai";
 
 import {
-  initStakeEntryAndStakeMint,
-  initStakePool,
+  createStakeEntryAndStakeMint,
+  createStakePool,
   stake,
   unstake,
 } from "../src";
@@ -86,8 +86,9 @@ describe("Stake and claim rewards from treasury", () => {
 
   it("Create Pool", async () => {
     const provider = getProvider();
-    let transaction = new web3.Transaction();
-    [transaction, stakePoolId] = await initStakePool(
+
+    let transaction: web3.Transaction;
+    [transaction, stakePoolId] = await createStakePool(
       provider.connection,
       provider.wallet,
       {}
@@ -197,7 +198,7 @@ describe("Stake and claim rewards from treasury", () => {
     const provider = getProvider();
     let transaction: web3.Transaction;
 
-    [transaction, stakeMintKeypair] = await initStakeEntryAndStakeMint(
+    [transaction, stakeMintKeypair] = await createStakeEntryAndStakeMint(
       provider.connection,
       provider.wallet,
       {

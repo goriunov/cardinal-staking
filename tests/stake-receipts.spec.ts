@@ -5,7 +5,7 @@ import * as splToken from "@solana/spl-token";
 import * as web3 from "@solana/web3.js";
 import { expect } from "chai";
 
-import { initStakeEntryAndStakeMint, stake, unstake } from "../src";
+import { createStakeEntryAndStakeMint, stake, unstake } from "../src";
 import { ReceiptType } from "../src/programs/stakePool";
 import { getStakeEntry } from "../src/programs/stakePool/accounts";
 import { findStakeEntryId } from "../src/programs/stakePool/pda";
@@ -53,7 +53,7 @@ describe("Create stake pool", () => {
     const provider = getProvider();
     let transaction: web3.Transaction;
 
-    [transaction, stakeMintKeypair] = await initStakeEntryAndStakeMint(
+    [transaction, stakeMintKeypair] = await createStakeEntryAndStakeMint(
       provider.connection,
       provider.wallet,
       {

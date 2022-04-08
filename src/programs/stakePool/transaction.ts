@@ -32,6 +32,13 @@ import { findIdentifierId, findStakeEntryId, findStakePoolId } from "./pda";
 import { withInvalidate } from "./token-manager";
 import { withRemainingAccountsForUnstake } from "./utils";
 
+/**
+ * Add init pool identifier instructions to a transaction
+ * @param transaction
+ * @param connection
+ * @param wallet
+ * @returns Transaction, public key for the created pool identifier
+ */
 export const withInitPoolIdentifier = async (
   transaction: web3.Transaction,
   connection: web3.Connection,
@@ -88,7 +95,15 @@ export const withInitStakePool = async (
   return [transaction, stakePoolId];
 };
 
-export const withInitStakeEntry = async (
+/**
+ * Add init stake entry instructions to a transaction
+ * @param transaction
+ * @param connection
+ * @param wallet
+ * @param params
+ * @returns Transaction, public key for the created stake entry
+ */
+export const withInitNFTStakeEntry = async (
   transaction: web3.Transaction,
   connection: web3.Connection,
   wallet: Wallet,
@@ -118,6 +133,14 @@ export const withInitStakeEntry = async (
   return [transaction, stakeEntryId];
 };
 
+/**
+ * Add init fungible stake entry instructions to a transaction
+ * @param transaction
+ * @param connection
+ * @param wallet
+ * @param params
+ * @returns Transaction, public key for the created stake entry
+ */
 export const withInitFungibleStakeEntry = async (
   transaction: web3.Transaction,
   connection: web3.Connection,
@@ -150,6 +173,14 @@ export const withInitFungibleStakeEntry = async (
   return [transaction, stakeEntryId];
 };
 
+/**
+ * Add authorize stake entry instructions to a transaction
+ * @param transaction
+ * @param connection
+ * @param wallet
+ * @param params
+ * @returns Transaction
+ */
 export const withAuthorizeStakeEntry = async (
   transaction: web3.Transaction,
   connection: web3.Connection,
@@ -168,6 +199,14 @@ export const withAuthorizeStakeEntry = async (
   return transaction;
 };
 
+/**
+ * Add init stake mint instructions to a transaction
+ * @param transaction
+ * @param connection
+ * @param wallet
+ * @param params
+ * @returns Transaction, keypair of the created stake mint
+ */
 export const withInitStakeMint = async (
   transaction: web3.Transaction,
   connection: web3.Connection,
@@ -213,6 +252,14 @@ export const withInitStakeMint = async (
   return [transaction, params.stakeMintKeypair];
 };
 
+/**
+ * Add claim receipt mint instructions to a transaction
+ * @param transaction
+ * @param connection
+ * @param wallet
+ * @param params
+ * @returns Transaction
+ */
 export const withClaimReceiptMint = async (
   transaction: web3.Transaction,
   connection: web3.Connection,
@@ -248,6 +295,14 @@ export const withClaimReceiptMint = async (
   return transaction;
 };
 
+/**
+ * Add stake instructions to a transaction
+ * @param transaction
+ * @param connection
+ * @param wallet
+ * @param params
+ * @returns Transaction
+ */
 export const withStake = async (
   transaction: web3.Transaction,
   connection: web3.Connection,
@@ -288,6 +343,14 @@ export const withStake = async (
   return transaction;
 };
 
+/**
+ * Add unstake instructions to a transaction
+ * @param transaction
+ * @param connection
+ * @param wallet
+ * @param params
+ * @returns Transaction
+ */
 export const withUnstake = async (
   transaction: web3.Transaction,
   connection: web3.Connection,

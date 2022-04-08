@@ -11,8 +11,8 @@ import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
 import { expect } from "chai";
 
 import {
-  initStakeEntry,
-  initStakePool,
+  createStakeEntry,
+  createStakePool,
   rewardDistributor,
   stake,
   unstake,
@@ -77,8 +77,9 @@ describe("Stake and claim rewards", () => {
 
   it("Create Pool", async () => {
     const provider = getProvider();
-    let transaction = new Transaction();
-    [transaction, stakePoolId] = await initStakePool(
+
+    let transaction: Transaction;
+    [transaction, stakePoolId] = await createStakePool(
       provider.connection,
       provider.wallet,
       {}
@@ -168,7 +169,7 @@ describe("Stake and claim rewards", () => {
   it("Init stake entry for pool", async () => {
     const provider = getProvider();
 
-    const [transaction, _] = await initStakeEntry(
+    const [transaction, _] = await createStakeEntry(
       provider.connection,
       provider.wallet,
       {

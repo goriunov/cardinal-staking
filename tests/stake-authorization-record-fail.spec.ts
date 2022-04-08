@@ -5,11 +5,11 @@ import {
   TransactionEnvelope,
 } from "@saberhq/solana-contrib";
 import type * as splToken from "@solana/spl-token";
-import type { PublicKey } from "@solana/web3.js";
-import { Keypair, Transaction } from "@solana/web3.js";
+import type { PublicKey, Transaction } from "@solana/web3.js";
+import { Keypair } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { initStakeEntry, initStakePool } from "../src";
+import { createStakeEntry, createStakePool } from "../src";
 import { getStakePool } from "../src/programs/stakePool/accounts";
 import { createMasterEditionIxs, createMint } from "./utils";
 import { getProvider } from "./workspace";
@@ -52,8 +52,9 @@ describe("Requires authorization fail", () => {
 
   it("Create Pool", async () => {
     const provider = getProvider();
-    let transaction = new Transaction();
-    [transaction, stakePoolId] = await initStakePool(
+
+    let transaction: Transaction;
+    [transaction, stakePoolId] = await createStakePool(
       provider.connection,
       provider.wallet,
       {
@@ -75,8 +76,9 @@ describe("Requires authorization fail", () => {
 
   it("Init stake entry for pool", async () => {
     const provider = getProvider();
+    let transaction: Transaction;
 
-    const [transaction, _] = await initStakeEntry(
+    [transaction, stakePoolId] = await createStakeEntry(
       provider.connection,
       provider.wallet,
       {

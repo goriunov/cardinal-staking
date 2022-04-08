@@ -10,7 +10,7 @@ import type * as splToken from "@solana/spl-token";
 import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { initStakeEntry, initStakePool, stake, unstake } from "../src";
+import { createStakeEntry, createStakePool, stake, unstake } from "../src";
 import { RewardDistributorKind } from "../src/programs/rewardDistributor";
 import {
   getRewardDistributor,
@@ -80,8 +80,9 @@ describe("Stake claim rewards and close", () => {
 
   it("Create Pool", async () => {
     const provider = getProvider();
-    let transaction = new Transaction();
-    [transaction, stakePoolId] = await initStakePool(
+
+    let transaction: Transaction;
+    [transaction, stakePoolId] = await createStakePool(
       provider.connection,
       provider.wallet,
       {}
@@ -190,7 +191,7 @@ describe("Stake claim rewards and close", () => {
   it("Init stake entry for pool", async () => {
     const provider = getProvider();
 
-    const [transaction, _] = await initStakeEntry(
+    const [transaction, _] = await createStakeEntry(
       provider.connection,
       provider.wallet,
       {

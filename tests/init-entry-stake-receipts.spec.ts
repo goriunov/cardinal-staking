@@ -5,11 +5,15 @@ import * as splToken from "@solana/spl-token";
 import * as web3 from "@solana/web3.js";
 import { expect } from "chai";
 
-import { initStakeEntryAndStakeMint, stake, unstake } from "../src";
+import {
+  createStakeEntryAndStakeMint,
+  createStakePool,
+  stake,
+  unstake,
+} from "../src";
 import { ReceiptType } from "../src/programs/stakePool";
 import { getStakeEntry } from "../src/programs/stakePool/accounts";
 import { findStakeEntryId } from "../src/programs/stakePool/pda";
-import { withInitStakePool } from "../src/programs/stakePool/transaction";
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
@@ -32,10 +36,9 @@ describe("Create stake pool", () => {
 
   it("Create Pool", async () => {
     const provider = getProvider();
-    const transaction = new web3.Transaction();
 
-    [, stakePoolId] = await withInitStakePool(
-      transaction,
+    let transaction: web3.Transaction;
+    [transaction, stakePoolId] = await createStakePool(
       provider.connection,
       provider.wallet,
       {}
@@ -53,7 +56,7 @@ describe("Create stake pool", () => {
     const provider = getProvider();
     let transaction: web3.Transaction;
 
-    [transaction, stakeMintKeypair] = await initStakeEntryAndStakeMint(
+    [transaction, stakeMintKeypair] = await createStakeEntryAndStakeMint(
       provider.connection,
       provider.wallet,
       {

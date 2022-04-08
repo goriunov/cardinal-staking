@@ -6,10 +6,11 @@ import {
   TransactionEnvelope,
 } from "@saberhq/solana-contrib";
 import type * as splToken from "@solana/spl-token";
-import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
+import type { Transaction } from "@solana/web3.js";
+import { Keypair, PublicKey } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { initStakePool, stake, unstake } from "../src";
+import { createStakePool, stake, unstake } from "../src";
 import { ReceiptType } from "../src/programs/stakePool";
 import { getStakeEntry } from "../src/programs/stakePool/accounts";
 import { findStakeEntryId } from "../src/programs/stakePool/pda";
@@ -54,8 +55,9 @@ describe("Create stake pool", () => {
 
   it("Create Pool", async () => {
     const provider = getProvider();
-    let transaction = new Transaction();
-    [transaction, stakePoolId] = await initStakePool(
+
+    let transaction: Transaction;
+    [transaction, stakePoolId] = await createStakePool(
       provider.connection,
       provider.wallet,
       {}
