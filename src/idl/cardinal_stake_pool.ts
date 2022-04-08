@@ -427,7 +427,7 @@ export type CardinalStakePool = {
           },
           {
             name: "totalStakeSeconds";
-            type: "i64";
+            type: "i128";
           },
           {
             name: "stakeMintClaimed";
@@ -1094,7 +1094,7 @@ export const IDL: CardinalStakePool = {
           },
           {
             name: "totalStakeSeconds",
-            type: "i64",
+            type: "i128",
           },
           {
             name: "stakeMintClaimed",

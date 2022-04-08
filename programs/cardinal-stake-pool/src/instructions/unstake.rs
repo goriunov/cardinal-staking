@@ -67,7 +67,7 @@ pub fn handler(ctx: Context<UnstakeCtx>) -> Result<()> {
 
     stake_entry.total_stake_seconds = (stake_entry
         .total_stake_seconds
-        .saturating_add(Clock::get().unwrap().unix_timestamp.checked_sub(stake_entry.last_staked_at).unwrap()))
+        .saturating_add(Clock::get().unwrap().unix_timestamp.checked_sub(stake_entry.last_staked_at).unwrap().into()))
     .checked_mul(stake_entry.amount.try_into().unwrap())
     .unwrap();
     stake_entry.last_staker = Pubkey::default();
