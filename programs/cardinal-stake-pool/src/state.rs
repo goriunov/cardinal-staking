@@ -54,8 +54,8 @@ pub struct Identifier {
 
 pub fn get_stake_seed(supply: u64, original_mint: Pubkey, user: Pubkey) -> Pubkey {
     if supply > 1 {
-        return user;
+        user
     } else {
-        return original_mint;
-    };
+        original_mint
+    }
 }
