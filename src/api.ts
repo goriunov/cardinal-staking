@@ -117,6 +117,7 @@ export const createStakeEntryAndStakeMint = async (
     amount?: number;
   }
 ): Promise<[Transaction, Keypair, PublicKey]> => {
+  let transaction = new Transaction();
   const [stakeEntryId] = await findStakeEntryId(
     connection,
     wallet.publicKey,
@@ -126,13 +127,14 @@ export const createStakeEntryAndStakeMint = async (
   const stakeEntryData = await tryGetAccount(() =>
     getStakeEntry(connection, stakeEntryId)
   );
-  if (stakeEntryData) {
-    throw new Error("Stake entry already exists");
+  if (!stakeEntryData) {
+    transaction = (
+      await createStakeEntry(connection, wallet, {
+        stakePoolId: params.stakePoolId,
+        originalMintId: params.originalMintId,
+      })
+    )[0];
   }
-  const [transaction] = await createStakeEntry(connection, wallet, {
-    stakePoolId: params.stakePoolId,
-    originalMintId: params.originalMintId,
-  });
 
   const stakeMintKeypair = Keypair.generate();
   const stakePool = await getStakePool(connection, params.stakePoolId);
