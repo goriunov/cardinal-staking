@@ -31,7 +31,7 @@ pub struct StakeCtx<'info> {
     token_program: Program<'info, Token>,
 }
 
-pub fn handler(ctx: Context<StakeCtx>) -> Result<()> {
+pub fn handler(ctx: Context<StakeCtx>, amount: u64) -> Result<()> {
     let stake_entry = &mut ctx.accounts.stake_entry;
 
     // transfer original
@@ -42,11 +42,12 @@ pub fn handler(ctx: Context<StakeCtx>) -> Result<()> {
     };
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts);
-    token::transfer(cpi_context, 1)?;
+    token::transfer(cpi_context, amount)?;
 
     // update stake entry
     stake_entry.last_staked_at = Clock::get().unwrap().unix_timestamp;
     stake_entry.last_staker = ctx.accounts.user.key();
+    stake_entry.amount = amount;
 
     Ok(())
 }

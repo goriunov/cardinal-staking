@@ -4,7 +4,7 @@ pub mod state;
 
 use {anchor_lang::prelude::*, instructions::*};
 
-declare_id!("stkBL96RZkjY5ine4TvPihGqW8UHJfch2cokjAPzV8i");
+declare_id!("t1LVbNwJZT3pxFQHfY65jp6QbvcTvda6oPSbaeKbYEs");
 
 #[program]
 pub mod cardinal_stake_pool {
@@ -22,6 +22,10 @@ pub mod cardinal_stake_pool {
         init_entry::handler(ctx)
     }
 
+    pub fn init_ft_entry(ctx: Context<InitFtEntryCtx>) -> Result<()> {
+        init_ft_entry::handler(ctx)
+    }
+
     pub fn init_stake_mint(ctx: Context<InitStakeMintCtx>, ix: InitStakeMintIx) -> Result<()> {
         init_stake_mint::handler(ctx, ix)
     }
@@ -30,8 +34,8 @@ pub mod cardinal_stake_pool {
         authorize_mint::handler(ctx, mint)
     }
 
-    pub fn stake(ctx: Context<StakeCtx>) -> Result<()> {
-        stake::handler(ctx)
+    pub fn stake(ctx: Context<StakeCtx>, amount: u64) -> Result<()> {
+        stake::handler(ctx, amount)
     }
 
     pub fn claim_receipt_mint<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, ClaimReceiptMintCtx<'info>>) -> Result<()> {

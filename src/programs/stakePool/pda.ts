@@ -2,6 +2,7 @@ import type { BN } from "@project-serum/anchor";
 import { utils } from "@project-serum/anchor";
 import * as web3 from "@solana/web3.js";
 
+import { getMintSupply } from "../../utils";
 import { STAKE_ENTRY_SEED, STAKE_POOL_ADDRESS, STAKE_POOL_SEED } from ".";
 import { IDENTIFIER_SEED, STAKE_AUTHORIZATION_SEED } from "./constants";
 
@@ -25,19 +26,26 @@ export const findStakePoolId = async (
  * Convenience method to find the stake entry id for pool identifier
  * @returns
  */
-export const findStakeEntryIdForPool = async (
+export const findStakeEntryIdForPoolIdentifier = async (
+  connection: web3.Connection,
+  wallet: web3.PublicKey,
   stakePoolIdentifier: BN,
   originalMintId: web3.PublicKey
 ): Promise<[web3.PublicKey, number]> => {
   const [stakePoolId] = await findStakePoolId(stakePoolIdentifier);
-  return findStakeEntryId(stakePoolId, originalMintId);
+  return await findStakeEntryId(
+    connection,
+    wallet,
+    stakePoolId,
+    originalMintId
+  );
 };
 
 /**
- * Finds the stake entry id.
+ * Finds the non-fungible stake entry id.
  * @returns
  */
-export const findStakeEntryId = async (
+export const findNFTStakeEntryId = async (
   stakePoolId: web3.PublicKey,
   originalMintId: web3.PublicKey
 ): Promise<[web3.PublicKey, number]> => {
@@ -49,6 +57,42 @@ export const findStakeEntryId = async (
     ],
     STAKE_POOL_ADDRESS
   );
+};
+
+/**
+ * Finds the fungible stake entry id.
+ * @returns
+ */
+export const findFTStakeEntryId = async (
+  stakePoolId: web3.PublicKey,
+  wallet: web3.PublicKey
+): Promise<[web3.PublicKey, number]> => {
+  return web3.PublicKey.findProgramAddress(
+    [
+      utils.bytes.utf8.encode(STAKE_ENTRY_SEED),
+      stakePoolId.toBuffer(),
+      wallet.toBuffer(),
+    ],
+    STAKE_POOL_ADDRESS
+  );
+};
+
+/**
+ * Convenience method to find the fungible/non-fungible stake entry id.
+ * @returns
+ */
+export const findStakeEntryId = async (
+  connection: web3.Connection,
+  wallet: web3.PublicKey,
+  stakePoolId: web3.PublicKey,
+  originalMintId: web3.PublicKey
+): Promise<[web3.PublicKey, number]> => {
+  const supply = await getMintSupply(connection, originalMintId);
+  if (supply > 1) {
+    return findFTStakeEntryId(stakePoolId, wallet);
+  } else {
+    return findNFTStakeEntryId(stakePoolId, originalMintId);
+  }
 };
 
 /**

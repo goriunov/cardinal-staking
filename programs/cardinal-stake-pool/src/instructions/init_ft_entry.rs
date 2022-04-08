@@ -7,12 +7,12 @@ use {
 };
 
 #[derive(Accounts)]
-pub struct InitEntryCtx<'info> {
+pub struct InitFtEntryCtx<'info> {
     #[account(
         init,
         payer = payer,
         space = STAKE_ENTRY_SIZE,
-        seeds = [STAKE_ENTRY_PREFIX.as_bytes(), stake_pool.key().as_ref(), original_mint.key().as_ref()],
+        seeds = [STAKE_ENTRY_PREFIX.as_bytes(), stake_pool.key().as_ref(), user.key().as_ref()],
         bump,
     )]
     stake_entry: Box<Account<'info, StakeEntry>>,
@@ -23,12 +23,15 @@ pub struct InitEntryCtx<'info> {
     /// CHECK: This is not dangerous because we don't read or write from this account
     original_mint_metadata: AccountInfo<'info>,
 
+    /// CHECK: This is not dangerous because we don't read or write from this account
+    user: UncheckedAccount<'info>,
+
     #[account(mut)]
     payer: Signer<'info>,
     system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<InitEntryCtx>) -> Result<()> {
+pub fn handler(ctx: Context<InitFtEntryCtx>) -> Result<()> {
     let stake_entry = &mut ctx.accounts.stake_entry;
     let stake_pool = &ctx.accounts.stake_pool;
     stake_entry.bump = *ctx.bumps.get("stake_entry").unwrap();

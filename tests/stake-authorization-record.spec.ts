@@ -1,5 +1,4 @@
 import { findAta } from "@cardinal/common";
-import type { BN } from "@project-serum/anchor";
 import { expectTXTable } from "@saberhq/chai-solana";
 import {
   SignerWallet,
@@ -7,14 +6,14 @@ import {
   TransactionEnvelope,
 } from "@saberhq/solana-contrib";
 import type * as splToken from "@solana/spl-token";
-import type { PublicKey } from "@solana/web3.js";
-import { Keypair, Transaction } from "@solana/web3.js";
+import type { PublicKey, Transaction } from "@solana/web3.js";
+import { Keypair } from "@solana/web3.js";
 import { expect } from "chai";
 
 import {
   authorizeStakeEntry,
-  initStakeEntry,
-  initStakePool,
+  createStakeEntry,
+  createStakePool,
   stake,
 } from "../src";
 import { ReceiptType } from "../src/programs/stakePool";
@@ -26,13 +25,11 @@ import {
 import {
   findStakeAuthorizationId,
   findStakeEntryId,
-  findStakePoolId,
 } from "../src/programs/stakePool/pda";
 import { createMasterEditionIxs, createMint } from "./utils";
 import { getProvider } from "./workspace";
 
 describe("Requires authorization success", () => {
-  let poolIdentifier: BN;
   const overlayText = "staking";
   let originalMintTokenAccountId: PublicKey;
   let originalMint: splToken.Token;
@@ -71,8 +68,9 @@ describe("Requires authorization success", () => {
 
   it("Create Pool", async () => {
     const provider = getProvider();
-    let transaction = new Transaction();
-    [transaction, , poolIdentifier] = await initStakePool(
+
+    let transaction: Transaction;
+    [transaction, stakePoolId] = await createStakePool(
       provider.connection,
       provider.wallet,
       {
@@ -88,12 +86,9 @@ describe("Requires authorization success", () => {
       "Create pool"
     ).to.be.fulfilled;
 
-    [stakePoolId] = await findStakePoolId(poolIdentifier);
     const stakePoolData = await getStakePool(provider.connection, stakePoolId);
-
-    expect(stakePoolData.parsed.identifier.toNumber()).to.eq(
-      poolIdentifier.toNumber()
-    );
+    expect(stakePoolData.parsed.overlayText).to.be.eq(overlayText);
+    expect(stakePoolData.parsed.requiresAuthorization).to.be.true;
   });
 
   it("Authorize mint for stake", async () => {
@@ -128,7 +123,7 @@ describe("Requires authorization success", () => {
   it("Init stake entry for pool", async () => {
     const provider = getProvider();
 
-    const [transaction, _] = await initStakeEntry(
+    const [transaction, _] = await createStakeEntry(
       provider.connection,
       provider.wallet,
       {
@@ -147,7 +142,12 @@ describe("Requires authorization success", () => {
     const stakeEntryData = await getStakeEntry(
       provider.connection,
       (
-        await findStakeEntryId(stakePoolId, originalMint.publicKey)
+        await findStakeEntryId(
+          provider.connection,
+          provider.wallet.publicKey,
+          stakePoolId,
+          originalMint.publicKey
+        )
       )[0]
     );
 
@@ -178,7 +178,12 @@ describe("Requires authorization success", () => {
     const stakeEntryData = await getStakeEntry(
       provider.connection,
       (
-        await findStakeEntryId(stakePoolId, originalMint.publicKey)
+        await findStakeEntryId(
+          provider.connection,
+          provider.wallet.publicKey,
+          stakePoolId,
+          originalMint.publicKey
+        )
       )[0]
     );
 

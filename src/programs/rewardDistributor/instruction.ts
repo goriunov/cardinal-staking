@@ -101,7 +101,6 @@ export const claimRewards = async (
   params: {
     stakePoolId: PublicKey;
     originalMintId: PublicKey;
-    mintTokenAccount: PublicKey;
     rewardMintId: PublicKey;
     rewardMintTokenAccountId: PublicKey;
     remainingAccountsForKind: AccountMeta[];
@@ -119,7 +118,12 @@ export const claimRewards = async (
   );
   const [[rewardEntryId], [stakeEntryId]] = await Promise.all([
     findRewardEntryId(rewardDistributorId, params.originalMintId),
-    findStakeEntryId(params.stakePoolId, params.originalMintId),
+    findStakeEntryId(
+      connection,
+      wallet.publicKey,
+      params.stakePoolId,
+      params.originalMintId
+    ),
   ]);
 
   return rewardDistributorProgram.instruction.claimRewards({
@@ -128,7 +132,6 @@ export const claimRewards = async (
       rewardDistributor: rewardDistributorId,
       stakeEntry: stakeEntryId,
       stakePool: params.stakePoolId,
-      mintTokenAccount: params.mintTokenAccount,
       rewardMint: params.rewardMintId,
       userRewardMintTokenAccount: params.rewardMintTokenAccountId,
       user: wallet.publicKey,

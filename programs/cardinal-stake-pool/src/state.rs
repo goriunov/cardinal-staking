@@ -17,11 +17,12 @@ pub const STAKE_AUTHORIZATION_SIZE: usize = 8 + std::mem::size_of::<StakeAuthori
 pub struct StakeEntry {
     pub bump: u8,
     pub pool: Pubkey,
+    pub amount: u64,
     pub original_mint: Pubkey,
     pub original_mint_claimed: bool,
     pub last_staker: Pubkey,
     pub last_staked_at: i64,
-    pub total_stake_seconds: i64,
+    pub total_stake_seconds: i128,
     pub stake_mint_claimed: bool,
     pub stake_mint: Option<Pubkey>,
 }
@@ -49,4 +50,12 @@ pub struct StakeAuthorizationRecord {
 pub struct Identifier {
     pub bump: u8,
     pub count: u64,
+}
+
+pub fn get_stake_seed(supply: u64, original_mint: Pubkey, user: Pubkey) -> Pubkey {
+    if supply > 1 {
+        return user;
+    } else {
+        return original_mint;
+    };
 }

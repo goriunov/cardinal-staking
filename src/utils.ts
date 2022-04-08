@@ -1,4 +1,6 @@
+import type { web3 } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
+import * as splToken from "@solana/spl-token";
 import type {
   ConfirmOptions,
   Connection,
@@ -43,4 +45,25 @@ export const executeTransaction = async (
     }
   }
   return txid;
+};
+
+/**
+ * Get total supply of mint
+ * @param connection
+ * @param originalMintId
+ * @returns
+ */
+export const getMintSupply = async (
+  connection: web3.Connection,
+  originalMintId: web3.PublicKey
+): Promise<number> => {
+  const mint = new splToken.Token(
+    connection,
+    originalMintId,
+    splToken.TOKEN_PROGRAM_ID,
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    null
+  );
+  return (await mint.getMintInfo()).supply.toNumber();
 };

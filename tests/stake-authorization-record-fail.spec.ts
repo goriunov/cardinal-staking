@@ -1,4 +1,3 @@
-import type { BN } from "@project-serum/anchor";
 import { expectTXTable } from "@saberhq/chai-solana";
 import {
   SignerWallet,
@@ -6,18 +5,16 @@ import {
   TransactionEnvelope,
 } from "@saberhq/solana-contrib";
 import type * as splToken from "@solana/spl-token";
-import type { PublicKey } from "@solana/web3.js";
-import { Keypair, Transaction } from "@solana/web3.js";
+import type { PublicKey, Transaction } from "@solana/web3.js";
+import { Keypair } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { initStakeEntry, initStakePool } from "../src";
+import { createStakeEntry, createStakePool } from "../src";
 import { getStakePool } from "../src/programs/stakePool/accounts";
-import { findStakePoolId } from "../src/programs/stakePool/pda";
 import { createMasterEditionIxs, createMint } from "./utils";
 import { getProvider } from "./workspace";
 
 describe("Requires authorization fail", () => {
-  let poolIdentifier: BN;
   const overlayText = "staking";
   let originalMint: splToken.Token;
   let stakePoolId: PublicKey;
@@ -55,13 +52,13 @@ describe("Requires authorization fail", () => {
 
   it("Create Pool", async () => {
     const provider = getProvider();
-    let transaction = new Transaction();
-    [transaction, , poolIdentifier] = await initStakePool(
+
+    let transaction: Transaction;
+    [transaction, stakePoolId] = await createStakePool(
       provider.connection,
       provider.wallet,
       {
         overlayText: overlayText,
-        requiresCreators: [],
         requiresAuthorization: true,
       }
     );
@@ -72,18 +69,16 @@ describe("Requires authorization fail", () => {
       "Create pool"
     ).to.be.fulfilled;
 
-    [stakePoolId] = await findStakePoolId(poolIdentifier);
     const stakePoolData = await getStakePool(provider.connection, stakePoolId);
-
-    expect(stakePoolData.parsed.identifier.toNumber()).to.eq(
-      poolIdentifier.toNumber()
-    );
+    expect(stakePoolData.parsed.requiresAuthorization).to.be.true;
+    expect(stakePoolData.parsed.overlayText).to.eq(overlayText);
   });
 
   it("Init stake entry for pool", async () => {
     const provider = getProvider();
+    let transaction: Transaction;
 
-    const [transaction, _] = await initStakeEntry(
+    [transaction, stakePoolId] = await createStakeEntry(
       provider.connection,
       provider.wallet,
       {

@@ -13,14 +13,14 @@ import type { Wallet } from "@saberhq/solana-contrib";
 import type * as web3 from "@solana/web3.js";
 
 import { getRewardDistributor } from "../rewardDistributor/accounts";
-import { claimRewards } from "../rewardDistributor/instruction";
 import { findRewardDistributorId } from "../rewardDistributor/pda";
-import { withRemainingAccountsForKind } from "../rewardDistributor/utils";
+import { withClaimRewards } from "../rewardDistributor/transaction";
 import { getPoolIdentifier, getStakeEntry } from "./accounts";
 import type { ReceiptType } from "./constants";
 import {
   authorizeStakeEntry,
   claimReceiptMint,
+  initFungibleStakeEntry,
   initPoolIdentifier,
   initStakeEntry,
   initStakeMint,
@@ -32,6 +32,13 @@ import { findIdentifierId, findStakeEntryId, findStakePoolId } from "./pda";
 import { withInvalidate } from "./token-manager";
 import { withRemainingAccountsForUnstake } from "./utils";
 
+/**
+ * Add init pool identifier instructions to a transaction
+ * @param transaction
+ * @param connection
+ * @param wallet
+ * @returns Transaction, public key for the created pool identifier
+ */
 export const withInitPoolIdentifier = async (
   transaction: web3.Transaction,
   connection: web3.Connection,
@@ -57,7 +64,7 @@ export const withInitStakePool = async (
     overlayText?: string;
     imageUri?: string;
   }
-): Promise<[web3.Transaction, web3.PublicKey, BN]> => {
+): Promise<[web3.Transaction, web3.PublicKey]> => {
   const [identifierId] = await findIdentifierId();
   const identifierData = await tryGetAccount(() =>
     getPoolIdentifier(connection)
@@ -85,10 +92,18 @@ export const withInitStakePool = async (
       authority: wallet.publicKey,
     })
   );
-  return [transaction, stakePoolId, identifier];
+  return [transaction, stakePoolId];
 };
 
-export const withInitStakeEntry = async (
+/**
+ * Add init stake entry instructions to a transaction
+ * @param transaction
+ * @param connection
+ * @param wallet
+ * @param params
+ * @returns Transaction, public key for the created stake entry
+ */
+export const withInitNFTStakeEntry = async (
   transaction: web3.Transaction,
   connection: web3.Connection,
   wallet: Wallet,
@@ -98,7 +113,12 @@ export const withInitStakeEntry = async (
   }
 ): Promise<[web3.Transaction, web3.PublicKey]> => {
   const [[stakeEntryId], originalMintMetadatId] = await Promise.all([
-    findStakeEntryId(params.stakePoolId, params.originalMintId),
+    findStakeEntryId(
+      connection,
+      wallet.publicKey,
+      params.stakePoolId,
+      params.originalMintId
+    ),
     metaplex.Metadata.getPDA(params.originalMintId),
   ]);
 
@@ -113,6 +133,54 @@ export const withInitStakeEntry = async (
   return [transaction, stakeEntryId];
 };
 
+/**
+ * Add init fungible stake entry instructions to a transaction
+ * @param transaction
+ * @param connection
+ * @param wallet
+ * @param params
+ * @returns Transaction, public key for the created stake entry
+ */
+export const withInitFungibleStakeEntry = async (
+  transaction: web3.Transaction,
+  connection: web3.Connection,
+  wallet: Wallet,
+  params: {
+    stakePoolId: web3.PublicKey;
+    originalMintId: web3.PublicKey;
+    user: web3.PublicKey;
+  }
+): Promise<[web3.Transaction, web3.PublicKey]> => {
+  const [[stakeEntryId], originalMintMetadatId] = await Promise.all([
+    findStakeEntryId(
+      connection,
+      wallet.publicKey,
+      params.stakePoolId,
+      params.originalMintId
+    ),
+    metaplex.Metadata.getPDA(params.originalMintId),
+  ]);
+
+  transaction.add(
+    await initFungibleStakeEntry(connection, wallet, {
+      stakePoolId: params.stakePoolId,
+      stakeEntryId: stakeEntryId,
+      originalMintId: params.originalMintId,
+      originalMintMetadatId: originalMintMetadatId,
+      user: params.user,
+    })
+  );
+  return [transaction, stakeEntryId];
+};
+
+/**
+ * Add authorize stake entry instructions to a transaction
+ * @param transaction
+ * @param connection
+ * @param wallet
+ * @param params
+ * @returns Transaction
+ */
 export const withAuthorizeStakeEntry = async (
   transaction: web3.Transaction,
   connection: web3.Connection,
@@ -131,40 +199,45 @@ export const withAuthorizeStakeEntry = async (
   return transaction;
 };
 
+/**
+ * Add init stake mint instructions to a transaction
+ * @param transaction
+ * @param connection
+ * @param wallet
+ * @param params
+ * @returns Transaction, keypair of the created stake mint
+ */
 export const withInitStakeMint = async (
   transaction: web3.Transaction,
   connection: web3.Connection,
   wallet: Wallet,
   params: {
     stakePoolId: web3.PublicKey;
+    stakeEntryId: web3.PublicKey;
     originalMintId: web3.PublicKey;
     stakeMintKeypair: web3.Keypair;
     name: string;
     symbol: string;
+    amount?: number;
   }
 ): Promise<[web3.Transaction, web3.Keypair]> => {
-  const [
-    [stakeEntryId],
-    [mintManagerId],
-    originalMintMetadataId,
-    stakeMintMetadataId,
-  ] = await Promise.all([
-    findStakeEntryId(params.stakePoolId, params.originalMintId),
-    findMintManagerId(params.stakeMintKeypair.publicKey),
-    metaplex.Metadata.getPDA(params.originalMintId),
-    metaplex.Metadata.getPDA(params.stakeMintKeypair.publicKey),
-  ]);
+  const [[mintManagerId], originalMintMetadataId, stakeMintMetadataId] =
+    await Promise.all([
+      findMintManagerId(params.stakeMintKeypair.publicKey),
+      metaplex.Metadata.getPDA(params.originalMintId),
+      metaplex.Metadata.getPDA(params.stakeMintKeypair.publicKey),
+    ]);
 
   const stakeEntryStakeMintTokenAccountId = await findAta(
     params.stakeMintKeypair.publicKey,
-    stakeEntryId,
+    params.stakeEntryId,
     true
   );
 
   transaction.add(
     initStakeMint(connection, wallet, {
       stakePoolId: params.stakePoolId,
-      stakeEntryId: stakeEntryId,
+      stakeEntryId: params.stakeEntryId,
       originalMintId: params.originalMintId,
       originalMintMetadatId: originalMintMetadataId,
       stakeEntryStakeMintTokenAccountId: stakeEntryStakeMintTokenAccountId,
@@ -173,11 +246,20 @@ export const withInitStakeMint = async (
       mintManagerId: mintManagerId,
       name: params.name,
       symbol: params.symbol,
+      amount: new BN(params.amount || 1),
     })
   );
   return [transaction, params.stakeMintKeypair];
 };
 
+/**
+ * Add claim receipt mint instructions to a transaction
+ * @param transaction
+ * @param connection
+ * @param wallet
+ * @param params
+ * @returns Transaction
+ */
 export const withClaimReceiptMint = async (
   transaction: web3.Transaction,
   connection: web3.Connection,
@@ -213,6 +295,14 @@ export const withClaimReceiptMint = async (
   return transaction;
 };
 
+/**
+ * Add stake instructions to a transaction
+ * @param transaction
+ * @param connection
+ * @param wallet
+ * @param params
+ * @returns Transaction
+ */
 export const withStake = async (
   transaction: web3.Transaction,
   connection: web3.Connection,
@@ -221,9 +311,12 @@ export const withStake = async (
     stakePoolId: web3.PublicKey;
     originalMintId: web3.PublicKey;
     userOriginalMintTokenAccountId: web3.PublicKey;
+    amount?: BN;
   }
 ): Promise<web3.Transaction> => {
   const [stakeEntryId] = await findStakeEntryId(
+    connection,
+    wallet.publicKey,
     params.stakePoolId,
     params.originalMintId
   );
@@ -243,12 +336,21 @@ export const withStake = async (
       stakeEntryOriginalMintTokenAccountId:
         stakeEntryOriginalMintTokenAccountId,
       userOriginalMintTokenAccountId: params.userOriginalMintTokenAccountId,
+      amount: params.amount || new BN(1),
     })
   );
 
   return transaction;
 };
 
+/**
+ * Add unstake instructions to a transaction
+ * @param transaction
+ * @param connection
+ * @param wallet
+ * @param params
+ * @returns Transaction
+ */
 export const withUnstake = async (
   transaction: web3.Transaction,
   connection: web3.Connection,
@@ -259,7 +361,12 @@ export const withUnstake = async (
   }
 ): Promise<web3.Transaction> => {
   const [[stakeEntryId], [rewardDistributorId]] = await Promise.all([
-    findStakeEntryId(params.stakePoolId, params.originalMintId),
+    findStakeEntryId(
+      connection,
+      wallet.publicKey,
+      params.stakePoolId,
+      params.originalMintId
+    ),
     await findRewardDistributorId(params.stakePoolId),
   ]);
 
@@ -330,32 +437,10 @@ export const withUnstake = async (
 
   // claim any rewards deserved
   if (rewardDistributorData) {
-    const userRewardMintTokenAccountId =
-      await withFindOrInitAssociatedTokenAccount(
-        transaction,
-        connection,
-        rewardDistributorData.parsed.rewardMint,
-        wallet.publicKey,
-        wallet.publicKey
-      );
-    const remainingAccountsForKind = await withRemainingAccountsForKind(
-      transaction,
-      connection,
-      wallet,
-      rewardDistributorId,
-      rewardDistributorData.parsed.kind,
-      rewardDistributorData.parsed.rewardMint
-    );
-    transaction.add(
-      await claimRewards(connection, wallet, {
-        stakePoolId: params.stakePoolId,
-        originalMintId: params.originalMintId,
-        mintTokenAccount: userOriginalMintTokenAccountId,
-        rewardMintId: rewardDistributorData.parsed.rewardMint,
-        rewardMintTokenAccountId: userRewardMintTokenAccountId,
-        remainingAccountsForKind,
-      })
-    );
+    await withClaimRewards(transaction, connection, wallet, {
+      stakePoolId: params.stakePoolId,
+      originalMint: params.originalMintId,
+    });
   }
 
   return transaction;

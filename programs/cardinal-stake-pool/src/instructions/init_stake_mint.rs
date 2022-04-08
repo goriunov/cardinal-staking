@@ -18,6 +18,7 @@ use {
 pub struct InitStakeMintIx {
     name: String,
     symbol: String,
+    amount: u64,
 }
 
 #[derive(Accounts)]
@@ -148,7 +149,7 @@ pub fn handler(ctx: Context<InitStakeMintCtx>, ix: InitStakeMintIx) -> Result<()
         stake_pool_signer,
     )?;
 
-    // mint single token to token manager mint token account
+    // mint stake_entry.amount tokens to token manager mint token account
     let cpi_accounts = token::MintTo {
         mint: ctx.accounts.stake_mint.to_account_info(),
         to: ctx.accounts.stake_entry_stake_mint_token_account.to_account_info(),
@@ -156,7 +157,7 @@ pub fn handler(ctx: Context<InitStakeMintCtx>, ix: InitStakeMintIx) -> Result<()
     };
     let cpi_program = ctx.accounts.token_program.to_account_info();
     let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(stake_pool_signer);
-    token::mint_to(cpi_context, 1)?;
+    token::mint_to(cpi_context, ix.amount)?;
 
     // NOTE: We could make this a master edition instead of doing this
     // init mint manager

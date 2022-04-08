@@ -17,13 +17,6 @@ pub struct ClaimRewardsCtx<'info> {
     #[account(constraint = stake_pool.key() == stake_entry.pool)]
     stake_pool: Box<Account<'info, StakePool>>,
 
-    #[account(mut, constraint =
-        mint_token_account.amount == 1
-        && mint_token_account.mint == reward_entry.mint
-        && mint_token_account.owner == user.key()
-        @ ErrorCode::InvalidTokenAccount)]
-    mint_token_account: Box<Account<'info, TokenAccount>>,
-
     #[account(mut, constraint = reward_mint.key() == reward_distributor.reward_mint @ ErrorCode::InvalidRewardMint)]
     reward_mint: Box<Account<'info, Mint>>,
 
@@ -40,6 +33,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     let reward_entry = &mut ctx.accounts.reward_entry;
     let reward_distributor = &mut ctx.accounts.reward_distributor;
     let stake_pool = reward_distributor.stake_pool;
+    let stake_entry = &mut ctx.accounts.stake_entry;
     let reward_distributor_seed = &[REWARD_DISTRIBUTOR_SEED.as_bytes(), stake_pool.as_ref(), &[reward_distributor.bump]];
     let reward_distributor_signer = &[&reward_distributor_seed[..]];
 
@@ -47,10 +41,8 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     let reward_duration_seconds = reward_distributor.reward_duration_seconds;
 
     let reward_seconds_received = reward_entry.reward_seconds_received;
-    if reward_seconds_received <= ctx.accounts.stake_entry.total_stake_seconds as u64
-        && (reward_distributor.max_supply == None || reward_distributor.rewards_issued < reward_distributor.max_supply.unwrap())
-    {
-        let mut reward_time_to_receive = (ctx.accounts.stake_entry.total_stake_seconds as u64).checked_sub(reward_seconds_received).unwrap();
+    if reward_seconds_received <= stake_entry.total_stake_seconds as u64 && (reward_distributor.max_supply == None || reward_distributor.rewards_issued < reward_distributor.max_supply.unwrap()) {
+        let mut reward_time_to_receive = (stake_entry.total_stake_seconds as u64).checked_sub(reward_seconds_received).unwrap();
         let mut reward_amount_to_receive = reward_time_to_receive
             .checked_div(reward_duration_seconds)
             .unwrap()
@@ -61,7 +53,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
 
         // if this will go over max supply give rewards up to max supply
         if reward_distributor.max_supply != None && reward_distributor.rewards_issued.checked_add(reward_amount_to_receive).unwrap() >= reward_distributor.max_supply.unwrap() {
-            reward_amount_to_receive = reward_distributor.max_supply.unwrap().checked_sub(reward_amount_to_receive).unwrap();
+            reward_amount_to_receive = reward_distributor.max_supply.unwrap().checked_sub(reward_distributor.rewards_issued).unwrap();
 
             // this is nuanced about if the rewards are closed, should they get the reward time for that time even though they didnt get any rewards?
             // this only matters if the reward distributor becomes open again and they missed out on some rewards they coudlve gotten
@@ -107,5 +99,6 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         reward_entry.reward_amount_received = reward_entry.reward_amount_received.checked_add(reward_amount_to_receive).unwrap();
         reward_entry.reward_seconds_received = reward_entry.reward_seconds_received.checked_add(reward_time_to_receive).unwrap();
     }
+
     Ok(())
 }

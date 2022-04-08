@@ -34,10 +34,9 @@ pub struct ClaimReceiptMintCtx<'info> {
         init_if_needed,
         payer = user,
         associated_token::mint = receipt_mint,
-        associated_token::authority = user
+        associated_token::authority = user,
     )]
     user_receipt_mint_token_account: Box<Account<'info, TokenAccount>>,
-
     #[account(mut)]
     token_manager_receipt_mint_token_account: Box<Account<'info, TokenAccount>>,
 
@@ -59,8 +58,12 @@ pub struct ClaimReceiptMintCtx<'info> {
 pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, ClaimReceiptMintCtx<'info>>) -> Result<()> {
     let stake_entry = &mut ctx.accounts.stake_entry;
     let original_mint = stake_entry.original_mint;
+    let user = ctx.accounts.user.key();
     let stake_pool = stake_entry.pool;
-    let stake_entry_seed = &[STAKE_ENTRY_PREFIX.as_bytes(), stake_pool.as_ref(), original_mint.as_ref(), &[stake_entry.bump]];
+    let supply = ctx.accounts.receipt_mint.supply;
+    let seed = get_stake_seed(supply, original_mint, user);
+
+    let stake_entry_seed = [STAKE_ENTRY_PREFIX.as_bytes(), stake_pool.as_ref(), seed.as_ref(), &[stake_entry.bump]];
     let stake_entry_signer = &[&stake_entry_seed[..]];
 
     let token_manager_kind;
@@ -75,6 +78,12 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     }
 
     // token manager init
+    let init_ix = cardinal_token_manager::instructions::InitIx {
+        amount: stake_entry.amount,
+        kind: token_manager_kind as u8,
+        invalidation_type: InvalidationType::Return as u8,
+        num_invalidators: 1,
+    };
     let cpi_accounts = cardinal_token_manager::cpi::accounts::InitCtx {
         token_manager: ctx.accounts.token_manager.to_account_info(),
         mint_counter: ctx.accounts.mint_counter.to_account_info(),
@@ -82,9 +91,10 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         payer: ctx.accounts.user.to_account_info(),
         issuer_token_account: ctx.accounts.stake_entry_receipt_mint_token_account.to_account_info(),
         system_program: ctx.accounts.system_program.to_account_info(),
+        mint: ctx.accounts.receipt_mint.to_account_info(),
     };
     let cpi_ctx = CpiContext::new(ctx.accounts.token_manager_program.to_account_info(), cpi_accounts).with_signer(stake_entry_signer);
-    cardinal_token_manager::cpi::init(cpi_ctx, ctx.accounts.receipt_mint.key(), 1)?;
+    cardinal_token_manager::cpi::init(cpi_ctx, init_ix)?;
 
     // add invalidator
     let cpi_accounts = cardinal_token_manager::cpi::accounts::AddInvalidatorCtx {
@@ -104,13 +114,8 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         token_program: ctx.accounts.token_program.to_account_info(),
         system_program: ctx.accounts.system_program.to_account_info(),
     };
-    let issue_ix = cardinal_token_manager::instructions::IssueIx {
-        amount: 1,
-        kind: token_manager_kind as u8,
-        invalidation_type: InvalidationType::Return as u8,
-    };
     let cpi_ctx = CpiContext::new(ctx.accounts.token_manager_program.to_account_info(), cpi_accounts).with_signer(stake_entry_signer);
-    cardinal_token_manager::cpi::issue(cpi_ctx, issue_ix)?;
+    cardinal_token_manager::cpi::issue(cpi_ctx)?;
 
     // token manager claim
     let cpi_accounts = cardinal_token_manager::cpi::accounts::ClaimCtx {

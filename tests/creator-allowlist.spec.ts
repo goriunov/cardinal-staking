@@ -1,5 +1,4 @@
 import { findAta } from "@cardinal/common";
-import type { BN } from "@project-serum/anchor";
 import { expectTXTable } from "@saberhq/chai-solana";
 import {
   SignerWallet,
@@ -7,25 +6,21 @@ import {
   TransactionEnvelope,
 } from "@saberhq/solana-contrib";
 import type * as splToken from "@solana/spl-token";
-import type { PublicKey } from "@solana/web3.js";
-import { Keypair, Transaction } from "@solana/web3.js";
+import type { PublicKey, Transaction } from "@solana/web3.js";
+import { Keypair } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { initStakeEntry, initStakePool, stake } from "../src";
+import { createStakeEntry, createStakePool, stake } from "../src";
 import { ReceiptType } from "../src/programs/stakePool";
 import {
   getStakeEntry,
   getStakePool,
 } from "../src/programs/stakePool/accounts";
-import {
-  findStakeEntryId,
-  findStakePoolId,
-} from "../src/programs/stakePool/pda";
+import { findStakeEntryId } from "../src/programs/stakePool/pda";
 import { createMasterEditionIxs, createMint } from "./utils";
 import { getProvider } from "./workspace";
 
 describe("Create stake pool", () => {
-  let poolIdentifier: BN;
   const overlayText = "staking";
   let originalMintTokenAccountId: PublicKey;
   let originalMint: splToken.Token;
@@ -64,8 +59,9 @@ describe("Create stake pool", () => {
 
   it("Create Pool", async () => {
     const provider = getProvider();
-    let transaction = new Transaction();
-    [transaction, , poolIdentifier] = await initStakePool(
+
+    let transaction: Transaction;
+    [transaction, stakePoolId] = await createStakePool(
       provider.connection,
       provider.wallet,
       {
@@ -80,18 +76,16 @@ describe("Create stake pool", () => {
       "Create pool"
     ).to.be.fulfilled;
 
-    [stakePoolId] = await findStakePoolId(poolIdentifier);
     const stakePoolData = await getStakePool(provider.connection, stakePoolId);
-
-    expect(stakePoolData.parsed.identifier.toNumber()).to.eq(
-      poolIdentifier.toNumber()
+    expect(stakePoolData.parsed.requiresCreators[0]?.toString()).to.eq(
+      originalMintAuthority.publicKey.toString()
     );
   });
 
   it("Init stake entry for pool", async () => {
     const provider = getProvider();
 
-    const [transaction, _] = await initStakeEntry(
+    const [transaction, _] = await createStakeEntry(
       provider.connection,
       provider.wallet,
       {
@@ -110,7 +104,12 @@ describe("Create stake pool", () => {
     const stakeEntryData = await getStakeEntry(
       provider.connection,
       (
-        await findStakeEntryId(stakePoolId, originalMint.publicKey)
+        await findStakeEntryId(
+          provider.connection,
+          provider.wallet.publicKey,
+          stakePoolId,
+          originalMint.publicKey
+        )
       )[0]
     );
 
@@ -141,7 +140,12 @@ describe("Create stake pool", () => {
     const stakeEntryData = await getStakeEntry(
       provider.connection,
       (
-        await findStakeEntryId(stakePoolId, originalMint.publicKey)
+        await findStakeEntryId(
+          provider.connection,
+          provider.wallet.publicKey,
+          stakePoolId,
+          originalMint.publicKey
+        )
       )[0]
     );
 

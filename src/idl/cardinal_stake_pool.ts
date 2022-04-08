@@ -93,6 +93,47 @@ export type CardinalStakePool = {
       args: [];
     },
     {
+      name: "initFtEntry";
+      accounts: [
+        {
+          name: "stakeEntry";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "stakePool";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "originalMint";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "originalMintMetadata";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "user";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "payer";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "systemProgram";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [];
+    },
+    {
       name: "initStakeMint";
       accounts: [
         {
@@ -240,7 +281,12 @@ export type CardinalStakePool = {
           isSigner: false;
         }
       ];
-      args: [];
+      args: [
+        {
+          name: "amount";
+          type: "u64";
+        }
+      ];
     },
     {
       name: "claimReceiptMint";
@@ -360,6 +406,10 @@ export type CardinalStakePool = {
             type: "publicKey";
           },
           {
+            name: "amount";
+            type: "u64";
+          },
+          {
             name: "originalMint";
             type: "publicKey";
           },
@@ -377,7 +427,7 @@ export type CardinalStakePool = {
           },
           {
             name: "totalStakeSeconds";
-            type: "i64";
+            type: "i128";
           },
           {
             name: "stakeMintClaimed";
@@ -522,6 +572,10 @@ export type CardinalStakePool = {
           {
             name: "symbol";
             type: "string";
+          },
+          {
+            name: "amount";
+            type: "u64";
           }
         ];
       };
@@ -706,6 +760,47 @@ export const IDL: CardinalStakePool = {
       args: [],
     },
     {
+      name: "initFtEntry",
+      accounts: [
+        {
+          name: "stakeEntry",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "stakePool",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "originalMint",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "originalMintMetadata",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "user",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "payer",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
       name: "initStakeMint",
       accounts: [
         {
@@ -853,7 +948,12 @@ export const IDL: CardinalStakePool = {
           isSigner: false,
         },
       ],
-      args: [],
+      args: [
+        {
+          name: "amount",
+          type: "u64",
+        },
+      ],
     },
     {
       name: "claimReceiptMint",
@@ -973,6 +1073,10 @@ export const IDL: CardinalStakePool = {
             type: "publicKey",
           },
           {
+            name: "amount",
+            type: "u64",
+          },
+          {
             name: "originalMint",
             type: "publicKey",
           },
@@ -990,7 +1094,7 @@ export const IDL: CardinalStakePool = {
           },
           {
             name: "totalStakeSeconds",
-            type: "i64",
+            type: "i128",
           },
           {
             name: "stakeMintClaimed",
@@ -1135,6 +1239,10 @@ export const IDL: CardinalStakePool = {
           {
             name: "symbol",
             type: "string",
+          },
+          {
+            name: "amount",
+            type: "u64",
           },
         ],
       },

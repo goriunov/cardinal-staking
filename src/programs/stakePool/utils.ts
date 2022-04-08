@@ -11,7 +11,7 @@ import {
 import { findRewardDistributorId } from "../rewardDistributor/pda";
 import type { STAKE_POOL_PROGRAM } from ".";
 import { STAKE_POOL_ADDRESS, STAKE_POOL_IDL } from ".";
-import { findStakeAuthorizationId, findStakeEntryId } from "./pda";
+import { findStakeAuthorizationId } from "./pda";
 
 export const remainingAccountsForInitStakeEntry = async (
   stakePoolId: web3.PublicKey,
@@ -61,8 +61,7 @@ export const withRemainingAccountsForUnstake = async (
 
 export const getTotalStakeSeconds = async (
   connection: web3.Connection,
-  stakePoolId: web3.PublicKey,
-  mintId: web3.PublicKey
+  stakeEntryId: web3.PublicKey
 ): Promise<BN> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -72,15 +71,13 @@ export const getTotalStakeSeconds = async (
     STAKE_POOL_ADDRESS,
     provider
   );
-  const [stakeEntryId] = await findStakeEntryId(stakePoolId, mintId);
   const parsed = await stakePoolProgram.account.stakeEntry.fetch(stakeEntryId);
   return parsed.totalStakeSeconds;
 };
 
 export const getActiveStakeSeconds = async (
   connection: web3.Connection,
-  stakePoolId: web3.PublicKey,
-  mintId: web3.PublicKey
+  stakeEntryId: web3.PublicKey
 ): Promise<BN> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -90,7 +87,6 @@ export const getActiveStakeSeconds = async (
     STAKE_POOL_ADDRESS,
     provider
   );
-  const [stakeEntryId] = await findStakeEntryId(stakePoolId, mintId);
   const parsed = await stakePoolProgram.account.stakeEntry.fetch(stakeEntryId);
 
   const UTCNow = Math.floor(Date.now() / 1000);

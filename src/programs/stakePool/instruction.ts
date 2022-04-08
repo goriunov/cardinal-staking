@@ -9,6 +9,7 @@ import {
   findTokenManagerAddress,
 } from "@cardinal/token-manager/dist/cjs/programs/tokenManager/pda";
 import { MetadataProgram } from "@metaplex-foundation/mpl-token-metadata";
+import type { BN } from "@project-serum/anchor";
 import { Program, Provider } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
 import {
@@ -153,6 +154,41 @@ export const initStakeEntry = async (
   });
 };
 
+export const initFungibleStakeEntry = async (
+  connection: Connection,
+  wallet: Wallet,
+  params: {
+    stakePoolId: PublicKey;
+    stakeEntryId: PublicKey;
+    originalMintId: PublicKey;
+    originalMintMetadatId: PublicKey;
+    user: PublicKey;
+  }
+): Promise<TransactionInstruction> => {
+  const provider = new Provider(connection, wallet, {});
+  const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
+    STAKE_POOL_IDL,
+    STAKE_POOL_ADDRESS,
+    provider
+  );
+  const remainingAccounts = await remainingAccountsForInitStakeEntry(
+    params.stakePoolId,
+    params.originalMintId
+  );
+  return stakePoolProgram.instruction.initFtEntry({
+    accounts: {
+      stakeEntry: params.stakeEntryId,
+      stakePool: params.stakePoolId,
+      originalMint: params.originalMintId,
+      originalMintMetadata: params.originalMintMetadatId,
+      user: params.user,
+      payer: wallet.publicKey,
+      systemProgram: SystemProgram.programId,
+    },
+    remainingAccounts,
+  });
+};
+
 export const initStakeMint = (
   connection: Connection,
   wallet: Wallet,
@@ -167,6 +203,7 @@ export const initStakeMint = (
     mintManagerId: PublicKey;
     name: string;
     symbol: string;
+    amount: BN;
   }
 ): TransactionInstruction => {
   const provider = new Provider(connection, wallet, {});
@@ -177,7 +214,7 @@ export const initStakeMint = (
   );
 
   return stakePoolProgram.instruction.initStakeMint(
-    { name: params.name, symbol: params.symbol },
+    { name: params.name, symbol: params.symbol, amount: params.amount },
     {
       accounts: {
         stakeEntry: params.stakeEntryId,
@@ -228,7 +265,7 @@ export const claimReceiptMint = async (
     findTokenManagerAddress(params.receiptMintId),
     findMintCounterId(params.receiptMintId),
     findAta(params.receiptMintId, params.stakeEntryId, true),
-    findAta(params.receiptMintId, wallet.publicKey),
+    findAta(params.receiptMintId, wallet.publicKey, true),
     getRemainingAccountsForKind(
       params.receiptMintId,
       params.receiptType === ReceiptType.Original
@@ -236,7 +273,6 @@ export const claimReceiptMint = async (
         : TokenManagerKind.Managed
     ),
   ]);
-
   return stakePoolProgram.instruction.claimReceiptMint({
     accounts: {
       stakeEntry: params.stakeEntryId,
@@ -265,6 +301,7 @@ export const stake = (
     stakeEntryId: PublicKey;
     stakeEntryOriginalMintTokenAccountId: PublicKey;
     userOriginalMintTokenAccountId: PublicKey;
+    amount: BN;
   }
 ): TransactionInstruction => {
   const provider = new Provider(connection, wallet, {});
@@ -274,7 +311,7 @@ export const stake = (
     provider
   );
 
-  return stakePoolProgram.instruction.stake({
+  return stakePoolProgram.instruction.stake(params.amount, {
     accounts: {
       stakeEntry: params.stakeEntryId,
       stakeEntryOriginalMintTokenAccount:
