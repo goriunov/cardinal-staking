@@ -4,6 +4,8 @@ import type { Wallet } from "@saberhq/solana-contrib";
 import type { Connection, PublicKey } from "@solana/web3.js";
 import { Keypair, Transaction } from "@solana/web3.js";
 
+import type { RewardDistributorKind } from "./programs/rewardDistributor";
+import { withInitRewardDistributor } from "./programs/rewardDistributor/transaction";
 import { ReceiptType } from "./programs/stakePool";
 import { getStakeEntry, getStakePool } from "./programs/stakePool/accounts";
 import { findStakeEntryId } from "./programs/stakePool/pda";
@@ -42,6 +44,91 @@ export const createStakePool = async (
   }
 ): Promise<[Transaction, PublicKey]> =>
   withInitStakePool(new Transaction(), connection, wallet, params);
+
+/**
+ * Convenience call to create a stake pool and a reward distributor
+ * @param connection - Connection to use
+ * @param wallet - Wallet to use
+ * @param requiresCollections - (Optional) List of required collections pubkeys
+ * @param requiresCreators - (Optional) List of required creators pubkeys
+ * @param requiresAuthorization - (Optional) Boolean to require authorization
+ * @param overlayText - (Optional) Text to overlay on receipt mint tokens
+ * @param imageUri - (Optional) Image URI for stake pool
+ * @param rewardMintId - (Optional) Reward mint id
+ * @param rewardAmount - (Optional) Reward amount
+ * @param rewardDurationSeconds - (Optional) Reward duration in seconds
+ * @param rewardDistributorKind - (Optional) Reward distributor kind Mint or Treasury
+ * @param maxSupply - (Optional) Max supply
+ * @param supply - (Optional) Supply
+ * @returns
+ */
+export const createStakePoolAndRewardDistributor = async (
+  connection: Connection,
+  wallet: Wallet,
+  params: {
+    requiresCollections?: PublicKey[];
+    requiresCreators?: PublicKey[];
+    requiresAuthorization?: boolean;
+    overlayText?: string;
+    imageUri?: string;
+    rewardMintId: PublicKey;
+    rewardAmount?: BN;
+    rewardDurationSeconds?: BN;
+    rewardDistributorKind?: RewardDistributorKind;
+    maxSupply?: BN;
+    supply?: BN;
+  }
+): Promise<[Transaction, PublicKey, PublicKey]> => {
+  const transaction = new Transaction();
+
+  const [, stakePoolId] = await withInitStakePool(
+    transaction,
+    connection,
+    wallet,
+    params
+  );
+  const [, rewardDistributorId] = await createRewardDistributor(
+    connection,
+    wallet,
+    {
+      stakePoolId: stakePoolId,
+      rewardMintId: params.rewardMintId,
+      rewardAmount: params.rewardAmount,
+      rewardDurationSeconds: params.rewardDurationSeconds,
+      kind: params.rewardDistributorKind,
+      maxSupply: params.maxSupply,
+      supply: params.supply,
+    }
+  );
+  return [transaction, stakePoolId, rewardDistributorId];
+};
+
+/**
+ * Convenience call to create a reward distributor
+ * @param connection - Connection to use
+ * @param wallet - Wallet to use
+ * @param rewardMintId - (Optional) Reward mint id
+ * @param rewardAmount - (Optional) Reward amount
+ * @param rewardDurationSeconds - (Optional) Reward duration in seconds
+ * @param rewardDistributorKind - (Optional) Reward distributor kind Mint or Treasury
+ * @param maxSupply - (Optional) Max supply
+ * @param supply - (Optional) Supply
+ * @returns
+ */
+export const createRewardDistributor = async (
+  connection: Connection,
+  wallet: Wallet,
+  params: {
+    stakePoolId: PublicKey;
+    rewardMintId: PublicKey;
+    rewardAmount?: BN;
+    rewardDurationSeconds?: BN;
+    kind?: RewardDistributorKind;
+    maxSupply?: BN;
+    supply?: BN;
+  }
+): Promise<[Transaction, PublicKey]> =>
+  withInitRewardDistributor(new Transaction(), connection, wallet, params);
 
 /**
  * Convenience call to create a stake entry
