@@ -240,6 +240,49 @@ export const createStakeEntryAndStakeMint = async (
 };
 
 /**
+ * Convenience method to claim rewards
+ * @param connection - Connection to use
+ * @param wallet - Wallet to use
+ * @param stakePoolId - Stake pool id
+ * @param originalMintId - Original mint id
+ * @param receiptType - ReceiptType to be received back. If none provided, none will be claimed
+ * @returns
+ */
+export const claimRewards = async (
+  connection: Connection,
+  wallet: Wallet,
+  params: {
+    stakePoolId: PublicKey;
+    originalMintId: PublicKey;
+    receiptType: ReceiptType;
+  }
+): Promise<Transaction> => {
+  const [stakeEntryId] = await findStakeEntryId(
+    connection,
+    wallet.publicKey,
+    params.stakePoolId,
+    params.originalMintId
+  );
+  const stakeEntryData = await tryGetAccount(() =>
+    getStakeEntry(connection, stakeEntryId)
+  );
+  if (!stakeEntryData) {
+    throw new Error("Stake entry not found");
+  }
+  const receiptMintId =
+    params.receiptType === ReceiptType.Receipt &&
+    stakeEntryData?.parsed.stakeMint
+      ? stakeEntryData?.parsed.stakeMint
+      : params.originalMintId;
+  return await withClaimReceiptMint(new Transaction(), connection, wallet, {
+    stakePoolId: params.stakePoolId,
+    stakeEntryId: stakeEntryId,
+    receiptMintId: receiptMintId,
+    receiptType: params.receiptType,
+  });
+};
+
+/**
  * Convenience method to stake tokens
  * @param connection - Connection to use
  * @param wallet - Wallet to use

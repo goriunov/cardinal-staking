@@ -105,8 +105,7 @@ pub fn handler(ctx: Context<InitStakeMintCtx>, ix: InitStakeMintIx) -> Result<()
         let original_mint_metadata = Metadata::from_account_info(&ctx.accounts.original_mint_metadata.to_account_info())?;
         metadata_uri_param = "&uri=".to_string() + original_mint_metadata.data.uri.trim_matches(char::from(0));
     }
-    // TODO use image?
-    // let image_uri = ctx.accounts.stake_pool.image_uri.clone();
+
     invoke_signed(
         &create_metadata_accounts_v2(
             *ctx.accounts.token_metadata_program.key,
