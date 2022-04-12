@@ -5,7 +5,10 @@ import type { Connection, PublicKey } from "@solana/web3.js";
 import { Keypair, Transaction } from "@solana/web3.js";
 
 import type { RewardDistributorKind } from "./programs/rewardDistributor";
-import { withInitRewardDistributor } from "./programs/rewardDistributor/transaction";
+import {
+  withClaimRewards,
+  withInitRewardDistributor,
+} from "./programs/rewardDistributor/transaction";
 import { ReceiptType } from "./programs/stakePool";
 import { getStakeEntry, getStakePool } from "./programs/stakePool/accounts";
 import { findStakeEntryId } from "./programs/stakePool/pda";
@@ -245,7 +248,6 @@ export const createStakeEntryAndStakeMint = async (
  * @param wallet - Wallet to use
  * @param stakePoolId - Stake pool id
  * @param originalMintId - Original mint id
- * @param receiptType - ReceiptType to be received back. If none provided, none will be claimed
  * @returns
  */
 export const claimRewards = async (
@@ -254,33 +256,12 @@ export const claimRewards = async (
   params: {
     stakePoolId: PublicKey;
     originalMintId: PublicKey;
-    receiptType: ReceiptType;
   }
-): Promise<Transaction> => {
-  const [stakeEntryId] = await findStakeEntryId(
-    connection,
-    wallet.publicKey,
-    params.stakePoolId,
-    params.originalMintId
-  );
-  const stakeEntryData = await tryGetAccount(() =>
-    getStakeEntry(connection, stakeEntryId)
-  );
-  if (!stakeEntryData) {
-    throw new Error("Stake entry not found");
-  }
-  const receiptMintId =
-    params.receiptType === ReceiptType.Receipt &&
-    stakeEntryData?.parsed.stakeMint
-      ? stakeEntryData?.parsed.stakeMint
-      : params.originalMintId;
-  return await withClaimReceiptMint(new Transaction(), connection, wallet, {
+): Promise<Transaction> =>
+  await withClaimRewards(new Transaction(), connection, wallet, {
     stakePoolId: params.stakePoolId,
-    stakeEntryId: stakeEntryId,
-    receiptMintId: receiptMintId,
-    receiptType: params.receiptType,
+    originalMint: params.originalMintId,
   });
-};
 
 /**
  * Convenience method to stake tokens
