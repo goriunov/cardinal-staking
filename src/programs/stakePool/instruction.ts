@@ -203,7 +203,6 @@ export const initStakeMint = (
     mintManagerId: PublicKey;
     name: string;
     symbol: string;
-    amount: BN;
   }
 ): TransactionInstruction => {
   const provider = new Provider(connection, wallet, {});
@@ -214,7 +213,7 @@ export const initStakeMint = (
   );
 
   return stakePoolProgram.instruction.initStakeMint(
-    { name: params.name, symbol: params.symbol, amount: params.amount },
+    { name: params.name, symbol: params.symbol },
     {
       accounts: {
         stakeEntry: params.stakeEntryId,
@@ -273,6 +272,7 @@ export const claimReceiptMint = async (
         : TokenManagerKind.Managed
     ),
   ]);
+
   return stakePoolProgram.instruction.claimReceiptMint({
     accounts: {
       stakeEntry: params.stakeEntryId,

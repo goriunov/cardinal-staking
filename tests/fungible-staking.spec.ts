@@ -149,14 +149,15 @@ describe("Create stake pool", () => {
   it("Init fungible stake entry and stake mint", async () => {
     const provider = getProvider();
     let transaction: Transaction;
-    let stakeEntryId: PublicKey;
 
-    [transaction, stakeMintKeypair, stakeEntryId] =
-      await createStakeEntryAndStakeMint(provider.connection, provider.wallet, {
+    [transaction, stakeMintKeypair] = await createStakeEntryAndStakeMint(
+      provider.connection,
+      provider.wallet,
+      {
         stakePoolId: stakePoolId,
         originalMintId: originalMint.publicKey,
-        amount: stakingAmount,
-      });
+      }
+    );
 
     await expectTXTable(
       new TransactionEnvelope(
@@ -197,9 +198,6 @@ describe("Create stake pool", () => {
     );
 
     expect((await checkMint.getMintInfo()).isInitialized).to.be.true;
-    const acc = await findAta(stakeMintKeypair.publicKey, stakeEntryId, true);
-    const a = await checkMint.getAccountInfo(acc);
-    console.log("here", a.amount.toNumber());
   });
 
   it("Stake", async () => {
