@@ -7,7 +7,7 @@ import { BN } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
 import type { Connection, PublicKey, Transaction } from "@solana/web3.js";
 
-import { getRewardDistributor } from "./accounts";
+import { getRewardDistributor, getRewardEntry } from "./accounts";
 import { RewardDistributorKind } from "./constants";
 import {
   claimRewards,
@@ -15,7 +15,7 @@ import {
   initRewardDistributor,
   initRewardEntry,
 } from "./instruction";
-import { findRewardDistributorId } from "./pda";
+import { findRewardDistributorId, findRewardEntryId } from "./pda";
 import { withRemainingAccountsForKind } from "./utils";
 
 export const withInitRewardDistributor = async (
@@ -66,14 +66,12 @@ export const withInitRewardEntry = async (
   params: {
     mintId: PublicKey;
     rewardDistributorId: PublicKey;
-    multiplier?: BN;
   }
 ): Promise<Transaction> => {
   return transaction.add(
     await initRewardEntry(connection, wallet, {
       mint: params.mintId,
       rewardDistributor: params.rewardDistributorId,
-      multiplier: params.multiplier || new BN(0),
     })
   );
 };
@@ -111,6 +109,23 @@ export const withClaimRewards = async (
       rewardDistributorData.parsed.kind,
       rewardDistributorData.parsed.rewardMint
     );
+
+    const [rewardEntryId] = await findRewardEntryId(
+      rewardDistributorData.pubkey,
+      params.originalMint
+    );
+    const rewardEntryData = await tryGetAccount(() =>
+      getRewardEntry(connection, rewardEntryId)
+    );
+
+    if (!rewardEntryData) {
+      transaction.add(
+        await initRewardEntry(connection, wallet, {
+          mint: params.originalMint,
+          rewardDistributor: rewardDistributorData.pubkey,
+        })
+      );
+    }
 
     transaction.add(
       await claimRewards(connection, wallet, {

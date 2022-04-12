@@ -3,7 +3,6 @@ use {crate::state::*, anchor_lang::prelude::*};
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct InitRewardEntryIx {
     pub mint: Pubkey,
-    pub multipler: u64,
 }
 
 #[derive(Accounts)]

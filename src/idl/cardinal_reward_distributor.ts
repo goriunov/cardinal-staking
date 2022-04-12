@@ -1,5 +1,5 @@
 export type CardinalRewardDistributor = {
-  version: "0.0.6";
+  version: "1.0.6";
   name: "cardinal_reward_distributor";
   instructions: [
     {
@@ -287,10 +287,6 @@ export type CardinalRewardDistributor = {
           {
             name: "mint";
             type: "publicKey";
-          },
-          {
-            name: "multipler";
-            type: "u64";
           }
         ];
       };
@@ -382,7 +378,7 @@ export type CardinalRewardDistributor = {
 };
 
 export const IDL: CardinalRewardDistributor = {
-  version: "0.0.6",
+  version: "1.0.6",
   name: "cardinal_reward_distributor",
   instructions: [
     {
@@ -670,10 +666,6 @@ export const IDL: CardinalRewardDistributor = {
           {
             name: "mint",
             type: "publicKey",
-          },
-          {
-            name: "multipler",
-            type: "u64",
           },
         ],
       },
