@@ -28,9 +28,6 @@ start:
 	solana-keygen pubkey ./tests/test-key.json
 	solana airdrop 1000 $(TEST_KEY) --url http://localhost:8899
 
-deploy:
-	anchor deploy --provider.cluster localnet
-
 test:
 	anchor test --skip-local-validator --skip-build --skip-deploy --provider.cluster localnet
 

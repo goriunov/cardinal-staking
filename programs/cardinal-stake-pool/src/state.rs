@@ -24,6 +24,7 @@ pub struct StakeEntry {
     pub last_staked_at: i64,
     pub total_stake_seconds: i128,
     pub stake_mint_claimed: bool,
+    pub kind: u8,
     pub stake_mint: Option<Pubkey>,
 }
 
@@ -52,10 +53,17 @@ pub struct Identifier {
     pub count: u64,
 }
 
-pub fn get_stake_seed(supply: u64, original_mint: Pubkey, user: Pubkey) -> Pubkey {
-    if supply > 1 {
-        user
-    } else {
-        original_mint
+#[derive(Clone, Debug, PartialEq, AnchorSerialize, AnchorDeserialize)]
+#[repr(u8)]
+pub enum StakeEntryKind {
+    Fungible = 0,
+    NonFungible = 1,
+}
+
+pub fn get_stake_seed(kind: u8, original_mint: Pubkey, user: Pubkey) -> Pubkey {
+    match kind {
+        k if k == StakeEntryKind::Fungible as u8 => user,
+        k if k == StakeEntryKind::NonFungible as u8 => original_mint,
+        _ => return original_mint,
     }
 }

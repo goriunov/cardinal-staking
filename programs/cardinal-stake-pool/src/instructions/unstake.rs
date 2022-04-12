@@ -36,8 +36,7 @@ pub fn handler(ctx: Context<UnstakeCtx>) -> Result<()> {
     let original_mint = stake_entry.original_mint;
     let user = ctx.accounts.user.key();
     let stake_pool = stake_entry.pool;
-    let supply = ctx.accounts.stake_entry_original_mint_token_account.amount;
-    let seed = get_stake_seed(supply, original_mint, user);
+    let seed = get_stake_seed(stake_entry.kind, original_mint, user);
 
     let stake_entry_seed = [STAKE_ENTRY_PREFIX.as_bytes(), stake_pool.as_ref(), seed.as_ref(), &[stake_entry.bump]];
     let stake_entry_signer = &[&stake_entry_seed[..]];

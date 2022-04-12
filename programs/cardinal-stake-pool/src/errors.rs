@@ -34,4 +34,6 @@ pub enum ErrorCode {
     InvalidTokenManagerProgram,
     #[msg("Invalid receipt mint")]
     InvalidReceiptMint,
+    #[msg("Invalid stake entry kind")]
+    InvalidStakeEntryKind,
 }

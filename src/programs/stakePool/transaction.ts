@@ -219,7 +219,6 @@ export const withInitStakeMint = async (
     stakeMintKeypair: web3.Keypair;
     name: string;
     symbol: string;
-    amount?: number;
   }
 ): Promise<[web3.Transaction, web3.Keypair]> => {
   const [[mintManagerId], originalMintMetadataId, stakeMintMetadataId] =
@@ -247,7 +246,6 @@ export const withInitStakeMint = async (
       mintManagerId: mintManagerId,
       name: params.name,
       symbol: params.symbol,
-      amount: new BN(params.amount || 1),
     })
   );
   return [transaction, params.stakeMintKeypair];

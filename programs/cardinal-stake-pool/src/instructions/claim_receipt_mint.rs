@@ -60,8 +60,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     let original_mint = stake_entry.original_mint;
     let user = ctx.accounts.user.key();
     let stake_pool = stake_entry.pool;
-    let supply = ctx.accounts.receipt_mint.supply;
-    let seed = get_stake_seed(supply, original_mint, user);
+    let seed = get_stake_seed(stake_entry.kind, original_mint, user);
 
     let stake_entry_seed = [STAKE_ENTRY_PREFIX.as_bytes(), stake_pool.as_ref(), seed.as_ref(), &[stake_entry.bump]];
     let stake_entry_signer = &[&stake_entry_seed[..]];
@@ -79,7 +78,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
 
     // token manager init
     let init_ix = cardinal_token_manager::instructions::InitIx {
-        amount: stake_entry.amount,
+        amount: 1, // todo change for fungible
         kind: token_manager_kind as u8,
         invalidation_type: InvalidationType::Return as u8,
         num_invalidators: 1,

@@ -434,6 +434,10 @@ export type CardinalStakePool = {
             type: "bool";
           },
           {
+            name: "kind";
+            type: "u8";
+          },
+          {
             name: "stakeMint";
             type: {
               option: "publicKey";
@@ -572,10 +576,20 @@ export type CardinalStakePool = {
           {
             name: "symbol";
             type: "string";
+          }
+        ];
+      };
+    },
+    {
+      name: "StakeEntryKind";
+      type: {
+        kind: "enum";
+        variants: [
+          {
+            name: "Fungible";
           },
           {
-            name: "amount";
-            type: "u64";
+            name: "NonFungible";
           }
         ];
       };
@@ -661,6 +675,11 @@ export type CardinalStakePool = {
       code: 6015;
       name: "InvalidReceiptMint";
       msg: "Invalid receipt mint";
+    },
+    {
+      code: 6016;
+      name: "InvalidStakeEntryKind";
+      msg: "Invalid stake entry kind";
     }
   ];
 };
@@ -1101,6 +1120,10 @@ export const IDL: CardinalStakePool = {
             type: "bool",
           },
           {
+            name: "kind",
+            type: "u8",
+          },
+          {
             name: "stakeMint",
             type: {
               option: "publicKey",
@@ -1240,9 +1263,19 @@ export const IDL: CardinalStakePool = {
             name: "symbol",
             type: "string",
           },
+        ],
+      },
+    },
+    {
+      name: "StakeEntryKind",
+      type: {
+        kind: "enum",
+        variants: [
           {
-            name: "amount",
-            type: "u64",
+            name: "Fungible",
+          },
+          {
+            name: "NonFungible",
           },
         ],
       },
@@ -1328,6 +1361,11 @@ export const IDL: CardinalStakePool = {
       code: 6015,
       name: "InvalidReceiptMint",
       msg: "Invalid receipt mint",
+    },
+    {
+      code: 6016,
+      name: "InvalidStakeEntryKind",
+      msg: "Invalid stake entry kind",
     },
   ],
 };
