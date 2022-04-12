@@ -66,7 +66,6 @@ export const initRewardEntry = async (
   params: {
     mint: PublicKey;
     rewardDistributor: PublicKey;
-    multiplier: BN;
   }
 ): Promise<TransactionInstruction> => {
   const provider = new Provider(connection, wallet, {});
@@ -82,7 +81,6 @@ export const initRewardEntry = async (
   return rewardDistributorProgram.instruction.initRewardEntry(
     {
       mint: params.mint,
-      multipler: params.multiplier,
     },
     {
       accounts: {

@@ -133,38 +133,38 @@ describe("Stake and claim rewards", () => {
     );
   });
 
-  it("Init Reward Entry", async () => {
-    const provider = getProvider();
-    const transaction = new Transaction();
-    const [rewardDistributorId] = await findRewardDistributorId(stakePoolId);
-    await rewardDistributor.transaction.withInitRewardEntry(
-      transaction,
-      provider.connection,
-      provider.wallet,
-      {
-        mintId: originalMint.publicKey,
-        rewardDistributorId: rewardDistributorId,
-      }
-    );
+  // it("Init Reward Entry", async () => {
+  //   const provider = getProvider();
+  //   const transaction = new Transaction();
+  //   const [rewardDistributorId] = await findRewardDistributorId(stakePoolId);
+  //   await rewardDistributor.transaction.withInitRewardEntry(
+  //     transaction,
+  //     provider.connection,
+  //     provider.wallet,
+  //     {
+  //       mintId: originalMint.publicKey,
+  //       rewardDistributorId: rewardDistributorId,
+  //     }
+  //   );
 
-    const txEnvelope = new TransactionEnvelope(SolanaProvider.init(provider), [
-      ...transaction.instructions,
-    ]);
+  //   const txEnvelope = new TransactionEnvelope(SolanaProvider.init(provider), [
+  //     ...transaction.instructions,
+  //   ]);
 
-    await expectTXTable(txEnvelope, "Init reward entry", {
-      verbosity: "error",
-      formatLogs: true,
-    }).to.be.fulfilled;
+  //   await expectTXTable(txEnvelope, "Init reward entry", {
+  //     verbosity: "error",
+  //     formatLogs: true,
+  //   }).to.be.fulfilled;
 
-    const rewardDistributorData = await getRewardDistributor(
-      provider.connection,
-      rewardDistributorId
-    );
+  //   const rewardDistributorData = await getRewardDistributor(
+  //     provider.connection,
+  //     rewardDistributorId
+  //   );
 
-    expect(rewardDistributorData.parsed.rewardMint.toString()).to.eq(
-      rewardMint.publicKey.toString()
-    );
-  });
+  //   expect(rewardDistributorData.parsed.rewardMint.toString()).to.eq(
+  //     rewardMint.publicKey.toString()
+  //   );
+  // });
 
   it("Init stake entry for pool", async () => {
     const provider = getProvider();
