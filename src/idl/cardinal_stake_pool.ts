@@ -178,7 +178,7 @@ export type CardinalStakePool = {
         },
         {
           name: "payer";
-          isMut: true;
+          isMut: false;
           isSigner: true;
         },
         {
@@ -845,7 +845,7 @@ export const IDL: CardinalStakePool = {
         },
         {
           name: "payer",
-          isMut: true,
+          isMut: false,
           isSigner: true,
         },
         {

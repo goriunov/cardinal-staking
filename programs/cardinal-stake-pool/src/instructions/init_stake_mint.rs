@@ -45,7 +45,7 @@ pub struct InitStakeMintCtx<'info> {
     #[account(mut)]
     mint_manager: UncheckedAccount<'info>,
 
-    #[account(mut, constraint = payer.key() == stake_pool.authority)]
+    // #[account(mut, constraint = payer.key() == stake_pool.authority)]
     payer: Signer<'info>,
     rent: Sysvar<'info, Rent>,
     token_program: Program<'info, Token>,

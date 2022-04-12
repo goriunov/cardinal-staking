@@ -1,4 +1,7 @@
-import { withFindOrInitAssociatedTokenAccount } from "@cardinal/common";
+import {
+  findAta,
+  withFindOrInitAssociatedTokenAccount,
+} from "@cardinal/common";
 import type { Wallet } from "@saberhq/solana-contrib";
 import type {
   AccountMeta,
@@ -31,15 +34,11 @@ export const withRemainingAccountsForKind = async (
           wallet.publicKey,
           true
         );
-      const userRewardMintTokenAccountId =
-        await withFindOrInitAssociatedTokenAccount(
-          transaction,
-          connection,
-          rewardMint,
-          wallet.publicKey,
-          wallet.publicKey,
-          true
-        );
+      const userRewardMintTokenAccountId = await findAta(
+        rewardMint,
+        wallet.publicKey,
+        true
+      );
       return [
         {
           pubkey: rewardDistributorRewardMintTokenAccountId,
