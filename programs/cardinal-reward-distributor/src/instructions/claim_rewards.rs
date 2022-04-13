@@ -83,6 +83,20 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
                 let reward_distributor_token_account_info = next_account_info(remaining_accs)?;
                 let reward_distributor_token_account = Account::<TokenAccount>::try_from(reward_distributor_token_account_info)?;
 
+                if reward_amount_to_receive > reward_distributor_token_account.amount {
+                    reward_amount_to_receive = reward_distributor_token_account.amount;
+
+                    // this is nuanced about if the rewards are closed, should they get the reward time for that time even though they didnt get any rewards?
+                    // this only matters if the reward distributor becomes open again and they missed out on some rewards they coudlve gotten
+                    reward_time_to_receive = reward_amount_to_receive
+                        .checked_div(reward_amount)
+                        .unwrap()
+                        .checked_mul(reward_duration_seconds)
+                        .unwrap()
+                        .checked_div(reward_entry.multiplier)
+                        .unwrap();
+                }
+
                 let cpi_accounts = token::Transfer {
                     from: reward_distributor_token_account.to_account_info(),
                     to: ctx.accounts.user_reward_mint_token_account.to_account_info(),
