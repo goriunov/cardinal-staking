@@ -72,6 +72,7 @@ pub fn handler(ctx: Context<UnstakeCtx>) -> Result<()> {
     stake_entry.last_staker = Pubkey::default();
     stake_entry.original_mint_claimed = false;
     stake_entry.stake_mint_claimed = false;
+    stake_entry.amount = 0;
 
     Ok(())
 }

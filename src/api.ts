@@ -1,8 +1,8 @@
 import { tryGetAccount } from "@cardinal/common";
 import type { BN } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
-import type { Connection, PublicKey } from "@solana/web3.js";
-import { Keypair, Transaction } from "@solana/web3.js";
+import type { Connection } from "@solana/web3.js";
+import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
 
 import type { RewardDistributorKind } from "./programs/rewardDistributor";
 import {
@@ -286,6 +286,11 @@ export const stake = async (
     amount?: BN;
   }
 ): Promise<Transaction> => {
+  const supply = await getMintSupply(connection, params.originalMintId);
+  if (supply > 1 && params.receiptType === ReceiptType.Original) {
+    throw new Error("Fungible with receipt type Original is not supported yet");
+  }
+
   let transaction = new Transaction();
   const [stakeEntryId] = await findStakeEntryId(
     connection,
@@ -302,6 +307,14 @@ export const stake = async (
       originalMintId: params.originalMintId,
       user: params.user,
     });
+  } else if (
+    stakeEntryData.parsed.lastStaker.toString() !==
+      PublicKey.default.toString() &&
+    supply > 1
+  ) {
+    throw new Error(
+      "User has fungible tokens already staked in the pool. Staked tokens need to be unstaked and then restaked together with the new tokens."
+    );
   }
 
   await withStake(transaction, connection, wallet, {
@@ -317,6 +330,7 @@ export const stake = async (
       stakeEntryData?.parsed.stakeMint
         ? stakeEntryData?.parsed.stakeMint
         : params.originalMintId;
+
     await withClaimReceiptMint(transaction, connection, wallet, {
       stakePoolId: params.stakePoolId,
       stakeEntryId: stakeEntryId,

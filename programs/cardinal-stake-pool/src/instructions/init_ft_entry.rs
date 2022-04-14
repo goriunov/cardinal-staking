@@ -38,6 +38,7 @@ pub fn handler(ctx: Context<InitFtEntryCtx>) -> Result<()> {
     stake_entry.pool = ctx.accounts.stake_pool.key();
     stake_entry.original_mint = ctx.accounts.original_mint.key();
     stake_entry.kind = StakeEntryKind::Fungible as u8;
+    stake_entry.amount = 0;
 
     // check allowlist
     if !stake_pool.requires_creators.is_empty() || !stake_pool.requires_collections.is_empty() || stake_pool.requires_authorization {

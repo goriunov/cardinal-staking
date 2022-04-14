@@ -5,6 +5,7 @@ import { SolanaProvider, TransactionEnvelope } from "@saberhq/solana-contrib";
 import * as splToken from "@solana/spl-token";
 import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
 import { expect } from "chai";
+import { assert } from "console";
 
 import {
   createStakeEntryAndStakeMint,
@@ -200,7 +201,7 @@ describe("Create stake pool", () => {
     expect((await checkMint.getMintInfo()).isInitialized).to.be.true;
   });
 
-  it("Stake", async () => {
+  it("Stake half", async () => {
     const provider = getProvider();
 
     await expectTXTable(
@@ -211,11 +212,11 @@ describe("Create stake pool", () => {
             originalMintId: originalMint.publicKey,
             userOriginalMintTokenAccountId: originalMintTokenAccountId,
             receiptType: ReceiptType.Receipt,
-            amount: new BN(stakingAmount),
+            amount: new BN(stakingAmount / 2),
           })
         ).instructions,
       ]),
-      "Stake"
+      "Stake half"
     ).to.be.fulfilled;
 
     const stakeEntryData = await getStakeEntry(
@@ -248,7 +249,7 @@ describe("Create stake pool", () => {
       true
     );
 
-    expect(stakeEntryData.parsed.amount.toNumber()).to.eq(10);
+    expect(stakeEntryData.parsed.amount.toNumber()).to.eq(stakingAmount / 2);
     expect(stakeEntryData.parsed.lastStakedAt.toNumber()).to.be.greaterThan(0);
     expect(stakeEntryData.parsed.lastStaker.toString()).to.eq(
       provider.wallet.publicKey.toString()
@@ -257,11 +258,15 @@ describe("Create stake pool", () => {
     const checkUserOriginalTokenAccount = await originalMint.getAccountInfo(
       userOriginalMintTokenAccountId
     );
-    expect(checkUserOriginalTokenAccount.amount.toNumber()).to.eq(0);
+    expect(checkUserOriginalTokenAccount.amount.toNumber()).to.eq(
+      stakingAmount / 2
+    );
 
     const checkStakeEntryOriginalMintTokenAccount =
       await originalMint.getAccountInfo(stakeEntryOriginalMintTokenAccountId);
-    expect(checkStakeEntryOriginalMintTokenAccount.amount.toNumber()).to.eq(10);
+    expect(checkStakeEntryOriginalMintTokenAccount.amount.toNumber()).to.eq(
+      stakingAmount / 2
+    );
 
     const checkReceiptMint = new splToken.Token(
       provider.connection,
@@ -275,6 +280,26 @@ describe("Create stake pool", () => {
       userReceiptTokenAccountId
     );
     expect(userReceiptTokenAccount.amount.toNumber()).to.eq(1);
+  });
+
+  it("Stake another half", async () => {
+    const provider = getProvider();
+
+    try {
+      await stake(provider.connection, provider.wallet, {
+        stakePoolId: stakePoolId,
+        originalMintId: originalMint.publicKey,
+        userOriginalMintTokenAccountId: originalMintTokenAccountId,
+        receiptType: ReceiptType.Receipt,
+        amount: new BN(stakingAmount / 2),
+      });
+      assert(
+        false,
+        "Staked ix should have failed because there are tokens already staked"
+      );
+    } catch (e) {
+      assert(true);
+    }
   });
 
   it("Unstake", async () => {
