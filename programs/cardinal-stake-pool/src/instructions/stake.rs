@@ -11,8 +11,8 @@ pub struct StakeCtx<'info> {
 
     // stake_entry token accounts
     #[account(mut, constraint =
-        // stake_entry_original_mint_token_account.amount == 0
-        stake_entry_original_mint_token_account.mint == stake_entry.original_mint
+        stake_entry_original_mint_token_account.amount == 0
+        && stake_entry_original_mint_token_account.mint == stake_entry.original_mint
         && stake_entry_original_mint_token_account.owner == stake_entry.key()
         @ ErrorCode::InvalidStakeEntryOriginalMintTokenAccount)]
     stake_entry_original_mint_token_account: Box<Account<'info, TokenAccount>>,
@@ -47,7 +47,7 @@ pub fn handler(ctx: Context<StakeCtx>, amount: u64) -> Result<()> {
     // update stake entry
     stake_entry.last_staked_at = Clock::get().unwrap().unix_timestamp;
     stake_entry.last_staker = ctx.accounts.user.key();
-    stake_entry.amount += amount;
+    stake_entry.amount = amount;
 
     Ok(())
 }
