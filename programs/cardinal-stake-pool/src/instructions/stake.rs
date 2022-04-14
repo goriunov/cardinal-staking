@@ -11,8 +11,8 @@ pub struct StakeCtx<'info> {
 
     // stake_entry token accounts
     #[account(mut, constraint =
-        stake_entry_original_mint_token_account.amount == 0
-        && stake_entry_original_mint_token_account.mint == stake_entry.original_mint
+        // stake_entry_original_mint_token_account.amount == 0
+        stake_entry_original_mint_token_account.mint == stake_entry.original_mint
         && stake_entry_original_mint_token_account.owner == stake_entry.key()
         @ ErrorCode::InvalidStakeEntryOriginalMintTokenAccount)]
     stake_entry_original_mint_token_account: Box<Account<'info, TokenAccount>>,

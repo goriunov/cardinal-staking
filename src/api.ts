@@ -1,8 +1,9 @@
-import { tryGetAccount } from "@cardinal/common";
-import { BN } from "@project-serum/anchor";
+import { findAta, tryGetAccount } from "@cardinal/common";
+import type { BN } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
-import type { Connection } from "@solana/web3.js";
-import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
+import * as splToken from "@solana/spl-token";
+import type { Connection, PublicKey } from "@solana/web3.js";
+import { Keypair, Transaction } from "@solana/web3.js";
 
 import type { RewardDistributorKind } from "./programs/rewardDistributor";
 import {
@@ -292,7 +293,7 @@ export const stake = async (
   }
 
   let transaction = new Transaction();
-  let stakedAmount = new BN(0);
+  // let stakedAmount = new BN(0);
   const [stakeEntryId] = await findStakeEntryId(
     connection,
     wallet.publicKey,
@@ -308,25 +309,24 @@ export const stake = async (
       originalMintId: params.originalMintId,
       user: params.user,
     });
-  } else {
-    if (
-      stakeEntryData.parsed.lastStaker.toString() !==
-        PublicKey.default.toString() &&
-      supply > 1
-    ) {
-      stakedAmount = stakeEntryData.parsed.amount;
-      await withUnstake(transaction, connection, wallet, {
-        stakePoolId: params.stakePoolId,
-        originalMintId: params.originalMintId,
-      });
-    }
   }
+  // else if (
+  //   stakeEntryData.parsed.lastStaker.toString() !==
+  //     PublicKey.default.toString() &&
+  //   supply > 1
+  // ) {
+  //   stakedAmount = stakeEntryData.parsed.amount;
+  //   await withUnstake(transaction, connection, wallet, {
+  //     stakePoolId: params.stakePoolId,
+  //     originalMintId: params.originalMintId,
+  //   });
+  // }
 
   await withStake(transaction, connection, wallet, {
     stakePoolId: params.stakePoolId,
     originalMintId: params.originalMintId,
     userOriginalMintTokenAccountId: params.userOriginalMintTokenAccountId,
-    amount: params.amount?.add(stakedAmount),
+    amount: params.amount,
   });
 
   if (params.receiptType) {
@@ -335,12 +335,41 @@ export const stake = async (
       stakeEntryData?.parsed.stakeMint
         ? stakeEntryData?.parsed.stakeMint
         : params.originalMintId;
-    await withClaimReceiptMint(transaction, connection, wallet, {
-      stakePoolId: params.stakePoolId,
-      stakeEntryId: stakeEntryId,
-      receiptMintId: receiptMintId,
-      receiptType: params.receiptType,
-    });
+
+    // check if user already has receipt
+    const userReceiptMintTokenAccount = await findAta(
+      receiptMintId,
+      wallet.publicKey,
+      true
+    );
+    const rceiptkMint = new splToken.Token(
+      connection,
+      receiptMintId,
+      splToken.TOKEN_PROGRAM_ID,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      null
+    );
+    let claimReceiptMint = true;
+    try {
+      const account = await rceiptkMint.getAccountInfo(
+        userReceiptMintTokenAccount
+      );
+      if (account.amount.toNumber() > 0) {
+        claimReceiptMint = false;
+      }
+    } catch (e) {
+      ("pass");
+    }
+
+    if (claimReceiptMint) {
+      await withClaimReceiptMint(transaction, connection, wallet, {
+        stakePoolId: params.stakePoolId,
+        stakeEntryId: stakeEntryId,
+        receiptMintId: receiptMintId,
+        receiptType: params.receiptType,
+      });
+    }
   }
 
   return transaction;

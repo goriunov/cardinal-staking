@@ -215,7 +215,7 @@ describe("Create stake pool", () => {
           })
         ).instructions,
       ]),
-      "Stake"
+      "Stake half"
     ).to.be.fulfilled;
 
     const stakeEntryData = await getStakeEntry(
@@ -296,7 +296,7 @@ describe("Create stake pool", () => {
           })
         ).instructions,
       ]),
-      "Stake"
+      "Stake another half"
     ).to.be.fulfilled;
 
     const stakeEntryData = await getStakeEntry(
