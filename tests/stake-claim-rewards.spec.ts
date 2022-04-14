@@ -28,6 +28,8 @@ import { findStakeEntryId } from "../src/programs/stakePool/pda";
 import { createMasterEditionIxs, createMint, delay } from "./utils";
 import { getProvider } from "./workspace";
 
+// reward distributor with mint youre are not authority
+
 describe("Stake and claim rewards", () => {
   let originalMintTokenAccountId: PublicKey;
   let originalMint: splToken.Token;

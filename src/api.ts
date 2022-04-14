@@ -286,6 +286,11 @@ export const stake = async (
     amount?: BN;
   }
 ): Promise<Transaction> => {
+  const supply = await getMintSupply(connection, params.originalMintId);
+  if (supply > 1 && ReceiptType.Original) {
+    throw new Error("Fungible with receipt type Original is not supported yet");
+  }
+
   let transaction = new Transaction();
   const [stakeEntryId] = await findStakeEntryId(
     connection,
