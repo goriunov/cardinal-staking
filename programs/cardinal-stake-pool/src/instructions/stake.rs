@@ -47,7 +47,7 @@ pub fn handler(ctx: Context<StakeCtx>, amount: u64) -> Result<()> {
     // update stake entry
     stake_entry.last_staked_at = Clock::get().unwrap().unix_timestamp;
     stake_entry.last_staker = ctx.accounts.user.key();
-    stake_entry.amount = amount;
+    stake_entry.amount += amount;
 
     Ok(())
 }
