@@ -206,7 +206,7 @@ export const createStakeEntryAndStakeMint = async (
     stakePoolId: PublicKey;
     originalMintId: PublicKey;
   }
-): Promise<[Transaction, Keypair, PublicKey]> => {
+): Promise<[Transaction, PublicKey, Keypair | undefined]> => {
   let transaction = new Transaction();
   const [stakeEntryId] = await findStakeEntryId(
     connection,
@@ -226,19 +226,22 @@ export const createStakeEntryAndStakeMint = async (
     )[0];
   }
 
-  const stakeMintKeypair = Keypair.generate();
-  const stakePool = await getStakePool(connection, params.stakePoolId);
+  let stakeMintKeypair: Keypair | undefined;
+  if (!stakeEntryData?.parsed.stakeMint) {
+    stakeMintKeypair = Keypair.generate();
+    const stakePool = await getStakePool(connection, params.stakePoolId);
 
-  await withInitStakeMint(transaction, connection, wallet, {
-    stakePoolId: params.stakePoolId,
-    stakeEntryId: stakeEntryId,
-    originalMintId: params.originalMintId,
-    stakeMintKeypair,
-    name: `POOl${stakePool.parsed.identifier.toString()} RECEIPT`,
-    symbol: `POOl${stakePool.parsed.identifier.toString()}`,
-  });
+    await withInitStakeMint(transaction, connection, wallet, {
+      stakePoolId: params.stakePoolId,
+      stakeEntryId: stakeEntryId,
+      originalMintId: params.originalMintId,
+      stakeMintKeypair,
+      name: `POOl${stakePool.parsed.identifier.toString()} RECEIPT`,
+      symbol: `POOl${stakePool.parsed.identifier.toString()}`,
+    });
+  }
 
-  return [transaction, stakeMintKeypair, stakeEntryId];
+  return [transaction, stakeEntryId, stakeMintKeypair];
 };
 
 /**

@@ -198,7 +198,7 @@ describe("Stake and claim rewards from treasury", () => {
     const provider = getProvider();
     let transaction: web3.Transaction;
 
-    [transaction, stakeMintKeypair] = await createStakeEntryAndStakeMint(
+    [transaction, , stakeMintKeypair] = await createStakeEntryAndStakeMint(
       provider.connection,
       provider.wallet,
       {

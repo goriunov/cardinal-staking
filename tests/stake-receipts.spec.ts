@@ -53,7 +53,7 @@ describe("Create stake pool", () => {
     const provider = getProvider();
     let transaction: web3.Transaction;
 
-    [transaction, stakeMintKeypair] = await createStakeEntryAndStakeMint(
+    [transaction, , stakeMintKeypair] = await createStakeEntryAndStakeMint(
       provider.connection,
       provider.wallet,
       {
