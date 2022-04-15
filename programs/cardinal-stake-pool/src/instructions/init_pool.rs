@@ -8,6 +8,7 @@ pub struct InitPoolIx {
     requires_creators: Vec<Pubkey>,
     requires_authorization: bool,
     authority: Pubkey,
+    reset_on_unstake: bool,
 }
 
 #[derive(Accounts)]
@@ -40,6 +41,7 @@ pub fn handler(ctx: Context<InitPoolCtx>, ix: InitPoolIx) -> Result<()> {
     stake_pool.overlay_text = ix.overlay_text;
     stake_pool.image_uri = ix.image_uri;
     stake_pool.authority = ix.authority;
+    stake_pool.reset_on_unstake = ix.reset_on_unstake;
 
     let identifier = &mut ctx.accounts.identifier;
     identifier.count += 1;

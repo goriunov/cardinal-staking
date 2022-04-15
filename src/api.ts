@@ -44,6 +44,7 @@ export const createStakePool = async (
     requiresAuthorization?: boolean;
     overlayText?: string;
     imageUri?: string;
+    resetOnUnstake?: boolean;
   }
 ): Promise<[Transaction, PublicKey]> =>
   withInitStakePool(new Transaction(), connection, wallet, params);
