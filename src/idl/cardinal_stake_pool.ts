@@ -363,6 +363,11 @@ export type CardinalStakePool = {
       name: "unstake";
       accounts: [
         {
+          name: "stakePool";
+          isMut: true;
+          isSigner: false;
+        },
+        {
           name: "stakeEntry";
           isMut: true;
           isSigner: false;
@@ -486,6 +491,10 @@ export type CardinalStakePool = {
           {
             name: "imageUri";
             type: "string";
+          },
+          {
+            name: "resetOnUnstake";
+            type: "bool";
           }
         ];
       };
@@ -560,6 +569,10 @@ export type CardinalStakePool = {
           {
             name: "authority";
             type: "publicKey";
+          },
+          {
+            name: "resetOnUnstake";
+            type: "bool";
           }
         ];
       };
@@ -1049,6 +1062,11 @@ export const IDL: CardinalStakePool = {
       name: "unstake",
       accounts: [
         {
+          name: "stakePool",
+          isMut: true,
+          isSigner: false,
+        },
+        {
           name: "stakeEntry",
           isMut: true,
           isSigner: false,
@@ -1173,6 +1191,10 @@ export const IDL: CardinalStakePool = {
             name: "imageUri",
             type: "string",
           },
+          {
+            name: "resetOnUnstake",
+            type: "bool",
+          },
         ],
       },
     },
@@ -1246,6 +1268,10 @@ export const IDL: CardinalStakePool = {
           {
             name: "authority",
             type: "publicKey",
+          },
+          {
+            name: "resetOnUnstake",
+            type: "bool",
           },
         ],
       },

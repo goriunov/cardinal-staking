@@ -38,6 +38,7 @@ pub struct StakePool {
     pub requires_authorization: bool,
     pub overlay_text: String,
     pub image_uri: String,
+    pub reset_on_unstake: bool,
 }
 
 #[account]
