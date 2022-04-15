@@ -33,7 +33,7 @@ describe("Create stake pool", () => {
   const stakingAmount = 10;
   const originalMintAuthority = Keypair.generate();
   const rewardMintAuthority = Keypair.generate();
-  let stakeMintKeypair: Keypair;
+  let stakeMintKeypair: Keypair | undefined;
 
   before(async () => {
     const provider = getProvider();
@@ -151,7 +151,7 @@ describe("Create stake pool", () => {
     const provider = getProvider();
     let transaction: Transaction;
 
-    [transaction, stakeMintKeypair] = await createStakeEntryAndStakeMint(
+    [transaction, , stakeMintKeypair] = await createStakeEntryAndStakeMint(
       provider.connection,
       provider.wallet,
       {
@@ -164,7 +164,7 @@ describe("Create stake pool", () => {
       new TransactionEnvelope(
         SolanaProvider.init(provider),
         [...transaction.instructions],
-        [stakeMintKeypair]
+        stakeMintKeypair ? [stakeMintKeypair] : []
       ),
       "Init fungible stake entry"
     ).to.be.fulfilled;
@@ -185,20 +185,22 @@ describe("Create stake pool", () => {
       originalMint.publicKey.toString()
     );
     expect(stakeEntryData.parsed.pool.toString()).to.eq(stakePoolId.toString());
-    expect(stakeEntryData.parsed.stakeMint?.toString()).to.eq(
-      stakeMintKeypair.publicKey.toString()
-    );
+    if (stakeMintKeypair) {
+      expect(stakeEntryData.parsed.stakeMint?.toString()).to.eq(
+        stakeMintKeypair.publicKey.toString()
+      );
 
-    const checkMint = new splToken.Token(
-      provider.connection,
-      stakeMintKeypair.publicKey,
-      splToken.TOKEN_PROGRAM_ID,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      null
-    );
+      const checkMint = new splToken.Token(
+        provider.connection,
+        stakeMintKeypair.publicKey,
+        splToken.TOKEN_PROGRAM_ID,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        null
+      );
 
-    expect((await checkMint.getMintInfo()).isInitialized).to.be.true;
+      expect((await checkMint.getMintInfo()).isInitialized).to.be.true;
+    }
   });
 
   it("Stake half", async () => {
@@ -243,43 +245,47 @@ describe("Create stake pool", () => {
       true
     );
 
-    const userReceiptTokenAccountId = await findAta(
-      stakeMintKeypair.publicKey,
-      provider.wallet.publicKey,
-      true
-    );
+    if (stakeMintKeypair) {
+      const userReceiptTokenAccountId = await findAta(
+        stakeMintKeypair.publicKey,
+        provider.wallet.publicKey,
+        true
+      );
 
-    expect(stakeEntryData.parsed.amount.toNumber()).to.eq(stakingAmount / 2);
-    expect(stakeEntryData.parsed.lastStakedAt.toNumber()).to.be.greaterThan(0);
-    expect(stakeEntryData.parsed.lastStaker.toString()).to.eq(
-      provider.wallet.publicKey.toString()
-    );
+      expect(stakeEntryData.parsed.amount.toNumber()).to.eq(stakingAmount / 2);
+      expect(stakeEntryData.parsed.lastStakedAt.toNumber()).to.be.greaterThan(
+        0
+      );
+      expect(stakeEntryData.parsed.lastStaker.toString()).to.eq(
+        provider.wallet.publicKey.toString()
+      );
 
-    const checkUserOriginalTokenAccount = await originalMint.getAccountInfo(
-      userOriginalMintTokenAccountId
-    );
-    expect(checkUserOriginalTokenAccount.amount.toNumber()).to.eq(
-      stakingAmount / 2
-    );
+      const checkUserOriginalTokenAccount = await originalMint.getAccountInfo(
+        userOriginalMintTokenAccountId
+      );
+      expect(checkUserOriginalTokenAccount.amount.toNumber()).to.eq(
+        stakingAmount / 2
+      );
 
-    const checkStakeEntryOriginalMintTokenAccount =
-      await originalMint.getAccountInfo(stakeEntryOriginalMintTokenAccountId);
-    expect(checkStakeEntryOriginalMintTokenAccount.amount.toNumber()).to.eq(
-      stakingAmount / 2
-    );
+      const checkStakeEntryOriginalMintTokenAccount =
+        await originalMint.getAccountInfo(stakeEntryOriginalMintTokenAccountId);
+      expect(checkStakeEntryOriginalMintTokenAccount.amount.toNumber()).to.eq(
+        stakingAmount / 2
+      );
 
-    const checkReceiptMint = new splToken.Token(
-      provider.connection,
-      stakeMintKeypair.publicKey,
-      splToken.TOKEN_PROGRAM_ID,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      null
-    );
-    const userReceiptTokenAccount = await checkReceiptMint.getAccountInfo(
-      userReceiptTokenAccountId
-    );
-    expect(userReceiptTokenAccount.amount.toNumber()).to.eq(1);
+      const checkReceiptMint = new splToken.Token(
+        provider.connection,
+        stakeMintKeypair.publicKey,
+        splToken.TOKEN_PROGRAM_ID,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        null
+      );
+      const userReceiptTokenAccount = await checkReceiptMint.getAccountInfo(
+        userReceiptTokenAccountId
+      );
+      expect(userReceiptTokenAccount.amount.toNumber()).to.eq(1);
+    }
   });
 
   it("Stake another half", async () => {

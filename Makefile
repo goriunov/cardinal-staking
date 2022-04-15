@@ -24,7 +24,7 @@ start:
 		--bpf-program ./target/deploy/cardinal_stake_pool-keypair.json ./target/deploy/cardinal_stake_pool.so \
 		--bpf-program ./target/deploy/cardinal_reward_distributor-keypair.json ./target/deploy/cardinal_reward_distributor.so \
 		--reset --quiet & echo $$! > validator.PID
-	sleep 5
+	sleep 10
 	solana-keygen pubkey ./tests/test-key.json
 	solana airdrop 1000 $(TEST_KEY) --url http://localhost:8899
 

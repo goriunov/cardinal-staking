@@ -31,7 +31,7 @@ describe("Stake and claim rewards from treasury", () => {
   const maxSupply = 5; // 5 wsol
 
   let stakePoolId: web3.PublicKey;
-  let stakeMintKeypair: web3.Keypair;
+  let stakeMintKeypair: web3.Keypair | undefined;
   let originalMint: splToken.Token;
   const rewardMint = new web3.PublicKey(
     "So11111111111111111111111111111111111111112"
@@ -142,7 +142,7 @@ describe("Stake and claim rewards from treasury", () => {
     const provider = getProvider();
     let transaction: web3.Transaction;
 
-    [transaction, stakeMintKeypair] = await createStakeEntryAndStakeMint(
+    [transaction, , stakeMintKeypair] = await createStakeEntryAndStakeMint(
       provider.connection,
       provider.wallet,
       {
@@ -210,31 +210,34 @@ describe("Stake and claim rewards from treasury", () => {
       )[0]
     );
 
-    const userReceiptMintTokenAccountId = await findAta(
-      stakeMintKeypair.publicKey,
-      provider.wallet.publicKey,
-      true
-    );
+    if (stakeMintKeypair) {
+      const userReceiptMintTokenAccountId = await findAta(
+        stakeMintKeypair.publicKey,
+        provider.wallet.publicKey,
+        true
+      );
 
-    expect(stakeEntryData.parsed.lastStakedAt.toNumber()).to.be.greaterThan(0);
-    expect(stakeEntryData.parsed.lastStaker.toString()).to.eq(
-      provider.wallet.publicKey.toString()
-    );
+      expect(stakeEntryData.parsed.lastStakedAt.toNumber()).to.be.greaterThan(
+        0
+      );
+      expect(stakeEntryData.parsed.lastStaker.toString()).to.eq(
+        provider.wallet.publicKey.toString()
+      );
 
-    const receiptMint = new splToken.Token(
-      provider.connection,
-      stakeMintKeypair.publicKey,
-      splToken.TOKEN_PROGRAM_ID,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      null
-    );
+      const receiptMint = new splToken.Token(
+        provider.connection,
+        stakeMintKeypair.publicKey,
+        splToken.TOKEN_PROGRAM_ID,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        null
+      );
 
-    const checkUserReceiptMintTokenAccountId = await receiptMint.getAccountInfo(
-      userReceiptMintTokenAccountId
-    );
-    expect(checkUserReceiptMintTokenAccountId.amount.toNumber()).to.eq(1);
-    expect(checkUserReceiptMintTokenAccountId.isFrozen).to.eq(true);
+      const checkUserReceiptMintTokenAccountId =
+        await receiptMint.getAccountInfo(userReceiptMintTokenAccountId);
+      expect(checkUserReceiptMintTokenAccountId.amount.toNumber()).to.eq(1);
+      expect(checkUserReceiptMintTokenAccountId.isFrozen).to.eq(true);
+    }
   });
 
   it("Claim Rewards", async () => {

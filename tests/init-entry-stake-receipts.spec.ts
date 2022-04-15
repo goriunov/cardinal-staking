@@ -56,7 +56,7 @@ describe("Create stake pool", () => {
     const provider = getProvider();
     let transaction: web3.Transaction;
 
-    [transaction, stakeMintKeypair] = await createStakeEntryAndStakeMint(
+    [transaction, , stakeMintKeypair] = await createStakeEntryAndStakeMint(
       provider.connection,
       provider.wallet,
       {
@@ -69,7 +69,7 @@ describe("Create stake pool", () => {
       new TransactionEnvelope(
         SolanaProvider.init(provider),
         transaction.instructions,
-        [stakeMintKeypair]
+        stakeMintKeypair ? [stakeMintKeypair] : []
       ),
       "Init stake entry"
     ).to.be.fulfilled;
