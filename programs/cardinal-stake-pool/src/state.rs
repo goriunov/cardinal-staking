@@ -5,7 +5,7 @@ pub const STAKE_ENTRY_SIZE: usize = 8 + std::mem::size_of::<StakeEntry>() + 8;
 
 pub const STAKE_POOL_PREFIX: &str = "stake-pool";
 // 5 Pubkeys for creators and collections
-pub const STAKE_POOL_SIZE: usize = 8 + 1 + 8 + 32 + 32 * 5 + 256;
+pub const STAKE_POOL_SIZE: usize = 8 + 1 + 8 + 1 + 32 + 32 * 5 + 256;
 
 pub const IDENTIFIER_PREFIX: &str = "identifier";
 pub const IDENTIFIER_SIZE: usize = 8 + std::mem::size_of::<Identifier>() + 8;
