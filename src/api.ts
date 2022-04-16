@@ -1,22 +1,21 @@
-import { tryGetAccount } from "@cardinal/common";
+import {
+  tryGetAccount,
+  withFindOrInitAssociatedTokenAccount,
+} from "@cardinal/common";
 import type { BN } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
 import type { Connection } from "@solana/web3.js";
 import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
 
 import type { RewardDistributorKind } from "./programs/rewardDistributor";
-import {
-  withClaimRewards,
-  withInitRewardDistributor,
-} from "./programs/rewardDistributor/transaction";
+import { withInitRewardDistributor } from "./programs/rewardDistributor/transaction";
 import { ReceiptType } from "./programs/stakePool";
 import { getStakeEntry, getStakePool } from "./programs/stakePool/accounts";
 import { findStakeEntryId } from "./programs/stakePool/pda";
 import {
   withAuthorizeStakeEntry,
   withClaimReceiptMint,
-  withInitFungibleStakeEntry,
-  withInitNFTStakeEntry,
+  withInitStakeEntry,
   withInitStakeMint,
   withInitStakePool,
   withStake,
@@ -150,22 +149,12 @@ export const createStakeEntry = async (
   params: {
     stakePoolId: PublicKey;
     originalMintId: PublicKey;
-    user?: PublicKey;
   }
 ): Promise<[Transaction, PublicKey]> => {
-  const supply = await getMintSupply(connection, params.originalMintId);
-  if (supply > 1) {
-    return withInitFungibleStakeEntry(new Transaction(), connection, wallet, {
-      stakePoolId: params.stakePoolId,
-      originalMintId: params.originalMintId,
-      user: params.user || wallet.publicKey,
-    });
-  } else {
-    return withInitNFTStakeEntry(new Transaction(), connection, wallet, {
-      stakePoolId: params.stakePoolId,
-      originalMintId: params.originalMintId,
-    });
-  }
+  return withInitStakeEntry(new Transaction(), connection, wallet, {
+    stakePoolId: params.stakePoolId,
+    originalMintId: params.originalMintId,
+  });
 };
 
 /**
@@ -258,12 +247,31 @@ export const claimRewards = async (
   params: {
     stakePoolId: PublicKey;
     originalMintId: PublicKey;
+    amount?: BN;
   }
-): Promise<Transaction> =>
-  await withClaimRewards(new Transaction(), connection, wallet, {
+): Promise<Transaction> => {
+  const transaction = new Transaction();
+  await withUnstake(transaction, connection, wallet, params);
+
+  const userOriginalMintTokenAccountId =
+    await withFindOrInitAssociatedTokenAccount(
+      transaction,
+      connection,
+      params.originalMintId,
+      wallet.publicKey,
+      wallet.publicKey,
+      true
+    );
+
+  await withStake(transaction, connection, wallet, {
     stakePoolId: params.stakePoolId,
-    originalMint: params.originalMintId,
+    originalMintId: params.originalMintId,
+    userOriginalMintTokenAccountId: userOriginalMintTokenAccountId,
+    amount: params.amount,
   });
+
+  return transaction;
+};
 
 /**
  * Convenience method to stake tokens
@@ -286,7 +294,6 @@ export const stake = async (
     originalMintId: PublicKey;
     userOriginalMintTokenAccountId: PublicKey;
     receiptType?: ReceiptType;
-    user?: PublicKey;
     amount?: BN;
   }
 ): Promise<Transaction> => {
@@ -309,7 +316,6 @@ export const stake = async (
     [transaction] = await createStakeEntry(connection, wallet, {
       stakePoolId: params.stakePoolId,
       originalMintId: params.originalMintId,
-      user: params.user,
     });
   } else if (
     stakeEntryData.parsed.lastStaker.toString() !==
@@ -330,14 +336,19 @@ export const stake = async (
 
   if (params.receiptType) {
     const receiptMintId =
-      params.receiptType === ReceiptType.Receipt &&
-      stakeEntryData?.parsed.stakeMint
+      params.receiptType === ReceiptType.Receipt
         ? stakeEntryData?.parsed.stakeMint
         : params.originalMintId;
+    if (!receiptMintId) {
+      throw new Error(
+        "Stake entry has no stake mint. Initialize stake mint first."
+      );
+    }
 
     await withClaimReceiptMint(transaction, connection, wallet, {
       stakePoolId: params.stakePoolId,
       stakeEntryId: stakeEntryId,
+      originalMintId: params.originalMintId,
       receiptMintId: receiptMintId,
       receiptType: params.receiptType,
     });

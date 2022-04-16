@@ -42,43 +42,7 @@ export const findStakeEntryIdForPoolIdentifier = async (
 };
 
 /**
- * Finds the non-fungible stake entry id.
- * @returns
- */
-export const findNFTStakeEntryId = async (
-  stakePoolId: web3.PublicKey,
-  originalMintId: web3.PublicKey
-): Promise<[web3.PublicKey, number]> => {
-  return web3.PublicKey.findProgramAddress(
-    [
-      utils.bytes.utf8.encode(STAKE_ENTRY_SEED),
-      stakePoolId.toBuffer(),
-      originalMintId.toBuffer(),
-    ],
-    STAKE_POOL_ADDRESS
-  );
-};
-
-/**
- * Finds the fungible stake entry id.
- * @returns
- */
-export const findFTStakeEntryId = async (
-  stakePoolId: web3.PublicKey,
-  wallet: web3.PublicKey
-): Promise<[web3.PublicKey, number]> => {
-  return web3.PublicKey.findProgramAddress(
-    [
-      utils.bytes.utf8.encode(STAKE_ENTRY_SEED),
-      stakePoolId.toBuffer(),
-      wallet.toBuffer(),
-    ],
-    STAKE_POOL_ADDRESS
-  );
-};
-
-/**
- * Convenience method to find the fungible/non-fungible stake entry id.
+ * Convenience method to find the stake entry id.
  * @returns
  */
 export const findStakeEntryId = async (
@@ -88,11 +52,15 @@ export const findStakeEntryId = async (
   originalMintId: web3.PublicKey
 ): Promise<[web3.PublicKey, number]> => {
   const supply = await getMintSupply(connection, originalMintId);
-  if (supply > 1) {
-    return findFTStakeEntryId(stakePoolId, wallet);
-  } else {
-    return findNFTStakeEntryId(stakePoolId, originalMintId);
-  }
+  return web3.PublicKey.findProgramAddress(
+    [
+      utils.bytes.utf8.encode(STAKE_ENTRY_SEED),
+      stakePoolId.toBuffer(),
+      originalMintId.toBuffer(),
+      supply > 1 ? wallet.toBuffer() : web3.PublicKey.default.toBuffer(),
+    ],
+    STAKE_POOL_ADDRESS
+  );
 };
 
 /**

@@ -18,12 +18,8 @@ pub mod cardinal_stake_pool {
         init_pool::handler(ctx, ix)
     }
 
-    pub fn init_entry(ctx: Context<InitEntryCtx>) -> Result<()> {
-        init_entry::handler(ctx)
-    }
-
-    pub fn init_ft_entry(ctx: Context<InitFtEntryCtx>) -> Result<()> {
-        init_ft_entry::handler(ctx)
+    pub fn init_entry(ctx: Context<InitEntryCtx>, user: Pubkey) -> Result<()> {
+        init_entry::handler(ctx, user)
     }
 
     pub fn init_stake_mint(ctx: Context<InitStakeMintCtx>, ix: InitStakeMintIx) -> Result<()> {

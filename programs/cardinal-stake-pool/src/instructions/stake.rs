@@ -1,12 +1,12 @@
 use {
     crate::{errors::ErrorCode, state::*},
     anchor_lang::prelude::*,
-    anchor_spl::token::{self, Token, TokenAccount},
+    anchor_spl::token::{self, Mint, Token, TokenAccount},
 };
 
 #[derive(Accounts)]
 pub struct StakeCtx<'info> {
-    #[account(mut)]
+    #[account(mut, seeds = [STAKE_ENTRY_PREFIX.as_bytes(), stake_entry.pool.as_ref(), stake_entry.original_mint.as_ref(), get_stake_seed(original_mint.supply, user.key()).as_ref()], bump=stake_entry.bump)]
     stake_entry: Box<Account<'info, StakeEntry>>,
 
     // stake_entry token accounts
@@ -16,6 +16,7 @@ pub struct StakeCtx<'info> {
         && stake_entry_original_mint_token_account.owner == stake_entry.key()
         @ ErrorCode::InvalidStakeEntryOriginalMintTokenAccount)]
     stake_entry_original_mint_token_account: Box<Account<'info, TokenAccount>>,
+    original_mint: Box<Account<'info, Mint>>,
 
     // user
     #[account(mut)]
@@ -33,6 +34,9 @@ pub struct StakeCtx<'info> {
 
 pub fn handler(ctx: Context<StakeCtx>, amount: u64) -> Result<()> {
     let stake_entry = &mut ctx.accounts.stake_entry;
+    if stake_entry.amount > 0 {
+        return Err(error!(ErrorCode::StakeEntryAlreadyStaked));
+    }
 
     // transfer original
     let cpi_accounts = token::Transfer {

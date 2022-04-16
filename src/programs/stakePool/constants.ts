@@ -15,6 +15,9 @@ export const IDENTIFIER_SEED = "identifier";
 
 export const STAKE_AUTHORIZATION_SEED = "stake-authorization";
 
+export const STAKER_OFFSET = 82;
+export const POOL_OFFSET = 9;
+
 export type STAKE_POOL_PROGRAM = STAKE_POOL_TYPES.CardinalStakePool;
 
 export const STAKE_POOL_IDL = STAKE_POOL_TYPES.IDL;

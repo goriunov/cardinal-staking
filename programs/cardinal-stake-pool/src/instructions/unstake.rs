@@ -1,7 +1,7 @@
 use {
     crate::{errors::ErrorCode, state::*},
     anchor_lang::prelude::*,
-    anchor_spl::token::{self, Token, TokenAccount},
+    anchor_spl::token::{self, Mint, Token, TokenAccount},
 };
 
 #[derive(Accounts)]
@@ -10,6 +10,8 @@ pub struct UnstakeCtx<'info> {
     stake_pool: Box<Account<'info, StakePool>>,
     #[account(mut, constraint = stake_entry.pool == stake_pool.key())]
     stake_entry: Box<Account<'info, StakeEntry>>,
+
+    original_mint: Box<Account<'info, Mint>>,
 
     // stake_entry token accounts
     #[account(mut, constraint =
@@ -38,9 +40,9 @@ pub fn handler(ctx: Context<UnstakeCtx>) -> Result<()> {
     let original_mint = stake_entry.original_mint;
     let user = ctx.accounts.user.key();
     let stake_pool = stake_entry.pool;
-    let seed = get_stake_seed(stake_entry.kind, original_mint, user);
+    let seed = get_stake_seed(ctx.accounts.original_mint.supply, user);
 
-    let stake_entry_seed = [STAKE_ENTRY_PREFIX.as_bytes(), stake_pool.as_ref(), seed.as_ref(), &[stake_entry.bump]];
+    let stake_entry_seed = [STAKE_ENTRY_PREFIX.as_bytes(), stake_pool.as_ref(), original_mint.as_ref(), seed.as_ref(), &[stake_entry.bump]];
     let stake_entry_signer = &[&stake_entry_seed[..]];
 
     // If receipt has been minted, ensure it is back in the stake_entry
