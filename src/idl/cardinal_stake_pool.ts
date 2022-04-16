@@ -1,5 +1,5 @@
 export type CardinalStakePool = {
-  version: "1.0.12";
+  version: "1.1.0";
   name: "cardinal_stake_pool";
   instructions: [
     {
@@ -571,20 +571,6 @@ export type CardinalStakePool = {
           }
         ];
       };
-    },
-    {
-      name: "StakeEntryKind";
-      type: {
-        kind: "enum";
-        variants: [
-          {
-            name: "Fungible";
-          },
-          {
-            name: "NonFungible";
-          }
-        ];
-      };
     }
   ];
   errors: [
@@ -670,11 +656,6 @@ export type CardinalStakePool = {
     },
     {
       code: 6016;
-      name: "InvalidStakeEntryKind";
-      msg: "Invalid stake entry kind";
-    },
-    {
-      code: 6017;
       name: "StakeEntryAlreadyStaked";
       msg: "Stake entry already has tokens staked";
     }
@@ -682,7 +663,7 @@ export type CardinalStakePool = {
 };
 
 export const IDL: CardinalStakePool = {
-  version: "1.0.12",
+  version: "1.1.0",
   name: "cardinal_stake_pool",
   instructions: [
     {
@@ -1255,20 +1236,6 @@ export const IDL: CardinalStakePool = {
         ],
       },
     },
-    {
-      name: "StakeEntryKind",
-      type: {
-        kind: "enum",
-        variants: [
-          {
-            name: "Fungible",
-          },
-          {
-            name: "NonFungible",
-          },
-        ],
-      },
-    },
   ],
   errors: [
     {
@@ -1353,11 +1320,6 @@ export const IDL: CardinalStakePool = {
     },
     {
       code: 6016,
-      name: "InvalidStakeEntryKind",
-      msg: "Invalid stake entry kind",
-    },
-    {
-      code: 6017,
       name: "StakeEntryAlreadyStaked",
       msg: "Stake entry already has tokens staked",
     },
