@@ -124,6 +124,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         recipient: ctx.accounts.user.to_account_info(),
         recipient_token_account: ctx.accounts.user_receipt_mint_token_account.to_account_info(),
         token_program: ctx.accounts.token_program.to_account_info(),
+        system_program: ctx.accounts.system_program.to_account_info(),
     };
     let remaining_accounts = ctx.remaining_accounts.to_vec();
     let cpi_ctx = CpiContext::new(ctx.accounts.token_manager_program.to_account_info(), cpi_accounts).with_remaining_accounts(remaining_accounts);
