@@ -17,7 +17,7 @@ import {
 import { RewardDistributorKind } from "../src/programs/rewardDistributor";
 import { getRewardDistributor } from "../src/programs/rewardDistributor/accounts";
 import { findRewardDistributorId } from "../src/programs/rewardDistributor/pda";
-// import { ReceiptType } from "../src/programs/stakePool";
+import { ReceiptType } from "../src/programs/stakePool";
 import { getStakeEntry } from "../src/programs/stakePool/accounts";
 import { findStakeEntryId } from "../src/programs/stakePool/pda";
 import { createMint } from "./utils";
@@ -213,7 +213,7 @@ describe("Create stake pool", () => {
             stakePoolId: stakePoolId,
             originalMintId: originalMint.publicKey,
             userOriginalMintTokenAccountId: originalMintTokenAccountId,
-            // receiptType: ReceiptType.Receipt,
+            receiptType: ReceiptType.Receipt,
             amount: new BN(stakingAmount / 2),
           })
         ).instructions,

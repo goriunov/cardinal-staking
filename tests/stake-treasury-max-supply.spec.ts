@@ -277,7 +277,6 @@ describe("Stake and claim rewards from treasury", () => {
 
     const checkUserRewardMintTokenAccountId =
       await checkRewardMint.getAccountInfo(userRewardMintTokenAccountId);
-    console.log(checkUserRewardMintTokenAccountId.amount.toNumber());
     expect(checkUserRewardMintTokenAccountId.amount.toNumber()).to.eq(
       3000000000
     );

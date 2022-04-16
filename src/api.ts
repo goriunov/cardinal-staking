@@ -336,14 +336,19 @@ export const stake = async (
 
   if (params.receiptType) {
     const receiptMintId =
-      params.receiptType === ReceiptType.Receipt &&
-      stakeEntryData?.parsed.stakeMint
+      params.receiptType === ReceiptType.Receipt
         ? stakeEntryData?.parsed.stakeMint
         : params.originalMintId;
+    if (!receiptMintId) {
+      throw new Error(
+        "Stake entry has no stake mint. Initialize stake mint first."
+      );
+    }
 
     await withClaimReceiptMint(transaction, connection, wallet, {
       stakePoolId: params.stakePoolId,
       stakeEntryId: stakeEntryId,
+      originalMintId: params.originalMintId,
       receiptMintId: receiptMintId,
       receiptType: params.receiptType,
     });

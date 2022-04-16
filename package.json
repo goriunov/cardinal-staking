@@ -1,6 +1,6 @@
 {
   "name": "@cardinal/staking",
-  "version": "1.0.10",
+  "version": "1.0.12",
   "description": "Cardinal stake pool SDK",
   "keywords": [
     "solana",
@@ -45,7 +45,7 @@
   },
   "dependencies": {
     "@cardinal/common": "^1.0.10",
-    "@cardinal/token-manager": "^0.2.22",
+    "@cardinal/token-manager": "^1.1.0",
     "@metaplex-foundation/mpl-token-metadata": "^1.2.5"
   },
   "devDependencies": {

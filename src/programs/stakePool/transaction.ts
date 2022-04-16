@@ -227,6 +227,7 @@ export const withClaimReceiptMint = async (
   params: {
     stakePoolId: web3.PublicKey;
     stakeEntryId: web3.PublicKey;
+    originalMintId: web3.PublicKey;
     receiptMintId: web3.PublicKey;
     receiptType: ReceiptType;
   }
@@ -257,6 +258,7 @@ export const withClaimReceiptMint = async (
       stakeEntryId: params.stakeEntryId,
       tokenManagerReceiptMintTokenAccountId:
         tokenManagerReceiptMintTokenAccountId,
+      originalMintId: params.originalMintId,
       receiptMintId: params.receiptMintId,
       receiptType: params.receiptType,
     })
@@ -399,6 +401,7 @@ export const withUnstake = async (
     unstake(connection, wallet, {
       stakePoolId: params.stakePoolId,
       stakeEntryId: stakeEntryId,
+      originalMintId: params.originalMintId,
       user: wallet.publicKey,
       stakeEntryOriginalMintTokenAccount: stakeEntryOriginalMintTokenAccountId,
       userOriginalMintTokenAccount: userOriginalMintTokenAccountId,

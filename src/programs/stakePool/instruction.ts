@@ -210,6 +210,7 @@ export const claimReceiptMint = async (
   params: {
     stakeEntryId: PublicKey;
     tokenManagerReceiptMintTokenAccountId: PublicKey;
+    originalMintId: PublicKey;
     receiptMintId: PublicKey;
     receiptType: ReceiptType;
   }
@@ -243,6 +244,7 @@ export const claimReceiptMint = async (
   return stakePoolProgram.instruction.claimReceiptMint({
     accounts: {
       stakeEntry: params.stakeEntryId,
+      originalMint: params.originalMintId,
       receiptMint: params.receiptMintId,
       stakeEntryReceiptMintTokenAccount: stakeEntryReceiptMintTokenAccountId,
       user: wallet.publicKey,
@@ -298,6 +300,7 @@ export const unstake = (
   params: {
     stakePoolId: PublicKey;
     stakeEntryId: PublicKey;
+    originalMintId: PublicKey;
     stakeEntryOriginalMintTokenAccount: PublicKey;
     userOriginalMintTokenAccount: PublicKey;
     user: PublicKey;
@@ -314,6 +317,7 @@ export const unstake = (
     accounts: {
       stakePool: params.stakePoolId,
       stakeEntry: params.stakeEntryId,
+      originalMint: params.originalMintId,
       stakeEntryOriginalMintTokenAccount:
         params.stakeEntryOriginalMintTokenAccount,
       user: params.user,
