@@ -5,8 +5,8 @@ import { SolanaProvider, TransactionEnvelope } from "@saberhq/solana-contrib";
 import * as splToken from "@solana/spl-token";
 import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
 import { expect } from "chai";
+import { assert } from "console";
 
-// import { assert } from "console";
 import {
   createStakeEntryAndStakeMint,
   createStakePool,
@@ -288,25 +288,25 @@ describe("Create stake pool", () => {
     }
   });
 
-  // it("Stake another half", async () => {
-  //   const provider = getProvider();
+  it("Stake another half", async () => {
+    const provider = getProvider();
 
-  //   try {
-  //     await stake(provider.connection, provider.wallet, {
-  //       stakePoolId: stakePoolId,
-  //       originalMintId: originalMint.publicKey,
-  //       userOriginalMintTokenAccountId: originalMintTokenAccountId,
-  //       receiptType: ReceiptType.Receipt,
-  //       amount: new BN(stakingAmount / 2),
-  //     });
-  //     assert(
-  //       false,
-  //       "Staked ix should have failed because there are tokens already staked"
-  //     );
-  //   } catch (e) {
-  //     assert(true);
-  //   }
-  // });
+    try {
+      await stake(provider.connection, provider.wallet, {
+        stakePoolId: stakePoolId,
+        originalMintId: originalMint.publicKey,
+        userOriginalMintTokenAccountId: originalMintTokenAccountId,
+        receiptType: ReceiptType.Receipt,
+        amount: new BN(stakingAmount / 2),
+      });
+      assert(
+        false,
+        "Staked ix should have failed because there are tokens already staked"
+      );
+    } catch (e) {
+      assert(true);
+    }
+  });
 
   it("Unstake", async () => {
     const provider = getProvider();

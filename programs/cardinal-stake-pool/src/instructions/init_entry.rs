@@ -35,7 +35,6 @@ pub fn handler(ctx: Context<InitEntryCtx>, _user: Pubkey) -> Result<()> {
     stake_entry.bump = *ctx.bumps.get("stake_entry").unwrap();
     stake_entry.pool = ctx.accounts.stake_pool.key();
     stake_entry.original_mint = ctx.accounts.original_mint.key();
-    stake_entry.kind = StakeEntryKind::NonFungible as u8;
     stake_entry.amount = 0;
 
     // check allowlist

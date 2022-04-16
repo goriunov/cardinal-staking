@@ -54,13 +54,6 @@ pub struct Identifier {
     pub count: u64,
 }
 
-#[derive(Clone, Debug, PartialEq, AnchorSerialize, AnchorDeserialize)]
-#[repr(u8)]
-pub enum StakeEntryKind {
-    Fungible = 0,
-    NonFungible = 1,
-}
-
 pub fn get_stake_seed(supply: u64, user: Pubkey) -> Pubkey {
     if supply > 1 {
         user
