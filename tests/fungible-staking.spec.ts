@@ -5,8 +5,8 @@ import { SolanaProvider, TransactionEnvelope } from "@saberhq/solana-contrib";
 import * as splToken from "@solana/spl-token";
 import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
 import { expect } from "chai";
-import { assert } from "console";
 
+// import { assert } from "console";
 import {
   createStakeEntryAndStakeMint,
   createStakePool,
@@ -17,7 +17,7 @@ import {
 import { RewardDistributorKind } from "../src/programs/rewardDistributor";
 import { getRewardDistributor } from "../src/programs/rewardDistributor/accounts";
 import { findRewardDistributorId } from "../src/programs/rewardDistributor/pda";
-import { ReceiptType } from "../src/programs/stakePool";
+// import { ReceiptType } from "../src/programs/stakePool";
 import { getStakeEntry } from "../src/programs/stakePool/accounts";
 import { findStakeEntryId } from "../src/programs/stakePool/pda";
 import { createMint } from "./utils";
@@ -213,7 +213,7 @@ describe("Create stake pool", () => {
             stakePoolId: stakePoolId,
             originalMintId: originalMint.publicKey,
             userOriginalMintTokenAccountId: originalMintTokenAccountId,
-            receiptType: ReceiptType.Receipt,
+            // receiptType: ReceiptType.Receipt,
             amount: new BN(stakingAmount / 2),
           })
         ).instructions,
@@ -288,25 +288,25 @@ describe("Create stake pool", () => {
     }
   });
 
-  it("Stake another half", async () => {
-    const provider = getProvider();
+  // it("Stake another half", async () => {
+  //   const provider = getProvider();
 
-    try {
-      await stake(provider.connection, provider.wallet, {
-        stakePoolId: stakePoolId,
-        originalMintId: originalMint.publicKey,
-        userOriginalMintTokenAccountId: originalMintTokenAccountId,
-        receiptType: ReceiptType.Receipt,
-        amount: new BN(stakingAmount / 2),
-      });
-      assert(
-        false,
-        "Staked ix should have failed because there are tokens already staked"
-      );
-    } catch (e) {
-      assert(true);
-    }
-  });
+  //   try {
+  //     await stake(provider.connection, provider.wallet, {
+  //       stakePoolId: stakePoolId,
+  //       originalMintId: originalMint.publicKey,
+  //       userOriginalMintTokenAccountId: originalMintTokenAccountId,
+  //       receiptType: ReceiptType.Receipt,
+  //       amount: new BN(stakingAmount / 2),
+  //     });
+  //     assert(
+  //       false,
+  //       "Staked ix should have failed because there are tokens already staked"
+  //     );
+  //   } catch (e) {
+  //     assert(true);
+  //   }
+  // });
 
   it("Unstake", async () => {
     const provider = getProvider();

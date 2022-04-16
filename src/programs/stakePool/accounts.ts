@@ -1,6 +1,7 @@
 import type { AccountData } from "@cardinal/common";
-import { Program, Provider } from "@project-serum/anchor";
-import type { Connection, PublicKey } from "@solana/web3.js";
+import { BorshAccountsCoder, Program, Provider } from "@project-serum/anchor";
+import type { Connection } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 
 import type { STAKE_POOL_PROGRAM, StakePoolData } from ".";
 import { STAKE_POOL_ADDRESS, STAKE_POOL_IDL } from ".";
@@ -9,6 +10,7 @@ import type {
   StakeAuthorizationData,
   StakeEntryData,
 } from "./constants";
+import { POOL_OFFSET, STAKER_OFFSET } from "./constants";
 import { findIdentifierId } from "./pda";
 
 export const getStakePool = async (
@@ -51,6 +53,92 @@ export const getStakePools = async (
     parsed: tm,
     pubkey: stakePoolIds[i]!,
   }));
+};
+
+export const getStakeEntriesForPoolAndUser = async (
+  connection: Connection,
+  stakePoolId: PublicKey,
+  user: PublicKey
+): Promise<AccountData<StakeEntryData>[]> => {
+  const programAccounts = await connection.getProgramAccounts(
+    STAKE_POOL_ADDRESS,
+    {
+      filters: [
+        {
+          memcmp: { offset: POOL_OFFSET, bytes: stakePoolId.toBase58() },
+        },
+        {
+          memcmp: { offset: STAKER_OFFSET, bytes: user.toBase58() },
+        },
+      ],
+    }
+  );
+  const stakeEntryDatas: AccountData<StakeEntryData>[] = [];
+  const coder = new BorshAccountsCoder(STAKE_POOL_IDL);
+  programAccounts.forEach((account) => {
+    try {
+      const stakeEntryData: StakeEntryData = coder.decode(
+        "stakeEntry",
+        account.account.data
+      );
+      if (
+        stakeEntryData &&
+        stakeEntryData.lastStaker.toString() !== PublicKey.default.toString()
+      ) {
+        stakeEntryDatas.push({
+          ...account,
+          parsed: stakeEntryData,
+        });
+      }
+    } catch (e) {
+      // console.log(`Failed to decode token manager data`);
+    }
+  });
+
+  return stakeEntryDatas.sort((a, b) =>
+    a.pubkey.toBase58().localeCompare(b.pubkey.toBase58())
+  );
+};
+
+export const getStakeEntriesForPool = async (
+  connection: Connection,
+  stakePoolId: PublicKey
+): Promise<AccountData<StakeEntryData>[]> => {
+  const programAccounts = await connection.getProgramAccounts(
+    STAKE_POOL_ADDRESS,
+    {
+      filters: [
+        {
+          memcmp: { offset: POOL_OFFSET, bytes: stakePoolId.toBase58() },
+        },
+      ],
+    }
+  );
+  const stakeEntryDatas: AccountData<StakeEntryData>[] = [];
+  const coder = new BorshAccountsCoder(STAKE_POOL_IDL);
+  programAccounts.forEach((account) => {
+    try {
+      const stakeEntryData: StakeEntryData = coder.decode(
+        "stakeEntry",
+        account.account.data
+      );
+      if (
+        stakeEntryData &&
+        stakeEntryData.lastStaker.toString() !== PublicKey.default.toString()
+      ) {
+        stakeEntryDatas.push({
+          ...account,
+          parsed: stakeEntryData,
+        });
+      }
+    } catch (e) {
+      // console.log(`Failed to decode token manager data`);
+    }
+  });
+
+  return stakeEntryDatas.sort((a, b) =>
+    a.pubkey.toBase58().localeCompare(b.pubkey.toBase58())
+  );
 };
 
 export const getStakeEntry = async (

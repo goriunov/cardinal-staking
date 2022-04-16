@@ -21,7 +21,6 @@ import { ReceiptType } from "./constants";
 import {
   authorizeStakeEntry,
   claimReceiptMint,
-  initFungibleStakeEntry,
   initPoolIdentifier,
   initStakeEntry,
   initStakeMint,
@@ -106,7 +105,7 @@ export const withInitStakePool = async (
  * @param params
  * @returns Transaction, public key for the created stake entry
  */
-export const withInitNFTStakeEntry = async (
+export const withInitStakeEntry = async (
   transaction: web3.Transaction,
   connection: web3.Connection,
   wallet: Wallet,
@@ -131,46 +130,6 @@ export const withInitNFTStakeEntry = async (
       stakeEntryId: stakeEntryId,
       originalMintId: params.originalMintId,
       originalMintMetadatId: originalMintMetadatId,
-    })
-  );
-  return [transaction, stakeEntryId];
-};
-
-/**
- * Add init fungible stake entry instructions to a transaction
- * @param transaction
- * @param connection
- * @param wallet
- * @param params
- * @returns Transaction, public key for the created stake entry
- */
-export const withInitFungibleStakeEntry = async (
-  transaction: web3.Transaction,
-  connection: web3.Connection,
-  wallet: Wallet,
-  params: {
-    stakePoolId: web3.PublicKey;
-    originalMintId: web3.PublicKey;
-    user: web3.PublicKey;
-  }
-): Promise<[web3.Transaction, web3.PublicKey]> => {
-  const [[stakeEntryId], originalMintMetadatId] = await Promise.all([
-    findStakeEntryId(
-      connection,
-      wallet.publicKey,
-      params.stakePoolId,
-      params.originalMintId
-    ),
-    metaplex.Metadata.getPDA(params.originalMintId),
-  ]);
-
-  transaction.add(
-    await initFungibleStakeEntry(connection, wallet, {
-      stakePoolId: params.stakePoolId,
-      stakeEntryId: stakeEntryId,
-      originalMintId: params.originalMintId,
-      originalMintMetadatId: originalMintMetadatId,
-      user: params.user,
     })
   );
   return [transaction, stakeEntryId];
@@ -343,6 +302,7 @@ export const withStake = async (
   transaction.add(
     stake(connection, wallet, {
       stakeEntryId: stakeEntryId,
+      originalMint: params.originalMintId,
       stakeEntryOriginalMintTokenAccountId:
         stakeEntryOriginalMintTokenAccountId,
       userOriginalMintTokenAccountId: params.userOriginalMintTokenAccountId,

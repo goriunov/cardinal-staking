@@ -143,47 +143,12 @@ export const initStakeEntry = async (
     params.stakePoolId,
     params.originalMintId
   );
-  return stakePoolProgram.instruction.initEntry({
+  return stakePoolProgram.instruction.initEntry(wallet.publicKey, {
     accounts: {
       stakeEntry: params.stakeEntryId,
       stakePool: params.stakePoolId,
       originalMint: params.originalMintId,
       originalMintMetadata: params.originalMintMetadatId,
-      payer: wallet.publicKey,
-      systemProgram: SystemProgram.programId,
-    },
-    remainingAccounts,
-  });
-};
-
-export const initFungibleStakeEntry = async (
-  connection: Connection,
-  wallet: Wallet,
-  params: {
-    stakePoolId: PublicKey;
-    stakeEntryId: PublicKey;
-    originalMintId: PublicKey;
-    originalMintMetadatId: PublicKey;
-    user: PublicKey;
-  }
-): Promise<TransactionInstruction> => {
-  const provider = new Provider(connection, wallet, {});
-  const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
-    STAKE_POOL_IDL,
-    STAKE_POOL_ADDRESS,
-    provider
-  );
-  const remainingAccounts = await remainingAccountsForInitStakeEntry(
-    params.stakePoolId,
-    params.originalMintId
-  );
-  return stakePoolProgram.instruction.initFtEntry({
-    accounts: {
-      stakeEntry: params.stakeEntryId,
-      stakePool: params.stakePoolId,
-      originalMint: params.originalMintId,
-      originalMintMetadata: params.originalMintMetadatId,
-      user: params.user,
       payer: wallet.publicKey,
       systemProgram: SystemProgram.programId,
     },
@@ -300,6 +265,7 @@ export const stake = (
   connection: Connection,
   wallet: Wallet,
   params: {
+    originalMint: PublicKey;
     stakeEntryId: PublicKey;
     stakeEntryOriginalMintTokenAccountId: PublicKey;
     userOriginalMintTokenAccountId: PublicKey;
@@ -318,6 +284,7 @@ export const stake = (
       stakeEntry: params.stakeEntryId,
       stakeEntryOriginalMintTokenAccount:
         params.stakeEntryOriginalMintTokenAccountId,
+      originalMint: params.originalMint,
       user: wallet.publicKey,
       userOriginalMintTokenAccount: params.userOriginalMintTokenAccountId,
       tokenProgram: TOKEN_PROGRAM_ID,

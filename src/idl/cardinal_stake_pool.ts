@@ -90,48 +90,12 @@ export type CardinalStakePool = {
           isSigner: false;
         }
       ];
-      args: [];
-    },
-    {
-      name: "initFtEntry";
-      accounts: [
-        {
-          name: "stakeEntry";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "stakePool";
-          isMut: true;
-          isSigner: false;
-        },
-        {
-          name: "originalMint";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "originalMintMetadata";
-          isMut: false;
-          isSigner: false;
-        },
+      args: [
         {
           name: "user";
-          isMut: false;
-          isSigner: false;
-        },
-        {
-          name: "payer";
-          isMut: true;
-          isSigner: true;
-        },
-        {
-          name: "systemProgram";
-          isMut: false;
-          isSigner: false;
+          type: "publicKey";
         }
       ];
-      args: [];
     },
     {
       name: "initStakeMint";
@@ -263,6 +227,11 @@ export type CardinalStakePool = {
         {
           name: "stakeEntryOriginalMintTokenAccount";
           isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "originalMint";
+          isMut: false;
           isSigner: false;
         },
         {
@@ -693,6 +662,11 @@ export type CardinalStakePool = {
       code: 6016;
       name: "InvalidStakeEntryKind";
       msg: "Invalid stake entry kind";
+    },
+    {
+      code: 6017;
+      name: "StakeEntryAlreadyStaked";
+      msg: "Stake entry already has tokens staked";
     }
   ];
 };
@@ -789,48 +763,12 @@ export const IDL: CardinalStakePool = {
           isSigner: false,
         },
       ],
-      args: [],
-    },
-    {
-      name: "initFtEntry",
-      accounts: [
-        {
-          name: "stakeEntry",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "stakePool",
-          isMut: true,
-          isSigner: false,
-        },
-        {
-          name: "originalMint",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "originalMintMetadata",
-          isMut: false,
-          isSigner: false,
-        },
+      args: [
         {
           name: "user",
-          isMut: false,
-          isSigner: false,
-        },
-        {
-          name: "payer",
-          isMut: true,
-          isSigner: true,
-        },
-        {
-          name: "systemProgram",
-          isMut: false,
-          isSigner: false,
+          type: "publicKey",
         },
       ],
-      args: [],
     },
     {
       name: "initStakeMint",
@@ -962,6 +900,11 @@ export const IDL: CardinalStakePool = {
         {
           name: "stakeEntryOriginalMintTokenAccount",
           isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "originalMint",
+          isMut: false,
           isSigner: false,
         },
         {
@@ -1392,6 +1335,11 @@ export const IDL: CardinalStakePool = {
       code: 6016,
       name: "InvalidStakeEntryKind",
       msg: "Invalid stake entry kind",
+    },
+    {
+      code: 6017,
+      name: "StakeEntryAlreadyStaked",
+      msg: "Stake entry already has tokens staked",
     },
   ],
 };

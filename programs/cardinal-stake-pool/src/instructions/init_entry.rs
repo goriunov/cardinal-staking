@@ -7,12 +7,13 @@ use {
 };
 
 #[derive(Accounts)]
+#[instruction(user: Pubkey)]
 pub struct InitEntryCtx<'info> {
     #[account(
         init,
         payer = payer,
         space = STAKE_ENTRY_SIZE,
-        seeds = [STAKE_ENTRY_PREFIX.as_bytes(), stake_pool.key().as_ref(), original_mint.key().as_ref()],
+        seeds = [STAKE_ENTRY_PREFIX.as_bytes(), stake_pool.key().as_ref(), original_mint.key().as_ref(), get_stake_seed(original_mint.supply, user).as_ref()],
         bump,
     )]
     stake_entry: Box<Account<'info, StakeEntry>>,
@@ -28,7 +29,7 @@ pub struct InitEntryCtx<'info> {
     system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<InitEntryCtx>) -> Result<()> {
+pub fn handler(ctx: Context<InitEntryCtx>, _user: Pubkey) -> Result<()> {
     let stake_entry = &mut ctx.accounts.stake_entry;
     let stake_pool = &ctx.accounts.stake_pool;
     stake_entry.bump = *ctx.bumps.get("stake_entry").unwrap();

@@ -38,9 +38,8 @@ pub fn handler(ctx: Context<UnstakeCtx>) -> Result<()> {
     let original_mint = stake_entry.original_mint;
     let user = ctx.accounts.user.key();
     let stake_pool = stake_entry.pool;
-    let seed = get_stake_seed(stake_entry.kind, original_mint, user);
 
-    let stake_entry_seed = [STAKE_ENTRY_PREFIX.as_bytes(), stake_pool.as_ref(), seed.as_ref(), &[stake_entry.bump]];
+    let stake_entry_seed = [STAKE_ENTRY_PREFIX.as_bytes(), stake_pool.as_ref(), original_mint.as_ref(), user.as_ref(), &[stake_entry.bump]];
     let stake_entry_signer = &[&stake_entry_seed[..]];
 
     // If receipt has been minted, ensure it is back in the stake_entry

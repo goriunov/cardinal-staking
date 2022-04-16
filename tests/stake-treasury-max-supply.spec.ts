@@ -138,7 +138,7 @@ describe("Stake and claim rewards from treasury", () => {
     );
   });
 
-  it("Init stake entry abd mint", async () => {
+  it("Init stake entry and mint", async () => {
     const provider = getProvider();
     let transaction: web3.Transaction;
 
@@ -241,7 +241,7 @@ describe("Stake and claim rewards from treasury", () => {
   });
 
   it("Claim Rewards", async () => {
-    await delay(10000);
+    await delay(6000);
     const provider = getProvider();
 
     const transaction = await claimRewards(
@@ -278,6 +278,8 @@ describe("Stake and claim rewards from treasury", () => {
     const checkUserRewardMintTokenAccountId =
       await checkRewardMint.getAccountInfo(userRewardMintTokenAccountId);
     console.log(checkUserRewardMintTokenAccountId.amount.toNumber());
-    // expect(checkUserRewardMintTokenAccountId.amount.toNumber()).to.eq(1);
+    expect(checkUserRewardMintTokenAccountId.amount.toNumber()).to.eq(
+      3000000000
+    );
   });
 });

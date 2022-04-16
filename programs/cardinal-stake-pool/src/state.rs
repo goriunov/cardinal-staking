@@ -61,10 +61,10 @@ pub enum StakeEntryKind {
     NonFungible = 1,
 }
 
-pub fn get_stake_seed(kind: u8, original_mint: Pubkey, user: Pubkey) -> Pubkey {
-    match kind {
-        k if k == StakeEntryKind::Fungible as u8 => user,
-        k if k == StakeEntryKind::NonFungible as u8 => original_mint,
-        _ => original_mint,
+pub fn get_stake_seed(supply: u64, user: Pubkey) -> Pubkey {
+    if supply > 1 {
+        user
+    } else {
+        Pubkey::default()
     }
 }
