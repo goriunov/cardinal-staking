@@ -1,5 +1,10 @@
 import type { AccountData } from "@cardinal/common";
-import { BorshAccountsCoder, Program, Provider } from "@project-serum/anchor";
+import {
+  BorshAccountsCoder,
+  Program,
+  Provider,
+  utils,
+} from "@project-serum/anchor";
 import type { Connection } from "@solana/web3.js";
 import { PublicKey } from "@solana/web3.js";
 
@@ -55,6 +60,46 @@ export const getStakePools = async (
   }));
 };
 
+export const getAllStakePools = async (
+  connection: Connection
+): Promise<AccountData<StakePoolData>[]> => {
+  const programAccounts = await connection.getProgramAccounts(
+    STAKE_POOL_ADDRESS,
+    {
+      filters: [
+        {
+          memcmp: {
+            offset: 0,
+            bytes: utils.bytes.bs58.encode(
+              BorshAccountsCoder.accountDiscriminator("stakePool")
+            ),
+          },
+        },
+      ],
+    }
+  );
+  const stakePoolDatas: AccountData<StakePoolData>[] = [];
+  const coder = new BorshAccountsCoder(STAKE_POOL_IDL);
+  programAccounts.forEach((account) => {
+    try {
+      const stakePoolData: StakePoolData = coder.decode(
+        "stakePool",
+        account.account.data
+      );
+      if (stakePoolData) {
+        stakePoolDatas.push({
+          ...account,
+          parsed: stakePoolData,
+        });
+      }
+      // eslint-disable-next-line no-empty
+    } catch (e) {}
+  });
+  return stakePoolDatas.sort((a, b) =>
+    a.pubkey.toBase58().localeCompare(b.pubkey.toBase58())
+  );
+};
+
 export const getStakeEntriesForPoolAndUser = async (
   connection: Connection,
   stakePoolId: PublicKey,
@@ -100,7 +145,7 @@ export const getStakeEntriesForPoolAndUser = async (
   );
 };
 
-export const getStakeEntriesForPool = async (
+export const getActiveStakeEntriesForPool = async (
   connection: Connection,
   stakePoolId: PublicKey
 ): Promise<AccountData<StakeEntryData>[]> => {
