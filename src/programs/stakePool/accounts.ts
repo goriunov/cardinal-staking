@@ -267,3 +267,27 @@ export const getStakeAuthorization = async (
     pubkey: stakeAuthorizationId,
   };
 };
+
+export const getStakeAuthorizations = async (
+  connection: Connection,
+  stakeAuthorizationIds: PublicKey[]
+): Promise<AccountData<StakeAuthorizationData>[]> => {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  const provider = new Provider(connection, null, {});
+  const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
+    STAKE_POOL_IDL,
+    STAKE_POOL_ADDRESS,
+    provider
+  );
+
+  const stakeAuthorizations =
+    (await stakePoolProgram.account.stakeEntry.fetchMultiple(
+      stakeAuthorizationIds
+    )) as StakeAuthorizationData[];
+
+  return stakeAuthorizations.map((data, i) => ({
+    parsed: data,
+    pubkey: stakeAuthorizationIds[i]!,
+  }));
+};
