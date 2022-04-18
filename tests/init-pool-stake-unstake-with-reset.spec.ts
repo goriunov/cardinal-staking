@@ -60,7 +60,7 @@ describe("Create stake pool", () => {
     [transaction, stakePoolId] = await createStakePool(
       provider.connection,
       provider.wallet,
-      { resetOnUnstake: true }
+      { resetOnStake: true }
     );
 
     await expectTXTable(
@@ -198,6 +198,56 @@ describe("Create stake pool", () => {
     expect(checkUserOriginalTokenAccount.amount.toNumber()).to.eq(1);
     expect(checkUserOriginalTokenAccount.isFrozen).to.eq(false);
 
+    expect(stakeEntryData.parsed.totalStakeSeconds.toNumber()).to.greaterThan(
+      0
+    );
+  });
+
+  it("Stake reset timer", async () => {
+    const provider = getProvider();
+
+    await expectTXTable(
+      new TransactionEnvelope(SolanaProvider.init(provider), [
+        ...(
+          await stake(provider.connection, provider.wallet, {
+            stakePoolId: stakePoolId,
+            originalMintId: originalMint.publicKey,
+            userOriginalMintTokenAccountId: originalMintTokenAccountId,
+            receiptType: ReceiptType.Original,
+          })
+        ).instructions,
+      ]),
+      "Stake"
+    ).to.be.fulfilled;
+
+    const stakeEntryData = await getStakeEntry(
+      provider.connection,
+      (
+        await findStakeEntryId(
+          provider.connection,
+          provider.wallet.publicKey,
+          stakePoolId,
+          originalMint.publicKey
+        )
+      )[0]
+    );
+
+    const userOriginalMintTokenAccountId = await findAta(
+      originalMint.publicKey,
+      provider.wallet.publicKey,
+      true
+    );
+
+    expect(stakeEntryData.parsed.lastStakedAt.toNumber()).to.be.greaterThan(0);
+    expect(stakeEntryData.parsed.lastStaker.toString()).to.eq(
+      provider.wallet.publicKey.toString()
+    );
     expect(stakeEntryData.parsed.totalStakeSeconds.toNumber()).to.eq(0);
+
+    const checkUserOriginalTokenAccount = await originalMint.getAccountInfo(
+      userOriginalMintTokenAccountId
+    );
+    expect(checkUserOriginalTokenAccount.amount.toNumber()).to.eq(1);
+    expect(checkUserOriginalTokenAccount.isFrozen).to.eq(true);
   });
 });
