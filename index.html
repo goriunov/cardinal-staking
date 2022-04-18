@@ -77,48 +77,48 @@
 <p>Stake pools are the base component of staking. A stake pool, as it sounds, is a PDA owned by the stake pool program containing the following fields</p>
 <pre><code><span class="hl-0">#[</span><span class="hl-1">account</span><span class="hl-0">]</span><br/><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-1">struct</span><span class="hl-0"> </span><span class="hl-1">StakePool</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">bump</span><span class="hl-0">: </span><span class="hl-1">u8</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">identifier</span><span class="hl-0">: </span><span class="hl-1">u64</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">authority</span><span class="hl-0">: </span><span class="hl-1">Pubkey</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">requires_creators</span><span class="hl-0">: </span><span class="hl-1">Vec</span><span class="hl-0">&lt;</span><span class="hl-1">Pubkey</span><span class="hl-0">&gt;,</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">requires_collections</span><span class="hl-0">: </span><span class="hl-1">Vec</span><span class="hl-0">&lt;</span><span class="hl-1">Pubkey</span><span class="hl-0">&gt;,</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">requires_authorization</span><span class="hl-0">: </span><span class="hl-1">bool</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">overlay_text</span><span class="hl-0">: </span><span class="hl-3">String</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">image_uri</span><span class="hl-0">: </span><span class="hl-3">String</span><span class="hl-0">,</span><br/><span class="hl-0">}</span>
 </code></pre>
-<p>Requires_creators, requires_collections and requires_authorization are 3 different ways that a stake pool can gate which NFTs are allowed to enter the pool.</p>
+<p>Requires_creators, requires_collections and requires_authorization are the 3 different ways that a stake pool can gate which NFTs can be staked in the pool. </p>
 <ul>
 <li>requires_creators<ul>
-<li>As it sounds, this is a filter on the NFT &quot;creators&quot; array (as stored in metaplex metadata <a href="https://docs.metaplex.com/token-metadata/specification">https://docs.metaplex.com/token-metadata/specification</a>)</li>
-<li>If this is set, any NFT that has any creators listed in the array will be allowed to stake in the pool</li>
+<li>As it sounds, this is a filter on the NFT &quot;creators&quot; array (as stored in metaplex metadata <a href="https://docs.metaplex.com/token-metadata/specification">https://docs.metaplex.com/token-metadata/specification</a>).</li>
+<li>If this is set, any NFT with a creator that is listed in the array will be allowed to stake in the pool.</li>
 <li>If your NFT was minted via Metaplex Candy Machine, you will likely want to use the candy machine ID in the requires_creator array.</li>
 </ul>
 </li>
 <li>required_collections<ul>
-<li>This is a filter on the collection of an NFT, using the Metaplex Collections standard <a href="https://docs.metaplex.com/token-metadata/specification">https://docs.metaplex.com/token-metadata/specification</a></li>
-<li>The stake pool DOES NOT enforce collections are verified</li>
+<li>This is a filter on the collection of an NFT that uses the Metaplex Collections standard <a href="https://docs.metaplex.com/token-metadata/specification">https://docs.metaplex.com/token-metadata/specification</a>.</li>
+<li>The stake pool DOES NOT enforce that collections are verified.</li>
 </ul>
 </li>
 <li>requires_authorization<ul>
-<li>If none of the above checks pass, a final check can be made to allow-list arbitrary mintIDs. The authority of a pool can use requires_authorization true and then allow-list any mint using authorize_mint instruction</li>
-<li>This is purely additive, so if you want add more mints in addition to those passing the creators/collections check you can use this approach</li>
-<li>Requires authorization can be used with empty arrays for the other two, to enforce a random mint list.</li>
+<li>If none of the above checks pass, a final check can be made to allow-list arbitrary mintIDs. The authority of a pool can set requires_authorization to TRUE and then allow-list any mint using the authorize_mint instruction.</li>
+<li>This is purely additive, so if you want add more mints in addition to those passing the creators/collections check, you can leverage this feature.</li>
+<li>Requires authorization can be used when the requires_creators and required_collections arrays are empty to enforce a random mint list.</li>
 </ul>
 </li>
 </ul>
-<p>Overlay text is used when creating receipts. This text will be automatically displayed on top of the NFT to indicate it is currently staked. Examples could be &quot;STAKED&quot; or &quot;TRAINING&quot;. See below example image</p>
+<p>Overlay text is used when creating receipts. This text will be automatically displayed on top of the NFT to indicate it is currently staked. For example, it could be &quot;STAKED&quot; or &quot;TRAINING&quot; as shown below. </p>
 <div style="text-align: center; width: 100%;">
   <img style="height: 250px" src="./images/example-staked.png" />
 </div>
 
 <p><strong>Stake Entry</strong></p>
-<p>Stake pools are a collection of stake entries. The stake entry contains information pertaining to that specific NFT and how long it has been staked.</p>
-<p>Everytime a new NFT is staked, a stake entry must first be created. This can happen in a single transaction by combining the <code>init_entry</code> with <code>stake</code> instructions. If a receipt mint is created, currently the client will do this in two transactions due to compute limitations.</p>
+<p>Stake pools are a collection of stake entries. Each stake entry stores information related to a specific NFT and how long it has been staked.</p>
+<p>Every time a new NFT is staked, a stake entry must first be created. This can happen in a single transaction by combining the <code>init_entry</code> with <code>stake</code> instructions. If a receipt mint is created, the current client will do this in two transactions due to compute limitations.</p>
 <p>Stake entries also retain ownership of the given mint(s) while it is staked.</p>
-<p>There are separate instructions for <code>stake</code> and <code>claim_receipt_mint</code>. Read below to learn more about receipts, but the client will automatically stake the NFT, and then optionally claim a receipt that can either contain the &quot;orginal&quot; mint OR a dynamically updating version of it.</p>
+<p>There are separate instructions for <code>stake</code> and <code>claim_receipt_mint</code>. Read below to learn more about receipts. The client will automatically stake the NFT  and then optionally claim a receipt that can either contain the &quot;orginal&quot; mint OR a dynamic/mutable copy receipt mint. </p>
 <p>Either or both of these mints must be returned to the <code>stake_entry</code> before the user can unstake. This will be done automatically when calling the <code>unstake</code> API.</p>
 <pre><code><span class="hl-0">#[</span><span class="hl-1">account</span><span class="hl-0">]</span><br/><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-1">struct</span><span class="hl-0"> </span><span class="hl-1">StakeEntry</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">bump</span><span class="hl-0">: </span><span class="hl-1">u8</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">pool</span><span class="hl-0">: </span><span class="hl-1">Pubkey</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">amount</span><span class="hl-0">: </span><span class="hl-1">u64</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">original_mint</span><span class="hl-0">: </span><span class="hl-1">Pubkey</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">original_mint_claimed</span><span class="hl-0">: </span><span class="hl-1">bool</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">last_staker</span><span class="hl-0">: </span><span class="hl-1">Pubkey</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">last_staked_at</span><span class="hl-0">: </span><span class="hl-1">i64</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">total_stake_seconds</span><span class="hl-0">: </span><span class="hl-1">i128</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">stake_mint_claimed</span><span class="hl-0">: </span><span class="hl-1">bool</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">kind</span><span class="hl-0">: </span><span class="hl-1">u8</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">stake_mint</span><span class="hl-0">: </span><span class="hl-1">Option</span><span class="hl-0">&lt;</span><span class="hl-1">Pubkey</span><span class="hl-0">&gt;,</span><br/><span class="hl-0">}</span>
 </code></pre>
 <p><strong>Stake Receipts</strong></p>
-<p>Stake pool is designed to support general staking, as well as a enabling a concept of stake receipts.</p>
+<p>Stake pool is designed to support general staking as well as a enable the concept of stake receipts.</p>
 <blockquote>
 <p>Receipts is a feature that allows the user to have a representation of the staked NFT in their wallet</p>
 </blockquote>
 <ul>
 <li><p><code>ReceiptType::Original</code></p>
 <ul>
-<li>When staking using the original receipt type, when staking the user token(s) will be locked into the staker&#39;s wallet, and the stake timer will begin.</li>
+<li>When staking using the original receipt type, the user&#39;s token(s) will be locked into the staker&#39;s wallet, and the stake timer will begin.</li>
 <li>This allows users to continue holding their tokens while they&#39;re staked which can be advantageous for several reasons including allowing them to continue participating in DAOs and gated discord servers.</li>
 <li>While it does sit in their wallet, the token is frozen while it is staked and thus cannot be traded/sent to anyone else. The locked aspect of staking that projects hope to achieve is thus not compromised in any way.</li>
 <li>In order to unstake, this locked token must first be unfrozen and returned to the stake pool. The current implementation leverages the Cardinal Token Manager and the invalidation type of &quot;Return&quot;. The way this works is that upon staking, the token is issued back to the staker from the stake pool with an associated Token Manager wrapper. Then, when the user decides to unstake, the token manager is invalidated, and the token is programatically returned back to the pool. Now back in the pool and unwrapped, the token can be freely claimed by user. The client abstracts this invalidation and return inside of the unstake api.</li>
@@ -126,18 +126,18 @@
 </li>
 <li><p><code>ReceiptType::Receipt</code></p>
 <ul>
-<li>Optionally the user can also claim a generated NFT receipt</li>
+<li>Optionally, the user can also claim a generated, dynamic NFT receipt.</li>
 <li>Using stake type of receipt, a new copy NFT will be transferred to user. The receipt metadata is dynamic by default and uses the Cardinal metadata and img-generators hosted at <a href="https://api.cardinal.so/metadata">https://api.cardinal.so/metadata</a> and <a href="https://api.cardinal.so/img">https://api.cardinal.so/img</a> respectively.</li>
 <li>This approach is additionally beneficial because the receipt can be clearly identified in the wallet as a staked NFT rather than a just locked one because of the mutable and dynamic nature of its metadata that allows for relevant markers/metrics to be displayed.</li>
-<li>The current staker can unstake at any time which increments the stake timer for that mint</li>
+<li>The current staker can unstake at any time which increments the stake timer for that mint.</li>
 <li>Any unstaking requires returning the receipt before the unstake instruction can be called. This can be done via the Cardinal Token Manager with &#39;InvalidationType::Return&#39;. Similar to how returning locked tokens works, this will is handled automatically by the client unstake api.</li>
 </ul>
 </li>
 </ul>
 <p><strong>Reward Distributors</strong></p>
-<p>While just using the <code>stake_pool</code> can be sufficient to keep track of total stake duration and lock the NFT in the users wallet, a reward distributor can be optionally added to distribute rewards out to staked NFTs.</p>
-<p>Reward distributor is modeled similar to a stake pool, and it has a <code>reward_distributor</code> as well as <code>reward_entry</code>. The reward entry is unique for each mint, and keeps track how many reward have been given out to that NFT to ensure that it gets its fair share.</p>
-<p>As mentioned above, reward distibutor is a basic example of fixed linear payouts, but modeling this as a separate program allows for arbitrary other rewards to be given out to stakers.</p>
+<p>While just using the <code>stake_pool</code> can be sufficient to keep track of total stake duration and lock the NFT in the user&#39;s wallet, a reward distributor can be optionally added to distribute rewards to staked NFTs.</p>
+<p>Reward distributor is modeled similar to a stake pool, having both a <code>reward_distributor</code> and a  <code>reward_entry</code>. The reward entry is unique for each mint and keeps track how many reward have been given out to that NFT to ensure that it gets its fair share.</p>
+<p>As mentioned above, reward distibutor is a basic example of a fixed linear payout structure, but modeling this as a separate program allows for arbitrary pluggable reward logic for reward distribution.</p>
 <pre><code><span class="hl-0">#[</span><span class="hl-1">account</span><span class="hl-0">]</span><br/><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-1">struct</span><span class="hl-0"> </span><span class="hl-1">RewardDistributor</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">bump</span><span class="hl-0">: </span><span class="hl-1">u8</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">stake_pool</span><span class="hl-0">: </span><span class="hl-1">Pubkey</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">kind</span><span class="hl-0">: </span><span class="hl-1">u8</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">authority</span><span class="hl-0">: </span><span class="hl-1">Pubkey</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">reward_mint</span><span class="hl-0">: </span><span class="hl-1">Pubkey</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">reward_amount</span><span class="hl-0">: </span><span class="hl-1">u64</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">reward_duration_seconds</span><span class="hl-0">: </span><span class="hl-1">u64</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">rewards_issued</span><span class="hl-0">: </span><span class="hl-1">u64</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">max_supply</span><span class="hl-0">: </span><span class="hl-1">Option</span><span class="hl-0">&lt;</span><span class="hl-1">u64</span><span class="hl-0">&gt;,</span><br/><span class="hl-0">}</span>
 </code></pre>
 <pre><code><span class="hl-0">#[</span><span class="hl-1">account</span><span class="hl-0">]</span><br/><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-1">struct</span><span class="hl-0"> </span><span class="hl-1">RewardEntry</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">bump</span><span class="hl-0">: </span><span class="hl-1">u8</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">mint</span><span class="hl-0">: </span><span class="hl-1">Pubkey</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">reward_distributor</span><span class="hl-0">: </span><span class="hl-1">Pubkey</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">reward_seconds_received</span><span class="hl-0">: </span><span class="hl-1">u64</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">reward_amount_received</span><span class="hl-0">: </span><span class="hl-1">u64</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-1">pub</span><span class="hl-0"> </span><span class="hl-2">multiplier</span><span class="hl-0">: </span><span class="hl-1">u64</span><span class="hl-0">,</span><br/><span class="hl-0">}</span>
@@ -145,25 +145,25 @@
 <p>The reward distributor also can be of 2 different kinds, <code>Mint</code> or <code>Treasury</code> / <code>Transfer</code></p>
 <ul>
 <li>Mint<ul>
-<li>If choosing reward distributor of kind Mint, the mint authority of the reward_mint will be transfered to the reward distributor upon initialization</li>
-<li>This will mean that it can mint unlimited tokens to stakers, up until an optional <code>max_supply</code></li>
-<li>The authority (creator) of this reward distributor can always reclaim the <code>mint_authority</code> by closing the <code>reward_distributor</code> using the <code>close</code> instruction</li>
+<li>If choosing reward distributor of kind Mint, the mint authority of the reward_mint will be transfered to the reward distributor upon initialization.</li>
+<li>This means that it can mint unlimited tokens to stakers up until an optional <code>max_supply</code></li>
+<li>The authority (creator) of this reward distributor can always reclaim the <code>mint_authority</code> by closing the <code>reward_distributor</code> using the <code>close</code> instruction.</li>
 </ul>
 </li>
 <li>Treasury / Transfer<ul>
-<li>Using this kind, an initial supply of tokens of the given reward_mint will be transferred to the <code>reward_distributor</code> upon intialization</li>
-<li>The reward distributor will be able to distribute reward from its treasury / supply up until it runs out, or it hits an optional <code>max_supply</code></li>
-<li>If the reward distributor is running out of tokens, anyone can simply transfer more tokens to it directly via a wallet using transfer instruction. The tokens are held in the <code>associated_token_account</code> of the <code>reward_distributor</code> for the <code>reward_mint</code></li>
+<li>With this kind, an initial supply of tokens of the given reward_mint will be transferred to the <code>reward_distributor</code> upon intialization.</li>
+<li>The reward distributor will be able to distribute rewards from its treasury / supply until it runs out or hits an optional <code>max_supply</code>.</li>
+<li>If the reward distributor is running out of tokens, anyone can simply transfer more tokens to it directly via a wallet using the transfer instruction. The tokens are held in the <code>associated_token_account</code> of the <code>reward_distributor</code> for the <code>reward_mint</code>.</li>
 </ul>
 </li>
 </ul>
-<p>In both kinds of reward distributors, if the <code>max_supply</code> is hit, or the treasury runs out, the remaining rewards will be given out and the <code>reward_seconds_received</code> will be partially updated</p>
-<p>Because reward distributor is modeled separately from the stake_pool, a user can optionally claim their rewards at any time for the amount of time they have staked. Typically this is done automatically when calling <code>unstake</code> by the client.</p>
+<p>In both kinds of reward distributors, if the <code>max_supply</code> is hit, or the treasury runs out, the remaining rewards will be given out and the <code>reward_seconds_received</code> will be partially updated.</p>
+<p>Because reward distributor is modeled separately from the stake_pool, a user can optionally claim their rewards at any time for the amount of time they have staked. Typically, this is done automatically when calling <code>unstake</code> by the client.</p>
 <p><strong>Reward Distributor Multipliers</strong></p>
 <p>Multipliers is a feature that can set a given token (via its reward_entry) to receive more rewards than the others. Only the authority of the pool can change the multiplier by calling <code>update_reward_entry</code> instruction.</p>
 <ul>
-<li>Modeling this separately allows for either the user the initialize their own reward_entries, and later the authority can update their multiplier, or run arbitrary events / bonuses for specific NFTs at any time</li>
-<li>In addition, the authority could initialize all the entries up front and set the correct / desired multipliers for their NFTs such that it will be respected correctly when the user first stakes.</li>
+<li>Modeling this separately allows for either 1) the user to initialize their own reward_entries and the authority to update their multiplier later on or 2) the authority to run arbitrary events / bonuses for specific NFTs at any time.</li>
+<li>In addition, the authority may initialize all the entries up front and set the correct / desired multipliers for their NFTs such that it will correctly allocate when the user first stakes.</li>
 </ul>
 
 <a href="#questions-amp-support" id="questions-amp-support" style="color: inherit; text-decoration: none;">
