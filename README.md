@@ -59,21 +59,21 @@ pub struct StakePool {
 }
 ```
 
-Requires_creators, requires_collections and requires_authorization are 3 different ways that a stake pool can gate which NFTs are allowed to enter the pool.
+Requires_creators, requires_collections and requires_authorization are the 3 different ways that a stake pool can gate which NFTs can be staked in the pool. 
 
 - requires_creators
-  - As it sounds, this is a filter on the NFT "creators" array (as stored in metaplex metadata https://docs.metaplex.com/token-metadata/specification)
-  - If this is set, any NFT that has any creators listed in the array will be allowed to stake in the pool
+  - As it sounds, this is a filter on the NFT "creators" array (as stored in metaplex metadata https://docs.metaplex.com/token-metadata/specification).
+  - If this is set, any NFT with a creator that is listed in the array will be allowed to stake in the pool.
   - If your NFT was minted via Metaplex Candy Machine, you will likely want to use the candy machine ID in the requires_creator array.
 - required_collections
-  - This is a filter on the collection of an NFT, using the Metaplex Collections standard https://docs.metaplex.com/token-metadata/specification
-  - The stake pool DOES NOT enforce collections are verified
+  - This is a filter on the collection of an NFT that uses the Metaplex Collections standard https://docs.metaplex.com/token-metadata/specification.
+  - The stake pool DOES NOT enforce that collections are verified.
 - requires_authorization
-  - If none of the above checks pass, a final check can be made to allow-list arbitrary mintIDs. The authority of a pool can use requires_authorization true and then allow-list any mint using authorize_mint instruction
-  - This is purely additive, so if you want add more mints in addition to those passing the creators/collections check you can use this approach
-  - Requires authorization can be used with empty arrays for the other two, to enforce a random mint list.
+  - If none of the above checks pass, a final check can be made to allow-list arbitrary mintIDs. The authority of a pool can set requires_authorization to TRUE and then allow-list any mint using the authorize_mint instruction.
+  - This is purely additive, so if you want add more mints in addition to those passing the creators/collections check, you can leverage this feature.
+  - Requires authorization can be used when the requires_creators and required_collections arrays are empty to enforce a random mint list.
 
-Overlay text is used when creating receipts. This text will be automatically displayed on top of the NFT to indicate it is currently staked. Examples could be "STAKED" or "TRAINING". See below example image
+Overlay text is used when creating receipts. This text will be automatically displayed on top of the NFT to indicate it is currently staked. For example, it could be "STAKED" or "TRAINING" as shown below. 
 
 <div style="text-align: center; width: 100%;">
   <img style="height: 250px" src="./images/example-staked.png" />
@@ -81,13 +81,13 @@ Overlay text is used when creating receipts. This text will be automatically dis
 
 **Stake Entry**
 
-Stake pools are a collection of stake entries. The stake entry contains information pertaining to that specific NFT and how long it has been staked.
+Stake pools are a collection of stake entries. Each stake entry stores information related to a specific NFT and how long it has been staked.
 
-Everytime a new NFT is staked, a stake entry must first be created. This can happen in a single transaction by combining the `init_entry` with `stake` instructions. If a receipt mint is created, currently the client will do this in two transactions due to compute limitations.
+Every time a new NFT is staked, a stake entry must first be created. This can happen in a single transaction by combining the `init_entry` with `stake` instructions. If a receipt mint is created, the current client will do this in two transactions due to compute limitations.
 
 Stake entries also retain ownership of the given mint(s) while it is staked.
 
-There are separate instructions for `stake` and `claim_receipt_mint`. Read below to learn more about receipts, but the client will automatically stake the NFT, and then optionally claim a receipt that can either contain the "orginal" mint OR a dynamically updating version of it.
+There are separate instructions for `stake` and `claim_receipt_mint`. Read below to learn more about receipts. The client will automatically stake the NFT  and then optionally claim a receipt that can either contain the "orginal" mint OR a dynamic/mutable copy receipt mint. 
 
 Either or both of these mints must be returned to the `stake_entry` before the user can unstake. This will be done automatically when calling the `unstake` API.
 
@@ -110,31 +110,31 @@ pub struct StakeEntry {
 
 **Stake Receipts**
 
-Stake pool is designed to support general staking, as well as a enabling a concept of stake receipts.
+Stake pool is designed to support general staking as well as a enable the concept of stake receipts.
 
 > Receipts is a feature that allows the user to have a representation of the staked NFT in their wallet
 
 - `ReceiptType::Original`
 
-  - When staking using the original receipt type, when staking the user token(s) will be locked into the staker's wallet, and the stake timer will begin.
+  - When staking using the original receipt type, the user's token(s) will be locked into the staker's wallet, and the stake timer will begin.
   - This allows users to continue holding their tokens while they're staked which can be advantageous for several reasons including allowing them to continue participating in DAOs and gated discord servers.
   - While it does sit in their wallet, the token is frozen while it is staked and thus cannot be traded/sent to anyone else. The locked aspect of staking that projects hope to achieve is thus not compromised in any way.
   - In order to unstake, this locked token must first be unfrozen and returned to the stake pool. The current implementation leverages the Cardinal Token Manager and the invalidation type of "Return". The way this works is that upon staking, the token is issued back to the staker from the stake pool with an associated Token Manager wrapper. Then, when the user decides to unstake, the token manager is invalidated, and the token is programatically returned back to the pool. Now back in the pool and unwrapped, the token can be freely claimed by user. The client abstracts this invalidation and return inside of the unstake api.
 
 - `ReceiptType::Receipt`
-  - Optionally the user can also claim a generated NFT receipt
+  - Optionally, the user can also claim a generated, dynamic NFT receipt.
   - Using stake type of receipt, a new copy NFT will be transferred to user. The receipt metadata is dynamic by default and uses the Cardinal metadata and img-generators hosted at https://api.cardinal.so/metadata and https://api.cardinal.so/img respectively.
   - This approach is additionally beneficial because the receipt can be clearly identified in the wallet as a staked NFT rather than a just locked one because of the mutable and dynamic nature of its metadata that allows for relevant markers/metrics to be displayed.
-  - The current staker can unstake at any time which increments the stake timer for that mint
+  - The current staker can unstake at any time which increments the stake timer for that mint.
   - Any unstaking requires returning the receipt before the unstake instruction can be called. This can be done via the Cardinal Token Manager with 'InvalidationType::Return'. Similar to how returning locked tokens works, this will is handled automatically by the client unstake api.
 
 **Reward Distributors**
 
-While just using the `stake_pool` can be sufficient to keep track of total stake duration and lock the NFT in the users wallet, a reward distributor can be optionally added to distribute rewards out to staked NFTs.
+While just using the `stake_pool` can be sufficient to keep track of total stake duration and lock the NFT in the user's wallet, a reward distributor can be optionally added to distribute rewards to staked NFTs.
 
-Reward distributor is modeled similar to a stake pool, and it has a `reward_distributor` as well as `reward_entry`. The reward entry is unique for each mint, and keeps track how many reward have been given out to that NFT to ensure that it gets its fair share.
+Reward distributor is modeled similar to a stake pool, having both a `reward_distributor` and a  `reward_entry`. The reward entry is unique for each mint and keeps track how many reward have been given out to that NFT to ensure that it gets its fair share.
 
-As mentioned above, reward distibutor is a basic example of fixed linear payouts, but modeling this as a separate program allows for arbitrary other rewards to be given out to stakers.
+As mentioned above, reward distibutor is a basic example of a fixed linear payout structure, but modeling this as a separate program allows for arbitrary pluggable reward logic for reward distribution.
 
 ```
 #[account]
@@ -166,24 +166,24 @@ pub struct RewardEntry {
 The reward distributor also can be of 2 different kinds, `Mint` or `Treasury` / `Transfer`
 
 - Mint
-  - If choosing reward distributor of kind Mint, the mint authority of the reward_mint will be transfered to the reward distributor upon initialization
-  - This will mean that it can mint unlimited tokens to stakers, up until an optional `max_supply`
-  - The authority (creator) of this reward distributor can always reclaim the `mint_authority` by closing the `reward_distributor` using the `close` instruction
+  - If choosing reward distributor of kind Mint, the mint authority of the reward_mint will be transfered to the reward distributor upon initialization.
+  - This means that it can mint unlimited tokens to stakers up until an optional `max_supply`
+  - The authority (creator) of this reward distributor can always reclaim the `mint_authority` by closing the `reward_distributor` using the `close` instruction.
 - Treasury / Transfer
-  - Using this kind, an initial supply of tokens of the given reward_mint will be transferred to the `reward_distributor` upon intialization
-  - The reward distributor will be able to distribute reward from its treasury / supply up until it runs out, or it hits an optional `max_supply`
-  - If the reward distributor is running out of tokens, anyone can simply transfer more tokens to it directly via a wallet using transfer instruction. The tokens are held in the `associated_token_account` of the `reward_distributor` for the `reward_mint`
+  - With this kind, an initial supply of tokens of the given reward_mint will be transferred to the `reward_distributor` upon intialization.
+  - The reward distributor will be able to distribute rewards from its treasury / supply until it runs out or hits an optional `max_supply`.
+  - If the reward distributor is running out of tokens, anyone can simply transfer more tokens to it directly via a wallet using the transfer instruction. The tokens are held in the `associated_token_account` of the `reward_distributor` for the `reward_mint`.
 
-In both kinds of reward distributors, if the `max_supply` is hit, or the treasury runs out, the remaining rewards will be given out and the `reward_seconds_received` will be partially updated
+In both kinds of reward distributors, if the `max_supply` is hit, or the treasury runs out, the remaining rewards will be given out and the `reward_seconds_received` will be partially updated.
 
-Because reward distributor is modeled separately from the stake_pool, a user can optionally claim their rewards at any time for the amount of time they have staked. Typically this is done automatically when calling `unstake` by the client.
+Because reward distributor is modeled separately from the stake_pool, a user can optionally claim their rewards at any time for the amount of time they have staked. Typically, this is done automatically when calling `unstake` by the client.
 
 **Reward Distributor Multipliers**
 
 Multipliers is a feature that can set a given token (via its reward_entry) to receive more rewards than the others. Only the authority of the pool can change the multiplier by calling `update_reward_entry` instruction.
 
-- Modeling this separately allows for either the user the initialize their own reward_entries, and later the authority can update their multiplier, or run arbitrary events / bonuses for specific NFTs at any time
-- In addition, the authority could initialize all the entries up front and set the correct / desired multipliers for their NFTs such that it will be respected correctly when the user first stakes.
+- Modeling this separately allows for either 1) the user to initialize their own reward_entries and the authority to update their multiplier later on or 2) the authority to run arbitrary events / bonuses for specific NFTs at any time.
+- In addition, the authority may initialize all the entries up front and set the correct / desired multipliers for their NFTs such that it will correctly allocate when the user first stakes.
 
 ## Questions & Support
 
