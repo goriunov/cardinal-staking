@@ -9,12 +9,16 @@ pub struct StakeCtx<'info> {
     #[account(mut, seeds = [STAKE_ENTRY_PREFIX.as_bytes(), stake_entry.pool.as_ref(), stake_entry.original_mint.as_ref(), get_stake_seed(original_mint.supply, user.key()).as_ref()], bump=stake_entry.bump)]
     stake_entry: Box<Account<'info, StakeEntry>>,
 
+    #[account(mut, constraint = stake_entry.pool == stake_pool.key() @ ErrorCode::InvalidStakePool)]
+    stake_pool: Box<Account<'info, StakePool>>,
+
     // stake_entry token accounts
     #[account(mut, constraint =
         stake_entry_original_mint_token_account.amount == 0
         && stake_entry_original_mint_token_account.mint == stake_entry.original_mint
         && stake_entry_original_mint_token_account.owner == stake_entry.key()
-        @ ErrorCode::InvalidStakeEntryOriginalMintTokenAccount)]
+        @ ErrorCode::InvalidStakeEntryOriginalMintTokenAccount
+    )]
     stake_entry_original_mint_token_account: Box<Account<'info, TokenAccount>>,
     original_mint: Box<Account<'info, Mint>>,
 
@@ -25,7 +29,8 @@ pub struct StakeCtx<'info> {
         user_original_mint_token_account.amount > 0
         && user_original_mint_token_account.mint == stake_entry.original_mint
         && user_original_mint_token_account.owner == user.key()
-        @ ErrorCode::InvalidUserOriginalMintTokenAccount)]
+        @ ErrorCode::InvalidUserOriginalMintTokenAccount
+    )]
     user_original_mint_token_account: Box<Account<'info, TokenAccount>>,
 
     // programs
@@ -52,6 +57,10 @@ pub fn handler(ctx: Context<StakeCtx>, amount: u64) -> Result<()> {
     stake_entry.last_staked_at = Clock::get().unwrap().unix_timestamp;
     stake_entry.last_staker = ctx.accounts.user.key();
     stake_entry.amount = amount;
+
+    if ctx.accounts.stake_pool.reset_on_stake {
+        stake_entry.total_stake_seconds = 0;
+    }
 
     Ok(())
 }

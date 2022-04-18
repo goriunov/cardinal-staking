@@ -64,7 +64,7 @@ export const initStakePool = (
     overlayText: string;
     imageUri: string;
     authority: PublicKey;
-    resetOnUnstake: boolean;
+    resetOnStake: boolean;
   }
 ): TransactionInstruction => {
   const provider = new Provider(connection, wallet, {});
@@ -81,7 +81,7 @@ export const initStakePool = (
       requiresCreators: params.requiresCreators,
       requiresAuthorization: params.requiresAuthorization ?? false,
       authority: params.authority,
-      resetOnUnstake: params.resetOnUnstake,
+      resetOnStake: params.resetOnStake,
     },
     {
       accounts: {
@@ -269,6 +269,7 @@ export const stake = (
   params: {
     originalMint: PublicKey;
     stakeEntryId: PublicKey;
+    stakePoolId: PublicKey;
     stakeEntryOriginalMintTokenAccountId: PublicKey;
     userOriginalMintTokenAccountId: PublicKey;
     amount: BN;
@@ -284,6 +285,7 @@ export const stake = (
   return stakePoolProgram.instruction.stake(params.amount, {
     accounts: {
       stakeEntry: params.stakeEntryId,
+      stakePool: params.stakePoolId,
       stakeEntryOriginalMintTokenAccount:
         params.stakeEntryOriginalMintTokenAccountId,
       originalMint: params.originalMint,

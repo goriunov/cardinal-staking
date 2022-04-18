@@ -8,7 +8,7 @@ use {
 pub struct UnstakeCtx<'info> {
     #[account(mut)]
     stake_pool: Box<Account<'info, StakePool>>,
-    #[account(mut, constraint = stake_entry.pool == stake_pool.key())]
+    #[account(mut, constraint = stake_entry.pool == stake_pool.key() @ ErrorCode::InvalidStakePool)]
     stake_entry: Box<Account<'info, StakeEntry>>,
 
     original_mint: Box<Account<'info, Mint>>,
@@ -77,9 +77,6 @@ pub fn handler(ctx: Context<UnstakeCtx>) -> Result<()> {
     stake_entry.original_mint_claimed = false;
     stake_entry.stake_mint_claimed = false;
     stake_entry.amount = 0;
-    if ctx.accounts.stake_pool.reset_on_unstake {
-        stake_entry.total_stake_seconds = 0;
-    }
 
     Ok(())
 }

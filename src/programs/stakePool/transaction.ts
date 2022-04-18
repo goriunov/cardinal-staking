@@ -63,7 +63,7 @@ export const withInitStakePool = async (
     requiresAuthorization?: boolean;
     overlayText?: string;
     imageUri?: string;
-    resetOnUnstake?: boolean;
+    resetOnStake?: boolean;
   }
 ): Promise<[web3.Transaction, web3.PublicKey]> => {
   const [identifierId] = await findIdentifierId();
@@ -91,7 +91,7 @@ export const withInitStakePool = async (
       overlayText: params.overlayText || "",
       imageUri: params.imageUri || "",
       authority: wallet.publicKey,
-      resetOnUnstake: params.resetOnUnstake || false,
+      resetOnStake: params.resetOnStake || false,
     })
   );
   return [transaction, stakePoolId];
@@ -304,6 +304,7 @@ export const withStake = async (
   transaction.add(
     stake(connection, wallet, {
       stakeEntryId: stakeEntryId,
+      stakePoolId: params.stakePoolId,
       originalMint: params.originalMintId,
       stakeEntryOriginalMintTokenAccountId:
         stakeEntryOriginalMintTokenAccountId,
