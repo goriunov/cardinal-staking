@@ -10,7 +10,7 @@ import type {
 } from "@solana/web3.js";
 import { SystemProgram } from "@solana/web3.js";
 
-import { findStakeEntryId } from "../stakePool/pda";
+import { findStakeEntryIdFromMint } from "../stakePool/utils";
 import type { REWARD_DISTRIBUTOR_PROGRAM } from ".";
 import { REWARD_DISTRIBUTOR_ADDRESS, REWARD_DISTRIBUTOR_IDL } from ".";
 import type { RewardDistributorKind } from "./constants";
@@ -116,7 +116,7 @@ export const claimRewards = async (
   );
   const [[rewardEntryId], [stakeEntryId]] = await Promise.all([
     findRewardEntryId(rewardDistributorId, params.originalMintId),
-    findStakeEntryId(
+    findStakeEntryIdFromMint(
       connection,
       wallet.publicKey,
       params.stakePoolId,

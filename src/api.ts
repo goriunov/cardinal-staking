@@ -11,7 +11,6 @@ import type { RewardDistributorKind } from "./programs/rewardDistributor";
 import { withInitRewardDistributor } from "./programs/rewardDistributor/transaction";
 import { ReceiptType } from "./programs/stakePool";
 import { getStakeEntry, getStakePool } from "./programs/stakePool/accounts";
-import { findStakeEntryId } from "./programs/stakePool/pda";
 import {
   withAuthorizeStakeEntry,
   withClaimReceiptMint,
@@ -21,6 +20,7 @@ import {
   withStake,
   withUnstake,
 } from "./programs/stakePool/transaction";
+import { findStakeEntryIdFromMint } from "./programs/stakePool/utils";
 import { getMintSupply } from "./utils";
 
 /**
@@ -197,7 +197,7 @@ export const createStakeEntryAndStakeMint = async (
   }
 ): Promise<[Transaction, PublicKey, Keypair | undefined]> => {
   let transaction = new Transaction();
-  const [stakeEntryId] = await findStakeEntryId(
+  const [stakeEntryId] = await findStakeEntryIdFromMint(
     connection,
     wallet.publicKey,
     params.stakePoolId,
@@ -303,7 +303,7 @@ export const stake = async (
   }
 
   let transaction = new Transaction();
-  const [stakeEntryId] = await findStakeEntryId(
+  const [stakeEntryId] = await findStakeEntryIdFromMint(
     connection,
     wallet.publicKey,
     params.stakePoolId,

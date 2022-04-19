@@ -24,7 +24,7 @@ import {
 } from "../src/programs/rewardDistributor/transaction";
 import { ReceiptType } from "../src/programs/stakePool";
 import { getStakeEntry } from "../src/programs/stakePool/accounts";
-import { findStakeEntryId } from "../src/programs/stakePool/pda";
+import { findStakeEntryIdFromMint } from "../src/programs/stakePool/utils";
 import { createMasterEditionIxs, createMint, delay } from "./utils";
 import { getProvider } from "./workspace";
 
@@ -197,7 +197,7 @@ describe("Stake and claim rewards", () => {
     const stakeEntryData = await getStakeEntry(
       provider.connection,
       (
-        await findStakeEntryId(
+        await findStakeEntryIdFromMint(
           provider.connection,
           provider.wallet.publicKey,
           stakePoolId,
@@ -242,7 +242,7 @@ describe("Stake and claim rewards", () => {
     const stakeEntryData = await getStakeEntry(
       provider.connection,
       (
-        await findStakeEntryId(
+        await findStakeEntryIdFromMint(
           provider.connection,
           provider.wallet.publicKey,
           stakePoolId,
