@@ -31,7 +31,7 @@ import {
 } from "../src/programs/rewardDistributor/transaction";
 import { ReceiptType } from "../src/programs/stakePool";
 import { getStakeEntry } from "../src/programs/stakePool/accounts";
-import { findStakeEntryId } from "../src/programs/stakePool/pda";
+import { findStakeEntryIdFromMint } from "../src/programs/stakePool/utils";
 import { createMasterEditionIxs, createMint, delay } from "./utils";
 import { getProvider } from "./workspace";
 
@@ -219,7 +219,7 @@ describe("Stake and claim rewards from treasury", () => {
     const stakeEntryData = await getStakeEntry(
       provider.connection,
       (
-        await findStakeEntryId(
+        await findStakeEntryIdFromMint(
           provider.connection,
           provider.wallet.publicKey,
           stakePoolId,
@@ -255,7 +255,7 @@ describe("Stake and claim rewards from treasury", () => {
     const stakeEntryData = await getStakeEntry(
       provider.connection,
       (
-        await findStakeEntryId(
+        await findStakeEntryIdFromMint(
           provider.connection,
           provider.wallet.publicKey,
           stakePoolId,
@@ -301,7 +301,7 @@ describe("Stake and claim rewards from treasury", () => {
       web3.Keypair.generate()
     );
 
-    const [stakeEntryId] = await findStakeEntryId(
+    const [stakeEntryId] = await findStakeEntryIdFromMint(
       provider.connection,
       provider.wallet.publicKey,
       stakePoolId,
@@ -348,7 +348,7 @@ describe("Stake and claim rewards from treasury", () => {
     const stakeEntryData = await getStakeEntry(
       provider.connection,
       (
-        await findStakeEntryId(
+        await findStakeEntryIdFromMint(
           provider.connection,
           provider.wallet.publicKey,
           stakePoolId,

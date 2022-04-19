@@ -3,6 +3,7 @@ import { BN, Program, Provider } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
 import type * as web3 from "@solana/web3.js";
 
+import { getMintSupply } from "../../utils";
 import type { REWARD_DISTRIBUTOR_PROGRAM } from "../rewardDistributor";
 import {
   REWARD_DISTRIBUTOR_ADDRESS,
@@ -11,7 +12,7 @@ import {
 import { findRewardDistributorId } from "../rewardDistributor/pda";
 import type { STAKE_POOL_PROGRAM } from ".";
 import { STAKE_POOL_ADDRESS, STAKE_POOL_IDL } from ".";
-import { findStakeAuthorizationId } from "./pda";
+import { findStakeAuthorizationId, findStakeEntryId } from "./pda";
 
 export const remainingAccountsForInitStakeEntry = async (
   stakePoolId: web3.PublicKey,
@@ -57,6 +58,25 @@ export const withRemainingAccountsForUnstake = async (
   } else {
     return [];
   }
+};
+
+/**
+ * Convenience method to find the stake entry id from a mint
+ * NOTE: This will lookup the mint on-chain to get the supply
+ * @returns
+ */
+export const findStakeEntryIdFromMint = async (
+  connection: web3.Connection,
+  wallet: web3.PublicKey,
+  stakePoolId: web3.PublicKey,
+  originalMintId: web3.PublicKey,
+  isFungible?: boolean
+): Promise<[web3.PublicKey, number]> => {
+  if (isFungible === undefined) {
+    const supply = await getMintSupply(connection, originalMintId);
+    isFungible = supply.gt(new BN(1));
+  }
+  return findStakeEntryId(wallet, stakePoolId, originalMintId, isFungible);
 };
 
 export const getTotalStakeSeconds = async (

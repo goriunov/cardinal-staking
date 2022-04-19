@@ -22,10 +22,8 @@ import {
   getStakeEntry,
   getStakePool,
 } from "../src/programs/stakePool/accounts";
-import {
-  findStakeAuthorizationId,
-  findStakeEntryId,
-} from "../src/programs/stakePool/pda";
+import { findStakeAuthorizationId } from "../src/programs/stakePool/pda";
+import { findStakeEntryIdFromMint } from "../src/programs/stakePool/utils";
 import { createMasterEditionIxs, createMint } from "./utils";
 import { getProvider } from "./workspace";
 
@@ -142,7 +140,7 @@ describe("Requires authorization success", () => {
     const stakeEntryData = await getStakeEntry(
       provider.connection,
       (
-        await findStakeEntryId(
+        await findStakeEntryIdFromMint(
           provider.connection,
           provider.wallet.publicKey,
           stakePoolId,
@@ -178,7 +176,7 @@ describe("Requires authorization success", () => {
     const stakeEntryData = await getStakeEntry(
       provider.connection,
       (
-        await findStakeEntryId(
+        await findStakeEntryIdFromMint(
           provider.connection,
           provider.wallet.publicKey,
           stakePoolId,

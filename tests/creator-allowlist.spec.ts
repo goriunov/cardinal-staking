@@ -16,7 +16,7 @@ import {
   getStakeEntry,
   getStakePool,
 } from "../src/programs/stakePool/accounts";
-import { findStakeEntryId } from "../src/programs/stakePool/pda";
+import { findStakeEntryIdFromMint } from "../src/programs/stakePool/utils";
 import { createMasterEditionIxs, createMint } from "./utils";
 import { getProvider } from "./workspace";
 
@@ -104,7 +104,7 @@ describe("Create stake pool", () => {
     const stakeEntryData = await getStakeEntry(
       provider.connection,
       (
-        await findStakeEntryId(
+        await findStakeEntryIdFromMint(
           provider.connection,
           provider.wallet.publicKey,
           stakePoolId,
@@ -140,7 +140,7 @@ describe("Create stake pool", () => {
     const stakeEntryData = await getStakeEntry(
       provider.connection,
       (
-        await findStakeEntryId(
+        await findStakeEntryIdFromMint(
           provider.connection,
           provider.wallet.publicKey,
           stakePoolId,

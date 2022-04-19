@@ -19,7 +19,7 @@ import { getRewardDistributor } from "../src/programs/rewardDistributor/accounts
 import { findRewardDistributorId } from "../src/programs/rewardDistributor/pda";
 import { ReceiptType } from "../src/programs/stakePool";
 import { getStakeEntry } from "../src/programs/stakePool/accounts";
-import { findStakeEntryId } from "../src/programs/stakePool/pda";
+import { findStakeEntryIdFromMint } from "../src/programs/stakePool/utils";
 import { createMint } from "./utils";
 import { getProvider } from "./workspace";
 
@@ -172,7 +172,7 @@ describe("Create stake pool", () => {
     const stakeEntryData = await getStakeEntry(
       provider.connection,
       (
-        await findStakeEntryId(
+        await findStakeEntryIdFromMint(
           provider.connection,
           provider.wallet.publicKey,
           stakePoolId,
@@ -224,7 +224,7 @@ describe("Create stake pool", () => {
     const stakeEntryData = await getStakeEntry(
       provider.connection,
       (
-        await findStakeEntryId(
+        await findStakeEntryIdFromMint(
           provider.connection,
           provider.wallet.publicKey,
           stakePoolId,
@@ -325,7 +325,7 @@ describe("Create stake pool", () => {
     const stakeEntryData = await getStakeEntry(
       provider.connection,
       (
-        await findStakeEntryId(
+        await findStakeEntryIdFromMint(
           provider.connection,
           provider.wallet.publicKey,
           stakePoolId,

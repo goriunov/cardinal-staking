@@ -28,9 +28,12 @@ import {
   stake,
   unstake,
 } from "./instruction";
-import { findIdentifierId, findStakeEntryId, findStakePoolId } from "./pda";
+import { findIdentifierId, findStakePoolId } from "./pda";
 import { withInvalidate } from "./token-manager";
-import { withRemainingAccountsForUnstake } from "./utils";
+import {
+  findStakeEntryIdFromMint,
+  withRemainingAccountsForUnstake,
+} from "./utils";
 
 /**
  * Add init pool identifier instructions to a transaction
@@ -115,7 +118,7 @@ export const withInitStakeEntry = async (
   }
 ): Promise<[web3.Transaction, web3.PublicKey]> => {
   const [[stakeEntryId], originalMintMetadatId] = await Promise.all([
-    findStakeEntryId(
+    findStakeEntryIdFromMint(
       connection,
       wallet.publicKey,
       params.stakePoolId,
@@ -285,7 +288,7 @@ export const withStake = async (
     amount?: BN;
   }
 ): Promise<web3.Transaction> => {
-  const [stakeEntryId] = await findStakeEntryId(
+  const [stakeEntryId] = await findStakeEntryIdFromMint(
     connection,
     wallet.publicKey,
     params.stakePoolId,
@@ -334,7 +337,7 @@ export const withUnstake = async (
   }
 ): Promise<web3.Transaction> => {
   const [[stakeEntryId], [rewardDistributorId]] = await Promise.all([
-    findStakeEntryId(
+    findStakeEntryIdFromMint(
       connection,
       wallet.publicKey,
       params.stakePoolId,

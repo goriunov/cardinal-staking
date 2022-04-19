@@ -17,7 +17,7 @@ import type { RewardDistributorData } from "./programs/rewardDistributor";
 import { getRewardEntry } from "./programs/rewardDistributor/accounts";
 import { findRewardEntryId } from "./programs/rewardDistributor/pda";
 import { getStakeEntry } from "./programs/stakePool/accounts";
-import { findStakeEntryId } from "./programs/stakePool/pda";
+import { findStakeEntryIdFromMint } from "./programs/stakePool/utils";
 
 export const executeTransaction = async (
   connection: Connection,
@@ -115,7 +115,7 @@ export const getPendingRewardsForPool = async (
   for (let i = 0; i < mintIds.length; i++) {
     const mint_id = mintIds[i]!;
 
-    const [stakeEntryId] = await findStakeEntryId(
+    const [stakeEntryId] = await findStakeEntryIdFromMint(
       connection,
       wallet,
       rewardDistributor.parsed.stakePool,
