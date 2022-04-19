@@ -66,7 +66,7 @@ export const executeTransaction = async (
 export const getMintSupply = async (
   connection: web3.Connection,
   originalMintId: web3.PublicKey
-): Promise<number> => {
+): Promise<BN> => {
   const mint = new splToken.Token(
     connection,
     originalMintId,
@@ -75,7 +75,7 @@ export const getMintSupply = async (
     // @ts-ignore
     null
   );
-  return (await mint.getMintInfo()).supply.toNumber();
+  return (await mint.getMintInfo()).supply;
 };
 
 /**

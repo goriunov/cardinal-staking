@@ -2,7 +2,7 @@ import {
   tryGetAccount,
   withFindOrInitAssociatedTokenAccount,
 } from "@cardinal/common";
-import type { BN } from "@project-serum/anchor";
+import { BN } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
 import type { Connection } from "@solana/web3.js";
 import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
@@ -298,7 +298,7 @@ export const stake = async (
   }
 ): Promise<Transaction> => {
   const supply = await getMintSupply(connection, params.originalMintId);
-  if (supply > 1 && params.receiptType === ReceiptType.Original) {
+  if (supply.gt(new BN(1)) && params.receiptType === ReceiptType.Original) {
     throw new Error("Fungible with receipt type Original is not supported yet");
   }
 
@@ -320,7 +320,7 @@ export const stake = async (
   } else if (
     stakeEntryData.parsed.lastStaker.toString() !==
       PublicKey.default.toString() &&
-    supply > 1
+    supply.gt(new BN(1))
   ) {
     throw new Error(
       "User has fungible tokens already staked in the pool. Staked tokens need to be unstaked and then restaked together with the new tokens."

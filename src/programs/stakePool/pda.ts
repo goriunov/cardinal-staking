@@ -1,5 +1,4 @@
-import type { BN } from "@project-serum/anchor";
-import { utils } from "@project-serum/anchor";
+import { BN, utils } from "@project-serum/anchor";
 import * as web3 from "@solana/web3.js";
 
 import { getMintSupply } from "../../utils";
@@ -57,7 +56,9 @@ export const findStakeEntryId = async (
       utils.bytes.utf8.encode(STAKE_ENTRY_SEED),
       stakePoolId.toBuffer(),
       originalMintId.toBuffer(),
-      supply > 1 ? wallet.toBuffer() : web3.PublicKey.default.toBuffer(),
+      supply.gt(new BN(1))
+        ? wallet.toBuffer()
+        : web3.PublicKey.default.toBuffer(),
     ],
     STAKE_POOL_ADDRESS
   );

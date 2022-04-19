@@ -234,7 +234,7 @@ export const withClaimReceiptMint = async (
 ): Promise<web3.Transaction> => {
   if (
     params.receiptType === ReceiptType.Original &&
-    (await getMintSupply(connection, params.receiptMintId)) > 1
+    (await getMintSupply(connection, params.receiptMintId)).gt(new BN(1))
   ) {
     throw new Error(
       "Fungible staking and locked reecipt type not supported yet"
