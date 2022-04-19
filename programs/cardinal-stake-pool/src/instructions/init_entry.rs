@@ -46,13 +46,16 @@ pub fn handler(ctx: Context<InitEntryCtx>, _user: Pubkey) -> Result<()> {
         let original_mint_metadata = Metadata::from_account_info(&ctx.accounts.original_mint_metadata.to_account_info())?;
         if !stake_pool.requires_creators.is_empty() && original_mint_metadata.data.creators != None {
             let creators = original_mint_metadata.data.creators.unwrap();
-            let find = creators.iter().find(|c| stake_pool.requires_creators.contains(&c.address));
+            let find = creators.iter().find(|c| stake_pool.requires_creators.contains(&c.address) && c.verified);
             if find != None {
                 allowed = true
             };
         }
-        if !stake_pool.requires_collections.is_empty() && original_mint_metadata.collection != None && stake_pool.requires_collections.contains(&original_mint_metadata.collection.unwrap().key) {
-            allowed = true
+        if !stake_pool.requires_collections.is_empty() && original_mint_metadata.collection != None {
+            let collection = original_mint_metadata.collection.unwrap();
+            if collection.verified && stake_pool.requires_collections.contains(&collection.key) {
+                allowed = true
+            }
         }
         if stake_pool.requires_authorization || !allowed {
             let remaining_accs = &mut ctx.remaining_accounts.iter();
