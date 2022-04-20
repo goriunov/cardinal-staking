@@ -281,3 +281,40 @@ export const getStakeAuthorizations = async (
     pubkey: stakeAuthorizationIds[i]!,
   }));
 };
+
+export const getStakeAuthorizationsForPool = async (
+  connection: Connection,
+  poolId: PublicKey
+): Promise<AccountData<StakeAuthorizationData>[]> => {
+  const programAccounts = await connection.getProgramAccounts(
+    STAKE_POOL_ADDRESS,
+    {
+      filters: [
+        {
+          memcmp: { offset: POOL_OFFSET, bytes: poolId.toBase58() },
+        },
+      ],
+    }
+  );
+
+  const stakeAuthorizationDatas: AccountData<StakeAuthorizationData>[] = [];
+  const coder = new BorshAccountsCoder(STAKE_POOL_IDL);
+  programAccounts.forEach((account) => {
+    try {
+      const data: StakeAuthorizationData = coder.decode(
+        "stakeAuthorizationRecord",
+        account.account.data
+      );
+      stakeAuthorizationDatas.push({
+        ...account,
+        parsed: data,
+      });
+    } catch (e) {
+      // console.log(`Failed to decode token manager data`);
+    }
+  });
+
+  return stakeAuthorizationDatas.sort((a, b) =>
+    a.pubkey.toBase58().localeCompare(b.pubkey.toBase58())
+  );
+};
