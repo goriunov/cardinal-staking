@@ -7,8 +7,8 @@ pub struct RewardEntry {
     pub bump: u8,
     pub mint: Pubkey,
     pub reward_distributor: Pubkey,
-    pub reward_seconds_received: u64,
-    pub reward_amount_received: u64,
+    pub reward_seconds_received: u128,
+    pub reward_amount_received: u128,
     pub multiplier: u64,
 }
 
@@ -31,7 +31,7 @@ pub struct RewardDistributor {
     pub authority: Pubkey,
     pub reward_mint: Pubkey,
     pub reward_amount: u64,
-    pub reward_duration_seconds: u64,
-    pub rewards_issued: u64,
+    pub reward_duration_seconds: u128,
+    pub rewards_issued: u128,
     pub max_supply: Option<u64>,
 }
