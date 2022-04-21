@@ -14,6 +14,7 @@ import {
   close,
   initRewardDistributor,
   initRewardEntry,
+  updateRewardEntry,
 } from "./instruction";
 import { findRewardDistributorId, findRewardEntryId } from "./pda";
 import { withRemainingAccountsForKind } from "./utils";
@@ -174,4 +175,23 @@ export const withClose = async (
     );
   }
   return transaction;
+};
+
+export const withUpdateRewardEntry = async (
+  transaction: Transaction,
+  connection: Connection,
+  wallet: Wallet,
+  params: {
+    stakePoolId: PublicKey;
+    mintId: PublicKey;
+    multiplier: BN;
+  }
+): Promise<Transaction> => {
+  return transaction.add(
+    await updateRewardEntry(connection, wallet, {
+      stakePoolId: params.stakePoolId,
+      mintId: params.mintId,
+      multiplier: params.multiplier,
+    })
+  );
 };

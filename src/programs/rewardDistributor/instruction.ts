@@ -170,3 +170,40 @@ export const close = async (
     remainingAccounts: params.remainingAccountsForKind,
   });
 };
+
+export const updateRewardEntry = async (
+  connection: Connection,
+  wallet: Wallet,
+  params: {
+    stakePoolId: PublicKey;
+    mintId: PublicKey;
+    multiplier: BN;
+  }
+): Promise<TransactionInstruction> => {
+  const provider = new Provider(connection, wallet, {});
+  const rewardDistributorProgram = new Program<REWARD_DISTRIBUTOR_PROGRAM>(
+    REWARD_DISTRIBUTOR_IDL,
+    REWARD_DISTRIBUTOR_ADDRESS,
+    provider
+  );
+
+  const [rewardDistributorId] = await findRewardDistributorId(
+    params.stakePoolId
+  );
+
+  const [rewardEntryId] = await findRewardEntryId(
+    rewardDistributorId,
+    params.mintId
+  );
+
+  return rewardDistributorProgram.instruction.updateRewardEntry(
+    { multiplier: params.multiplier },
+    {
+      accounts: {
+        rewardEntry: rewardEntryId,
+        rewardDistributor: rewardDistributorId,
+        authority: wallet.publicKey,
+      },
+    }
+  );
+};
