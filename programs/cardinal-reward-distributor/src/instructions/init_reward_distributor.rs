@@ -45,7 +45,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     reward_distributor.stake_pool = ctx.accounts.stake_pool.key();
     reward_distributor.reward_mint = ctx.accounts.reward_mint.key();
     reward_distributor.reward_amount = ix.reward_amount;
-    reward_distributor.reward_duration_seconds = ix.reward_duration_seconds;
+    reward_distributor.reward_duration_seconds = ix.reward_duration_seconds as u128;
     reward_distributor.max_supply = ix.max_supply;
 
     let remaining_accs = &mut ctx.remaining_accounts.iter();
