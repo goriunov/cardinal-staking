@@ -1,5 +1,5 @@
 import { withFindOrInitAssociatedTokenAccount } from "@cardinal/common";
-import { BN, Program, Provider } from "@project-serum/anchor";
+import { AnchorProvider, BN, Program } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
 import type * as web3 from "@solana/web3.js";
 
@@ -85,7 +85,7 @@ export const getTotalStakeSeconds = async (
 ): Promise<BN> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const provider = new Provider(connection, null, {});
+  const provider = new AnchorProvider(connection, null, {});
   const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
     STAKE_POOL_IDL,
     STAKE_POOL_ADDRESS,
@@ -101,7 +101,7 @@ export const getActiveStakeSeconds = async (
 ): Promise<BN> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const provider = new Provider(connection, null, {});
+  const provider = new AnchorProvider(connection, null, {});
   const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
     STAKE_POOL_IDL,
     STAKE_POOL_ADDRESS,
@@ -120,7 +120,7 @@ export const getUnclaimedRewards = async (
 ): Promise<BN> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const provider = new Provider(connection, null, {});
+  const provider = new AnchorProvider(connection, null, {});
   const rewardDistributor = new Program<REWARD_DISTRIBUTOR_PROGRAM>(
     REWARD_DISTRIBUTOR_IDL,
     REWARD_DISTRIBUTOR_ADDRESS,
@@ -142,7 +142,7 @@ export const getClaimedRewards = async (
 ): Promise<BN> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const provider = new Provider(connection, null, {});
+  const provider = new AnchorProvider(connection, null, {});
   const rewardDistributor = new Program<REWARD_DISTRIBUTOR_PROGRAM>(
     REWARD_DISTRIBUTOR_IDL,
     REWARD_DISTRIBUTOR_ADDRESS,

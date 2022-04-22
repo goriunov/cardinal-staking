@@ -10,7 +10,7 @@ import {
 } from "@cardinal/token-manager/dist/cjs/programs/tokenManager/pda";
 import { MetadataProgram } from "@metaplex-foundation/mpl-token-metadata";
 import type { BN } from "@project-serum/anchor";
-import { Program, Provider } from "@project-serum/anchor";
+import { AnchorProvider, Program } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -37,7 +37,7 @@ export const initPoolIdentifier = (
     identifierId: PublicKey;
   }
 ): TransactionInstruction => {
-  const provider = new Provider(connection, wallet, {});
+  const provider = new AnchorProvider(connection, wallet, {});
   const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
     STAKE_POOL_IDL,
     STAKE_POOL_ADDRESS,
@@ -67,7 +67,7 @@ export const initStakePool = (
     resetOnStake: boolean;
   }
 ): TransactionInstruction => {
-  const provider = new Provider(connection, wallet, {});
+  const provider = new AnchorProvider(connection, wallet, {});
   const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
     STAKE_POOL_IDL,
     STAKE_POOL_ADDRESS,
@@ -102,7 +102,7 @@ export const authorizeStakeEntry = async (
     originalMintId: PublicKey;
   }
 ): Promise<TransactionInstruction> => {
-  const provider = new Provider(connection, wallet, {});
+  const provider = new AnchorProvider(connection, wallet, {});
   const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
     STAKE_POOL_IDL,
     STAKE_POOL_ADDRESS,
@@ -133,7 +133,7 @@ export const initStakeEntry = async (
     originalMintMetadatId: PublicKey;
   }
 ): Promise<TransactionInstruction> => {
-  const provider = new Provider(connection, wallet, {});
+  const provider = new AnchorProvider(connection, wallet, {});
   const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
     STAKE_POOL_IDL,
     STAKE_POOL_ADDRESS,
@@ -172,7 +172,7 @@ export const initStakeMint = (
     symbol: string;
   }
 ): TransactionInstruction => {
-  const provider = new Provider(connection, wallet, {});
+  const provider = new AnchorProvider(connection, wallet, {});
   const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
     STAKE_POOL_IDL,
     STAKE_POOL_ADDRESS,
@@ -215,7 +215,7 @@ export const claimReceiptMint = async (
     receiptType: ReceiptType;
   }
 ): Promise<TransactionInstruction> => {
-  const provider = new Provider(connection, wallet, {});
+  const provider = new AnchorProvider(connection, wallet, {});
   const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
     STAKE_POOL_IDL,
     STAKE_POOL_ADDRESS,
@@ -275,7 +275,7 @@ export const stake = (
     amount: BN;
   }
 ): TransactionInstruction => {
-  const provider = new Provider(connection, wallet, {});
+  const provider = new AnchorProvider(connection, wallet, {});
   const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
     STAKE_POOL_IDL,
     STAKE_POOL_ADDRESS,
@@ -309,7 +309,7 @@ export const unstake = (
     remainingAccounts: AccountMeta[];
   }
 ): TransactionInstruction => {
-  const provider = new Provider(connection, wallet, {});
+  const provider = new AnchorProvider(connection, wallet, {});
   const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
     STAKE_POOL_IDL,
     STAKE_POOL_ADDRESS,

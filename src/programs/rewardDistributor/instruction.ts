@@ -1,5 +1,5 @@
 import type { BN } from "@project-serum/anchor";
-import { Program, Provider } from "@project-serum/anchor";
+import { AnchorProvider, Program } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import type {
@@ -31,7 +31,7 @@ export const initRewardDistributor = (
     supply?: BN;
   }
 ): TransactionInstruction => {
-  const provider = new Provider(connection, wallet, {});
+  const provider = new AnchorProvider(connection, wallet, {});
   const rewardDistributorProgram = new Program<REWARD_DISTRIBUTOR_PROGRAM>(
     REWARD_DISTRIBUTOR_IDL,
     REWARD_DISTRIBUTOR_ADDRESS,
@@ -68,7 +68,7 @@ export const initRewardEntry = async (
     rewardDistributor: PublicKey;
   }
 ): Promise<TransactionInstruction> => {
-  const provider = new Provider(connection, wallet, {});
+  const provider = new AnchorProvider(connection, wallet, {});
   const rewardDistributorProgram = new Program<REWARD_DISTRIBUTOR_PROGRAM>(
     REWARD_DISTRIBUTOR_IDL,
     REWARD_DISTRIBUTOR_ADDRESS,
@@ -104,7 +104,7 @@ export const claimRewards = async (
     remainingAccountsForKind: AccountMeta[];
   }
 ): Promise<TransactionInstruction> => {
-  const provider = new Provider(connection, wallet, {});
+  const provider = new AnchorProvider(connection, wallet, {});
   const rewardDistributorProgram = new Program<REWARD_DISTRIBUTOR_PROGRAM>(
     REWARD_DISTRIBUTOR_IDL,
     REWARD_DISTRIBUTOR_ADDRESS,
@@ -149,7 +149,7 @@ export const close = async (
     remainingAccountsForKind: AccountMeta[];
   }
 ): Promise<TransactionInstruction> => {
-  const provider = new Provider(connection, wallet, {});
+  const provider = new AnchorProvider(connection, wallet, {});
   const rewardDistributorProgram = new Program<REWARD_DISTRIBUTOR_PROGRAM>(
     REWARD_DISTRIBUTOR_IDL,
     REWARD_DISTRIBUTOR_ADDRESS,
@@ -180,7 +180,7 @@ export const updateRewardEntry = async (
     multiplier: BN;
   }
 ): Promise<TransactionInstruction> => {
-  const provider = new Provider(connection, wallet, {});
+  const provider = new AnchorProvider(connection, wallet, {});
   const rewardDistributorProgram = new Program<REWARD_DISTRIBUTOR_PROGRAM>(
     REWARD_DISTRIBUTOR_IDL,
     REWARD_DISTRIBUTOR_ADDRESS,
