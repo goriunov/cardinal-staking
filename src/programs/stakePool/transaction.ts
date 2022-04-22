@@ -425,7 +425,7 @@ export const withUnstake = async (
   return transaction;
 };
 
-export const withUpgradetakePool = (
+export const withUpdateStakePool = (
   transaction: web3.Transaction,
   connection: web3.Connection,
   wallet: Wallet,
