@@ -15,7 +15,7 @@ import type {
   StakeAuthorizationData,
   StakeEntryData,
 } from "./constants";
-import { POOL_OFFSET, STAKER_OFFSET } from "./constants";
+import { AUTHORITY_OFFSET, POOL_OFFSET, STAKER_OFFSET } from "./constants";
 import { findIdentifierId } from "./pda";
 
 export const getStakePool = async (
@@ -315,6 +315,53 @@ export const getStakeAuthorizationsForPool = async (
   });
 
   return stakeAuthorizationDatas.sort((a, b) =>
+    a.pubkey.toBase58().localeCompare(b.pubkey.toBase58())
+  );
+};
+
+export const getStakePoolsByAuthority = async (
+  connection: Connection,
+  user: PublicKey
+): Promise<AccountData<StakePoolData>[]> => {
+  const programAccounts = await connection.getProgramAccounts(
+    STAKE_POOL_ADDRESS,
+    {
+      filters: [
+        {
+          memcmp: {
+            offset: 0,
+            bytes: utils.bytes.bs58.encode(
+              BorshAccountsCoder.accountDiscriminator("stakePool")
+            ),
+          },
+        },
+        {
+          memcmp: {
+            offset: AUTHORITY_OFFSET,
+            bytes: user.toBase58(),
+          },
+        },
+      ],
+    }
+  );
+  const stakePoolDatas: AccountData<StakePoolData>[] = [];
+  const coder = new BorshAccountsCoder(STAKE_POOL_IDL);
+  programAccounts.forEach((account) => {
+    try {
+      const stakePoolData: StakePoolData = coder.decode(
+        "stakePool",
+        account.account.data
+      );
+      if (stakePoolData) {
+        stakePoolDatas.push({
+          ...account,
+          parsed: stakePoolData,
+        });
+      }
+      // eslint-disable-next-line no-empty
+    } catch (e) {}
+  });
+  return stakePoolDatas.sort((a, b) =>
     a.pubkey.toBase58().localeCompare(b.pubkey.toBase58())
   );
 };
