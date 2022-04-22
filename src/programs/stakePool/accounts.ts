@@ -1,8 +1,8 @@
 import type { AccountData } from "@cardinal/common";
 import {
+  AnchorProvider,
   BorshAccountsCoder,
   Program,
-  Provider,
   utils,
 } from "@project-serum/anchor";
 import type { Connection } from "@solana/web3.js";
@@ -24,7 +24,7 @@ export const getStakePool = async (
 ): Promise<AccountData<StakePoolData>> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const provider = new Provider(connection, null, {});
+  const provider = new AnchorProvider(connection, null, {});
   const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
     STAKE_POOL_IDL,
     STAKE_POOL_ADDRESS,
@@ -44,7 +44,7 @@ export const getStakePools = async (
 ): Promise<AccountData<StakePoolData>[]> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const provider = new Provider(connection, null, {});
+  const provider = new AnchorProvider(connection, null, {});
   const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
     STAKE_POOL_IDL,
     STAKE_POOL_ADDRESS,
@@ -182,7 +182,7 @@ export const getStakeEntry = async (
 ): Promise<AccountData<StakeEntryData>> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const provider = new Provider(connection, null, {});
+  const provider = new AnchorProvider(connection, null, {});
   const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
     STAKE_POOL_IDL,
     STAKE_POOL_ADDRESS,
@@ -202,7 +202,7 @@ export const getStakeEntries = async (
 ): Promise<AccountData<StakeEntryData>[]> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const provider = new Provider(connection, null, {});
+  const provider = new AnchorProvider(connection, null, {});
   const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
     STAKE_POOL_IDL,
     STAKE_POOL_ADDRESS,
@@ -223,7 +223,7 @@ export const getPoolIdentifier = async (
 ): Promise<AccountData<IdentifierData>> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const provider = new Provider(connection, null, {});
+  const provider = new AnchorProvider(connection, null, {});
   const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
     STAKE_POOL_IDL,
     STAKE_POOL_ADDRESS,
@@ -243,7 +243,7 @@ export const getStakeAuthorization = async (
 ): Promise<AccountData<StakeAuthorizationData>> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const provider = new Provider(connection, null, {});
+  const provider = new AnchorProvider(connection, null, {});
   const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
     STAKE_POOL_IDL,
     STAKE_POOL_ADDRESS,
@@ -264,7 +264,7 @@ export const getStakeAuthorizations = async (
 ): Promise<AccountData<StakeAuthorizationData>[]> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const provider = new Provider(connection, null, {});
+  const provider = new AnchorProvider(connection, null, {});
   const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
     STAKE_POOL_IDL,
     STAKE_POOL_ADDRESS,
