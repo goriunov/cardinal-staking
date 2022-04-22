@@ -41,28 +41,28 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
     let reward_duration_seconds = reward_distributor.reward_duration_seconds;
 
     let reward_seconds_received = reward_entry.reward_seconds_received;
-    if reward_seconds_received <= stake_entry.total_stake_seconds as u64 && (reward_distributor.max_supply == None || reward_distributor.rewards_issued < reward_distributor.max_supply.unwrap()) {
-        let mut reward_time_to_receive = (stake_entry.total_stake_seconds as u64).checked_sub(reward_seconds_received).unwrap();
+    if reward_seconds_received <= stake_entry.total_stake_seconds && (reward_distributor.max_supply == None || reward_distributor.rewards_issued < reward_distributor.max_supply.unwrap() as u128) {
+        let mut reward_time_to_receive = stake_entry.total_stake_seconds.checked_sub(reward_seconds_received).unwrap();
         let mut reward_amount_to_receive = reward_time_to_receive
             .checked_div(reward_duration_seconds)
             .unwrap()
-            .checked_mul(reward_amount)
+            .checked_mul(reward_amount as u128)
             .unwrap()
-            .checked_mul(reward_entry.multiplier)
+            .checked_mul(reward_entry.multiplier as u128)
             .unwrap();
 
         // if this will go over max supply give rewards up to max supply
-        if reward_distributor.max_supply != None && reward_distributor.rewards_issued.checked_add(reward_amount_to_receive).unwrap() >= reward_distributor.max_supply.unwrap() {
-            reward_amount_to_receive = reward_distributor.max_supply.unwrap().checked_sub(reward_distributor.rewards_issued).unwrap();
+        if reward_distributor.max_supply != None && reward_distributor.rewards_issued.checked_add(reward_amount_to_receive).unwrap() >= reward_distributor.max_supply.unwrap() as u128 {
+            reward_amount_to_receive = (reward_distributor.max_supply.unwrap() as u128).checked_sub(reward_distributor.rewards_issued).unwrap();
 
             // this is nuanced about if the rewards are closed, should they get the reward time for that time even though they didnt get any rewards?
             // this only matters if the reward distributor becomes open again and they missed out on some rewards they coudlve gotten
             reward_time_to_receive = reward_amount_to_receive
-                .checked_div(reward_amount)
+                .checked_div(reward_amount as u128)
                 .unwrap()
                 .checked_mul(reward_duration_seconds)
                 .unwrap()
-                .checked_div(reward_entry.multiplier)
+                .checked_div(reward_entry.multiplier as u128)
                 .unwrap();
         }
 
@@ -77,23 +77,24 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
                 };
                 let cpi_program = ctx.accounts.token_program.to_account_info();
                 let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(reward_distributor_signer);
-                token::mint_to(cpi_context, reward_amount_to_receive)?;
+                // todo this could be an issue and get stuck, might need 2 transfers
+                token::mint_to(cpi_context, reward_amount_to_receive.try_into().expect("Too many rewards to receive"))?;
             }
             k if k == RewardDistributorKind::Treasury as u8 => {
                 let reward_distributor_token_account_info = next_account_info(remaining_accs)?;
                 let reward_distributor_token_account = Account::<TokenAccount>::try_from(reward_distributor_token_account_info)?;
 
-                if reward_amount_to_receive > reward_distributor_token_account.amount {
-                    reward_amount_to_receive = reward_distributor_token_account.amount;
+                if reward_amount_to_receive > reward_distributor_token_account.amount as u128 {
+                    reward_amount_to_receive = reward_distributor_token_account.amount as u128;
 
                     // this is nuanced about if the rewards are closed, should they get the reward time for that time even though they didnt get any rewards?
                     // this only matters if the reward distributor becomes open again and they missed out on some rewards they coudlve gotten
                     reward_time_to_receive = reward_amount_to_receive
-                        .checked_div(reward_amount)
+                        .checked_div(reward_amount as u128)
                         .unwrap()
                         .checked_mul(reward_duration_seconds)
                         .unwrap()
-                        .checked_div(reward_entry.multiplier)
+                        .checked_div(reward_entry.multiplier as u128)
                         .unwrap();
                 }
 
@@ -104,7 +105,8 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
                 };
                 let cpi_program = ctx.accounts.token_program.to_account_info();
                 let cpi_context = CpiContext::new(cpi_program, cpi_accounts).with_signer(reward_distributor_signer);
-                token::transfer(cpi_context, reward_amount_to_receive)?;
+                // todo this could be an issue and get stuck, might need 2 transfers
+                token::transfer(cpi_context, reward_amount_to_receive.try_into().expect("Too many rewards to receive"))?;
             }
             _ => return Err(error!(ErrorCode::InvalidRewardDistributorKind)),
         }
