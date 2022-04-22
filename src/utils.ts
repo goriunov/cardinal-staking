@@ -195,7 +195,7 @@ export const getRewardMap = (
         stakeEntry,
         rewardEntry,
         remainingRewardAmount,
-        Date.now()
+        Date.now() / 1000
       );
       rewardMap[mintId.toString()] = {
         claimableRewards,
