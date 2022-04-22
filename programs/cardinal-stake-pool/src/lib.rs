@@ -41,4 +41,8 @@ pub mod cardinal_stake_pool {
     pub fn unstake(ctx: Context<UnstakeCtx>) -> Result<()> {
         unstake::handler(ctx)
     }
+
+    pub fn update_pool(ctx: Context<UpdatePoolCtx>, ix: UpdatePoolIx) -> Result<()> {
+        update_pool::handler(ctx, ix)
+    }
 }

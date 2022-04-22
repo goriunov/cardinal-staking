@@ -378,6 +378,29 @@ export type CardinalStakePool = {
         }
       ];
       args: [];
+    },
+    {
+      name: "updatePool";
+      accounts: [
+        {
+          name: "stakePool";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "payer";
+          isMut: true;
+          isSigner: true;
+        }
+      ];
+      args: [
+        {
+          name: "ix";
+          type: {
+            defined: "UpdatePoolIx";
+          };
+        }
+      ];
     }
   ];
   accounts: [
@@ -573,6 +596,60 @@ export type CardinalStakePool = {
           {
             name: "symbol";
             type: "string";
+          }
+        ];
+      };
+    },
+    {
+      name: "UpdatePoolIx";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "overlayText";
+            type: {
+              option: "string";
+            };
+          },
+          {
+            name: "imageUri";
+            type: {
+              option: "string";
+            };
+          },
+          {
+            name: "requiresCollections";
+            type: {
+              option: {
+                vec: "publicKey";
+              };
+            };
+          },
+          {
+            name: "requiresCreators";
+            type: {
+              option: {
+                vec: "publicKey";
+              };
+            };
+          },
+          {
+            name: "requiresAuthorization";
+            type: {
+              option: "bool";
+            };
+          },
+          {
+            name: "authority";
+            type: {
+              option: "publicKey";
+            };
+          },
+          {
+            name: "resetOnStake";
+            type: {
+              option: "bool";
+            };
           }
         ];
       };
@@ -1048,6 +1125,29 @@ export const IDL: CardinalStakePool = {
       ],
       args: [],
     },
+    {
+      name: "updatePool",
+      accounts: [
+        {
+          name: "stakePool",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "payer",
+          isMut: true,
+          isSigner: true,
+        },
+      ],
+      args: [
+        {
+          name: "ix",
+          type: {
+            defined: "UpdatePoolIx",
+          },
+        },
+      ],
+    },
   ],
   accounts: [
     {
@@ -1242,6 +1342,60 @@ export const IDL: CardinalStakePool = {
           {
             name: "symbol",
             type: "string",
+          },
+        ],
+      },
+    },
+    {
+      name: "UpdatePoolIx",
+      type: {
+        kind: "struct",
+        fields: [
+          {
+            name: "overlayText",
+            type: {
+              option: "string",
+            },
+          },
+          {
+            name: "imageUri",
+            type: {
+              option: "string",
+            },
+          },
+          {
+            name: "requiresCollections",
+            type: {
+              option: {
+                vec: "publicKey",
+              },
+            },
+          },
+          {
+            name: "requiresCreators",
+            type: {
+              option: {
+                vec: "publicKey",
+              },
+            },
+          },
+          {
+            name: "requiresAuthorization",
+            type: {
+              option: "bool",
+            },
+          },
+          {
+            name: "authority",
+            type: {
+              option: "publicKey",
+            },
+          },
+          {
+            name: "resetOnStake",
+            type: {
+              option: "bool",
+            },
           },
         ],
       },

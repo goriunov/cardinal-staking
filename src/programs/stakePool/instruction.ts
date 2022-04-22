@@ -329,3 +329,42 @@ export const unstake = (
     remainingAccounts: params.remainingAccounts,
   });
 };
+
+export const updateStakePool = (
+  connection: Connection,
+  wallet: Wallet,
+  params: {
+    stakePoolId: PublicKey;
+    requiresCreators?: PublicKey[];
+    requiresCollections?: PublicKey[];
+    requiresAuthorization?: boolean;
+    overlayText?: string;
+    imageUri?: string;
+    authority?: PublicKey;
+    resetOnStake?: boolean;
+  }
+): TransactionInstruction => {
+  const provider = new AnchorProvider(connection, wallet, {});
+  const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
+    STAKE_POOL_IDL,
+    STAKE_POOL_ADDRESS,
+    provider
+  );
+  return stakePoolProgram.instruction.updatePool(
+    {
+      overlayText: params.overlayText || null,
+      imageUri: params.imageUri || null,
+      requiresCollections: params.requiresCollections || null,
+      requiresCreators: params.requiresCreators || null,
+      requiresAuthorization: params.requiresAuthorization || null,
+      authority: params.authority || null,
+      resetOnStake: params.resetOnStake || null,
+    },
+    {
+      accounts: {
+        stakePool: params.stakePoolId,
+        payer: wallet.publicKey,
+      },
+    }
+  );
+};
