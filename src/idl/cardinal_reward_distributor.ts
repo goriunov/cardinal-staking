@@ -135,6 +135,34 @@ export type CardinalRewardDistributor = {
       args: [];
     },
     {
+      name: "updateRewardEntry";
+      accounts: [
+        {
+          name: "rewardEntry";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "rewardDistributor";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "authority";
+          isMut: false;
+          isSigner: true;
+        }
+      ];
+      args: [
+        {
+          name: "ix";
+          type: {
+            defined: "UpdateRewardEntryIx";
+          };
+        }
+      ];
+    },
+    {
       name: "close";
       accounts: [
         {
@@ -297,7 +325,7 @@ export type CardinalRewardDistributor = {
         kind: "struct";
         fields: [
           {
-            name: "multipler";
+            name: "multiplier";
             type: "u64";
           }
         ];
@@ -514,6 +542,34 @@ export const IDL: CardinalRewardDistributor = {
       args: [],
     },
     {
+      name: "updateRewardEntry",
+      accounts: [
+        {
+          name: "rewardEntry",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "rewardDistributor",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "authority",
+          isMut: false,
+          isSigner: true,
+        },
+      ],
+      args: [
+        {
+          name: "ix",
+          type: {
+            defined: "UpdateRewardEntryIx",
+          },
+        },
+      ],
+    },
+    {
       name: "close",
       accounts: [
         {
@@ -676,7 +732,7 @@ export const IDL: CardinalRewardDistributor = {
         kind: "struct",
         fields: [
           {
-            name: "multipler",
+            name: "multiplier",
             type: "u64",
           },
         ],

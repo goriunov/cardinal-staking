@@ -5,7 +5,7 @@ use {
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct UpdateRewardEntryIx {
-    pub multipler: u64,
+    pub multiplier: u64,
 }
 
 #[derive(Accounts)]
@@ -20,6 +20,6 @@ pub struct UpdateRewardEntryCtx<'info> {
 
 pub fn handler(ctx: Context<UpdateRewardEntryCtx>, ix: UpdateRewardEntryIx) -> Result<()> {
     let reward_entry = &mut ctx.accounts.reward_entry;
-    reward_entry.multiplier = ix.multipler;
+    reward_entry.multiplier = ix.multiplier;
     Ok(())
 }

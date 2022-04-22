@@ -12,7 +12,6 @@ pub struct InitRewardEntryCtx<'info> {
         init,
         payer = payer,
         space = REWARD_ENTRY_SIZE,
-        // TODO i think this makes more sense as the reward distributor but it could be the pool
         seeds = [REWARD_ENTRY_SEED.as_bytes(), reward_distributor.key().as_ref(), ix.mint.as_ref()],
         bump,
     )]
