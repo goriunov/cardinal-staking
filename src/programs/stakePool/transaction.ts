@@ -27,6 +27,7 @@ import {
   initStakePool,
   stake,
   unstake,
+  updateStakePool,
 } from "./instruction";
 import { findIdentifierId, findStakePoolId } from "./pda";
 import { withInvalidate } from "./token-manager";
@@ -422,4 +423,33 @@ export const withUnstake = async (
   }
 
   return transaction;
+};
+
+export const withUpgradetakePool = (
+  transaction: web3.Transaction,
+  connection: web3.Connection,
+  wallet: Wallet,
+  params: {
+    stakePoolId: web3.PublicKey;
+    requiresCollections?: web3.PublicKey[];
+    requiresCreators?: web3.PublicKey[];
+    requiresAuthorization?: boolean;
+    overlayText?: string;
+    imageUri?: string;
+    resetOnStake?: boolean;
+  }
+): [web3.Transaction, web3.PublicKey] => {
+  transaction.add(
+    updateStakePool(connection, wallet, {
+      stakePoolId: params.stakePoolId,
+      requiresCreators: params.requiresCreators,
+      requiresCollections: params.requiresCollections,
+      requiresAuthorization: params.requiresAuthorization,
+      overlayText: params.overlayText,
+      imageUri: params.imageUri,
+      authority: wallet.publicKey,
+      resetOnStake: params.resetOnStake,
+    })
+  );
+  return [transaction, params.stakePoolId];
 };
