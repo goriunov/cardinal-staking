@@ -230,7 +230,7 @@
     snake-case "^3.0.4"
     toml "^3.0.0"
 
-"@project-serum/anchor@^0.24.0":
+"@project-serum/anchor@^0.24.2":
   version "0.24.2"
   resolved "https://registry.yarnpkg.com/@project-serum/anchor/-/anchor-0.24.2.tgz#a3c52a99605c80735f446ca9b3a4885034731004"
   integrity sha512-0/718g8/DnEuwAidUwh5wLYphUYXhUbiClkuRNhvNoa+1Y8a4g2tJyxoae+emV+PG/Gikd/QUBNMkIcimiIRTA==
@@ -939,6 +939,19 @@ chai@=4.3.4:
     check-error "^1.0.2"
     deep-eql "^3.0.1"
     get-func-name "^2.0.0"
+    pathval "^1.1.1"
+    type-detect "^4.0.5"
+
+chai@=4.3.6:
+  version "4.3.6"
+  resolved "https://registry.yarnpkg.com/chai/-/chai-4.3.6.tgz#ffe4ba2d9fa9d6680cc0b370adae709ec9011e9c"
+  integrity sha512-bbcp3YfHCUzMOvKqsztczerVgBKSsEijCySNlHHbX3VG1nskvqjz5Rfso1gGwD6w6oOV3eI60pKuMOV5MV7p3Q==
+  dependencies:
+    assertion-error "^1.1.0"
+    check-error "^1.0.2"
+    deep-eql "^3.0.1"
+    get-func-name "^2.0.0"
+    loupe "^2.3.1"
     pathval "^1.1.1"
     type-detect "^4.0.5"
 
@@ -2110,6 +2123,13 @@ log-update@^4.0.0:
     cli-cursor "^3.1.0"
     slice-ansi "^4.0.0"
     wrap-ansi "^6.2.0"
+
+loupe@^2.3.1:
+  version "2.3.4"
+  resolved "https://registry.yarnpkg.com/loupe/-/loupe-2.3.4.tgz#7e0b9bffc76f148f9be769cb1321d3dcf3cb25f3"
+  integrity sha512-OvKfgCC2Ndby6aSTREl5aCCPTNIzlDfQZvZxNUrBrihDhL3xcrYegTblhmEiCrg2kKQz4XsFIaemE5BF4ybSaQ==
+  dependencies:
+    get-func-name "^2.0.0"
 
 lower-case@^2.0.2:
   version "2.0.2"
