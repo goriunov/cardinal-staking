@@ -214,11 +214,11 @@ export type CardinalRewardDistributor = {
           },
           {
             name: "rewardSecondsReceived";
-            type: "u64";
+            type: "u128";
           },
           {
             name: "rewardAmountReceived";
-            type: "u64";
+            type: "u128";
           },
           {
             name: "multiplier";
@@ -258,11 +258,11 @@ export type CardinalRewardDistributor = {
           },
           {
             name: "rewardDurationSeconds";
-            type: "u64";
+            type: "u128";
           },
           {
             name: "rewardsIssued";
-            type: "u64";
+            type: "u128";
           },
           {
             name: "maxSupply";
@@ -286,7 +286,7 @@ export type CardinalRewardDistributor = {
           },
           {
             name: "rewardDurationSeconds";
-            type: "u64";
+            type: "u128";
           },
           {
             name: "kind";
@@ -621,11 +621,11 @@ export const IDL: CardinalRewardDistributor = {
           },
           {
             name: "rewardSecondsReceived",
-            type: "u64",
+            type: "u128",
           },
           {
             name: "rewardAmountReceived",
-            type: "u64",
+            type: "u128",
           },
           {
             name: "multiplier",
@@ -665,11 +665,11 @@ export const IDL: CardinalRewardDistributor = {
           },
           {
             name: "rewardDurationSeconds",
-            type: "u64",
+            type: "u128",
           },
           {
             name: "rewardsIssued",
-            type: "u64",
+            type: "u128",
           },
           {
             name: "maxSupply",
@@ -693,7 +693,7 @@ export const IDL: CardinalRewardDistributor = {
           },
           {
             name: "rewardDurationSeconds",
-            type: "u64",
+            type: "u128",
           },
           {
             name: "kind",
