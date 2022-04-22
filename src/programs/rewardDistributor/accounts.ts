@@ -1,5 +1,5 @@
 import type { AccountData } from "@cardinal/common";
-import { Program, Provider } from "@project-serum/anchor";
+import { AnchorProvider, Program } from "@project-serum/anchor";
 import type { Connection, PublicKey } from "@solana/web3.js";
 
 import type { REWARD_DISTRIBUTOR_PROGRAM } from ".";
@@ -12,7 +12,7 @@ export const getRewardEntry = async (
 ): Promise<AccountData<RewardEntryData>> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const provider = new Provider(connection, null, {});
+  const provider = new AnchorProvider(connection, null, {});
   const rewardDistributorProgram = new Program<REWARD_DISTRIBUTOR_PROGRAM>(
     REWARD_DISTRIBUTOR_IDL,
     REWARD_DISTRIBUTOR_ADDRESS,
@@ -34,7 +34,7 @@ export const getRewardEntries = async (
 ): Promise<AccountData<RewardEntryData>[]> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const provider = new Provider(connection, null, {});
+  const provider = new AnchorProvider(connection, null, {});
   const rewardDistributorProgram = new Program<REWARD_DISTRIBUTOR_PROGRAM>(
     REWARD_DISTRIBUTOR_IDL,
     REWARD_DISTRIBUTOR_ADDRESS,
@@ -57,7 +57,7 @@ export const getRewardDistributor = async (
 ): Promise<AccountData<RewardDistributorData>> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const provider = new Provider(connection, null, {});
+  const provider = new AnchorProvider(connection, null, {});
   const rewardDistributorProgram = new Program<REWARD_DISTRIBUTOR_PROGRAM>(
     REWARD_DISTRIBUTOR_IDL,
     REWARD_DISTRIBUTOR_ADDRESS,
@@ -80,7 +80,7 @@ export const getRewardDistributors = async (
 ): Promise<AccountData<RewardDistributorData>[]> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const provider = new Provider(connection, null, {});
+  const provider = new AnchorProvider(connection, null, {});
   const rewardDistributorProgram = new Program<REWARD_DISTRIBUTOR_PROGRAM>(
     REWARD_DISTRIBUTOR_IDL,
     REWARD_DISTRIBUTOR_ADDRESS,
