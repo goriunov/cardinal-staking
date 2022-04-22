@@ -15,6 +15,7 @@ export const IDENTIFIER_SEED = "identifier";
 
 export const STAKE_AUTHORIZATION_SEED = "stake-authorization";
 
+export const AUTHORITY_OFFSET = 25;
 export const STAKER_OFFSET = 82;
 export const POOL_OFFSET = 9;
 
