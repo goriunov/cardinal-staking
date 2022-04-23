@@ -1,6 +1,11 @@
+use cardinal_stake_pool::state::{assert_reward_manager, CLAIM_REWARD_LAMPORTS};
+
 use {
     crate::{errors::ErrorCode, state::*},
-    anchor_lang::prelude::*,
+    anchor_lang::{
+        prelude::*,
+        solana_program::{program::invoke, system_instruction::transfer},
+    },
     anchor_spl::token::{self, Mint, Token, TokenAccount},
     cardinal_stake_pool::state::{StakeEntry, StakePool},
 };
@@ -22,6 +27,10 @@ pub struct ClaimRewardsCtx<'info> {
 
     #[account(mut, constraint = user_reward_mint_token_account.mint == reward_distributor.reward_mint && user_reward_mint_token_account.owner == user.key() @ ErrorCode::InvalidUserRewardMintTokenAccount)]
     user_reward_mint_token_account: Box<Account<'info, TokenAccount>>,
+
+    /// CHECK: This is not dangerous because we don't read or write from this account
+    #[account(mut, constraint = assert_reward_manager(&reward_manager.key()))]
+    reward_manager: UncheckedAccount<'info>,
 
     #[account(mut)]
     user: Signer<'info>,
@@ -114,6 +123,15 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
         reward_distributor.rewards_issued = reward_distributor.rewards_issued.checked_add(reward_amount_to_receive).unwrap();
         reward_entry.reward_amount_received = reward_entry.reward_amount_received.checked_add(reward_amount_to_receive).unwrap();
         reward_entry.reward_seconds_received = reward_entry.reward_seconds_received.checked_add(reward_time_to_receive).unwrap();
+
+        invoke(
+            &transfer(&ctx.accounts.user.key(), &ctx.accounts.reward_manager.key(), CLAIM_REWARD_LAMPORTS),
+            &[
+                ctx.accounts.user.to_account_info(),
+                ctx.accounts.reward_manager.to_account_info(),
+                ctx.accounts.system_program.to_account_info(),
+            ],
+        )?;
     }
 
     Ok(())

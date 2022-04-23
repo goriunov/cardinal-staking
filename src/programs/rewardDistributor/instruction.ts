@@ -14,6 +14,7 @@ import { findStakeEntryIdFromMint } from "../stakePool/utils";
 import type { REWARD_DISTRIBUTOR_PROGRAM } from ".";
 import { REWARD_DISTRIBUTOR_ADDRESS, REWARD_DISTRIBUTOR_IDL } from ".";
 import type { RewardDistributorKind } from "./constants";
+import { REWARD_MANAGER } from "./constants";
 import { findRewardDistributorId, findRewardEntryId } from "./pda";
 
 export const initRewardDistributor = (
@@ -132,6 +133,7 @@ export const claimRewards = async (
       stakePool: params.stakePoolId,
       rewardMint: params.rewardMintId,
       userRewardMintTokenAccount: params.rewardMintTokenAccountId,
+      rewardManager: REWARD_MANAGER,
       user: wallet.publicKey,
       tokenProgram: TOKEN_PROGRAM_ID,
       systemProgram: SystemProgram.programId,

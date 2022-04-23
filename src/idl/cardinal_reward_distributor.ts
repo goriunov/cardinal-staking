@@ -1,5 +1,5 @@
 export type CardinalRewardDistributor = {
-  version: "1.1.0";
+  version: "1.2.0";
   name: "cardinal_reward_distributor";
   instructions: [
     {
@@ -113,6 +113,11 @@ export type CardinalRewardDistributor = {
         },
         {
           name: "userRewardMintTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "rewardManager";
           isMut: true;
           isSigner: false;
         },
@@ -406,7 +411,7 @@ export type CardinalRewardDistributor = {
 };
 
 export const IDL: CardinalRewardDistributor = {
-  version: "1.1.0",
+  version: "1.2.0",
   name: "cardinal_reward_distributor",
   instructions: [
     {
@@ -520,6 +525,11 @@ export const IDL: CardinalRewardDistributor = {
         },
         {
           name: "userRewardMintTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "rewardManager",
           isMut: true,
           isSigner: false,
         },
