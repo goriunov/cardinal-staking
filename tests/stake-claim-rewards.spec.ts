@@ -9,7 +9,7 @@ import type * as splToken from "@solana/spl-token";
 import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
 import { expect } from "chai";
 
-import { createStakePool, stake, unstake } from "../src";
+import { claimRewards, createStakePool, stake, unstake } from "../src";
 import {
   getRewardDistributor,
   getRewardEntry,
@@ -224,8 +224,67 @@ describe("Stake and claim rewards", () => {
     expect(checkUserOriginalTokenAccount.isFrozen).to.eq(true);
   });
 
-  it("Unstake", async () => {
+  it("Claim Rewards", async () => {
     await delay(2000);
+    const provider = getProvider();
+    const oldStakeEntryData = await getStakeEntry(
+      provider.connection,
+      (
+        await findStakeEntryIdFromMint(
+          provider.connection,
+          provider.wallet.publicKey,
+          stakePoolId,
+          originalMint.publicKey
+        )
+      )[0]
+    );
+
+    await expectTXTable(
+      new TransactionEnvelope(SolanaProvider.init(provider), [
+        ...(
+          await claimRewards(provider.connection, provider.wallet, {
+            stakePoolId: stakePoolId,
+            originalMintId: originalMint.publicKey,
+          })
+        ).instructions,
+      ]),
+      "Claim Rewards"
+    ).to.be.fulfilled;
+
+    const newStakeEntryData = await getStakeEntry(
+      provider.connection,
+      (
+        await findStakeEntryIdFromMint(
+          provider.connection,
+          provider.wallet.publicKey,
+          stakePoolId,
+          originalMint.publicKey
+        )
+      )[0]
+    );
+    expect(newStakeEntryData.parsed.lastStaker.toString()).to.eq(
+      provider.wallet.publicKey.toString()
+    );
+    expect(newStakeEntryData.parsed.lastStakedAt.toNumber()).to.gt(
+      oldStakeEntryData.parsed.lastStakedAt.toNumber()
+    );
+    expect(newStakeEntryData.parsed.totalStakeSeconds.toNumber()).to.gt(
+      oldStakeEntryData.parsed.totalStakeSeconds.toNumber()
+    );
+
+    const userRewardMintTokenAccountId = await findAta(
+      rewardMint.publicKey,
+      provider.wallet.publicKey,
+      true
+    );
+
+    const checkUserRewardTokenAccount = await rewardMint.getAccountInfo(
+      userRewardMintTokenAccountId
+    );
+    expect(checkUserRewardTokenAccount.amount.toNumber()).greaterThan(1);
+  });
+
+  it("Unstake", async () => {
     const provider = getProvider();
     await expectTXTable(
       new TransactionEnvelope(SolanaProvider.init(provider), [

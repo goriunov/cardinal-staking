@@ -2,6 +2,7 @@ use {crate::state::*, anchor_lang::prelude::*};
 
 #[derive(Accounts)]
 pub struct UpdateTotalStakeSecondsCtx<'info> {
+    #[account(mut)]
     stake_entry: Account<'info, StakeEntry>,
 
     #[account(mut, constraint = stake_entry.last_staker == last_staker.key())]
