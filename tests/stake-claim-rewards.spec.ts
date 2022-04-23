@@ -282,6 +282,17 @@ describe("Stake and claim rewards", () => {
       userRewardMintTokenAccountId
     );
     expect(checkUserRewardTokenAccount.amount.toNumber()).greaterThan(1);
+
+    const userOriginalMintTokenAccountId = await findAta(
+      originalMint.publicKey,
+      provider.wallet.publicKey,
+      true
+    );
+    const checkUserOriginalTokenAccount = await originalMint.getAccountInfo(
+      userOriginalMintTokenAccountId
+    );
+    expect(checkUserOriginalTokenAccount.amount.toNumber()).to.eq(1);
+    expect(checkUserOriginalTokenAccount.isFrozen).to.eq(true);
   });
 
   it("Unstake", async () => {
