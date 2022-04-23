@@ -23,11 +23,11 @@ pub struct UpdatePoolCtx<'info> {
 
 pub fn handler(ctx: Context<UpdatePoolCtx>, ix: UpdatePoolIx) -> Result<()> {
     let stake_pool = &mut ctx.accounts.stake_pool;
-    stake_pool.requires_collections = ix.requires_collections.unwrap_or(stake_pool.requires_collections.clone());
-    stake_pool.requires_creators = ix.requires_creators.unwrap_or(stake_pool.requires_creators.clone());
+    stake_pool.requires_collections = ix.requires_collections.unwrap_or_else(|| stake_pool.requires_collections.clone());
+    stake_pool.requires_creators = ix.requires_creators.unwrap_or_else(|| stake_pool.requires_creators.clone());
     stake_pool.requires_authorization = ix.requires_authorization.unwrap_or(stake_pool.requires_authorization);
-    stake_pool.overlay_text = ix.overlay_text.unwrap_or(stake_pool.overlay_text.clone());
-    stake_pool.image_uri = ix.image_uri.unwrap_or(stake_pool.image_uri.clone());
+    stake_pool.overlay_text = ix.overlay_text.unwrap_or_else(|| stake_pool.overlay_text.clone());
+    stake_pool.image_uri = ix.image_uri.unwrap_or_else(|| stake_pool.image_uri.clone());
     stake_pool.authority = ix.authority.unwrap_or(stake_pool.authority);
     stake_pool.reset_on_stake = ix.reset_on_stake.unwrap_or(stake_pool.reset_on_stake);
 
