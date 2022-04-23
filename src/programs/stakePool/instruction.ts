@@ -352,13 +352,13 @@ export const updateStakePool = (
   );
   return stakePoolProgram.instruction.updatePool(
     {
-      overlayText: params.overlayText || null,
-      imageUri: params.imageUri || null,
+      overlayText: params.overlayText || "RENTED",
+      imageUri: params.imageUri || "",
       requiresCollections: params.requiresCollections || null,
       requiresCreators: params.requiresCreators || null,
-      requiresAuthorization: params.requiresAuthorization || null,
+      requiresAuthorization: params.requiresAuthorization || false,
       authority: params.authority || null,
-      resetOnStake: params.resetOnStake || null,
+      resetOnStake: params.resetOnStake || false,
     },
     {
       accounts: {
