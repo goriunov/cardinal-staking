@@ -186,10 +186,10 @@ export const getRewardMap = (
       stakeEntry.parsed.originalMint.equals(mintId)
     );
     const rewardEntry = rewardEntries.find((rewardEntry) =>
-      rewardEntry.parsed.mint.equals(mintId)
+      rewardEntry?.parsed?.mint.equals(mintId)
     );
 
-    if (mintId && stakeEntry && rewardEntry) {
+    if (mintId && stakeEntry) {
       const [claimableRewards, nextRewardsIn] = calculatePendingRewards(
         rewardDistributor,
         stakeEntry,
@@ -238,7 +238,7 @@ export const getRewardMap = (
 export const calculatePendingRewards = (
   rewardDistributor: AccountData<RewardDistributorData>,
   stakeEntry: AccountData<StakeEntryData>,
-  rewardEntry: AccountData<RewardEntryData>,
+  rewardEntry: AccountData<RewardEntryData> | undefined,
   remainingRewardAmount: BN,
   UTCNow: number
 ): [BN, BN] => {
@@ -252,7 +252,7 @@ export const calculatePendingRewards = (
 
   const rewardSecondsReceived =
     rewardEntry?.parsed.rewardSecondsReceived || new BN(0);
-  const multiplier = rewardEntry?.parsed.multiplier || new BN(1);
+  const multiplier = rewardEntry?.parsed?.multiplier || new BN(1);
 
   let rewardAmountToReceive = new BN(UTCNow)
     .sub(stakeEntry.parsed.lastStakedAt)
