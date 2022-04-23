@@ -228,6 +228,15 @@ export const claimRewards = async (
 ): Promise<Transaction> => {
   const transaction = new Transaction();
   await withUnstake(transaction, connection, wallet, params);
+  const [stakeEntryId] = await findStakeEntryIdFromMint(
+    connection,
+    wallet.publicKey,
+    params.stakePoolId,
+    params.originalMintId
+  );
+  const stakeEntryData = await tryGetAccount(() =>
+    getStakeEntry(connection, stakeEntryId)
+  );
 
   const userOriginalMintTokenAccountId =
     await withFindOrInitAssociatedTokenAccount(
@@ -245,6 +254,29 @@ export const claimRewards = async (
     userOriginalMintTokenAccountId: userOriginalMintTokenAccountId,
     amount: params.amount,
   });
+
+  if (
+    stakeEntryData?.parsed.originalMintClaimed ||
+    stakeEntryData?.parsed.stakeMintClaimed
+  ) {
+    const [receiptMintId, receiptType] = stakeEntryData?.parsed
+      .originalMintClaimed
+      ? [stakeEntryData?.parsed.originalMint, ReceiptType.Original]
+      : [stakeEntryData?.parsed.stakeMint, ReceiptType.Receipt];
+    if (!receiptMintId) {
+      throw new Error(
+        "Stake entry has no stake mint. Initialize stake mint first."
+      );
+    }
+
+    await withClaimReceiptMint(transaction, connection, wallet, {
+      stakePoolId: params.stakePoolId,
+      stakeEntryId: stakeEntryId,
+      originalMintId: params.originalMintId,
+      receiptMintId: receiptMintId,
+      receiptType: receiptType,
+    });
+  }
 
   return transaction;
 };
