@@ -1,14 +1,14 @@
-import {
-  tryGetAccount,
-  withFindOrInitAssociatedTokenAccount,
-} from "@cardinal/common";
+import { tryGetAccount } from "@cardinal/common";
 import { BN } from "@project-serum/anchor";
 import type { Wallet } from "@saberhq/solana-contrib";
 import type { Connection } from "@solana/web3.js";
 import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
 
 import type { RewardDistributorKind } from "./programs/rewardDistributor";
-import { withInitRewardDistributor } from "./programs/rewardDistributor/transaction";
+import {
+  withClaimRewards,
+  withInitRewardDistributor,
+} from "./programs/rewardDistributor/transaction";
 import { ReceiptType } from "./programs/stakePool";
 import { getStakeEntry, getStakePool } from "./programs/stakePool/accounts";
 import {
@@ -19,6 +19,7 @@ import {
   withInitStakePool,
   withStake,
   withUnstake,
+  withUpdateTotalStakeSeconds,
 } from "./programs/stakePool/transaction";
 import { findStakeEntryIdFromMint } from "./programs/stakePool/utils";
 import { getMintSupply } from "./utils";
@@ -223,27 +224,24 @@ export const claimRewards = async (
   params: {
     stakePoolId: PublicKey;
     originalMintId: PublicKey;
-    amount?: BN;
   }
 ): Promise<Transaction> => {
   const transaction = new Transaction();
-  await withUnstake(transaction, connection, wallet, params);
+  const [stakeEntryId] = await findStakeEntryIdFromMint(
+    connection,
+    wallet.publicKey,
+    params.stakePoolId,
+    params.originalMintId
+  );
 
-  const userOriginalMintTokenAccountId =
-    await withFindOrInitAssociatedTokenAccount(
-      transaction,
-      connection,
-      params.originalMintId,
-      wallet.publicKey,
-      wallet.publicKey,
-      true
-    );
+  withUpdateTotalStakeSeconds(transaction, connection, wallet, {
+    stakeEntryId: stakeEntryId,
+    lastStaker: wallet.publicKey,
+  });
 
-  await withStake(transaction, connection, wallet, {
+  await withClaimRewards(transaction, connection, wallet, {
     stakePoolId: params.stakePoolId,
-    originalMintId: params.originalMintId,
-    userOriginalMintTokenAccountId: userOriginalMintTokenAccountId,
-    amount: params.amount,
+    originalMint: params.originalMintId,
   });
 
   return transaction;

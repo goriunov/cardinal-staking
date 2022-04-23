@@ -28,6 +28,7 @@ import {
   stake,
   unstake,
   updateStakePool,
+  updateTotalStakeSeconds,
 } from "./instruction";
 import { findIdentifierId, findStakePoolId } from "./pda";
 import { withInvalidate } from "./token-manager";
@@ -452,4 +453,22 @@ export const withUpdateStakePool = (
     })
   );
   return [transaction, params.stakePoolId];
+};
+
+export const withUpdateTotalStakeSeconds = (
+  transaction: web3.Transaction,
+  connection: web3.Connection,
+  wallet: Wallet,
+  params: {
+    stakeEntryId: web3.PublicKey;
+    lastStaker: web3.PublicKey;
+  }
+): web3.Transaction => {
+  transaction.add(
+    updateTotalStakeSeconds(connection, wallet, {
+      stakEntryId: params.stakeEntryId,
+      lastStaker: params.lastStaker,
+    })
+  );
+  return transaction;
 };

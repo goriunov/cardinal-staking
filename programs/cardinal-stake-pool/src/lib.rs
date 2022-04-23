@@ -45,4 +45,8 @@ pub mod cardinal_stake_pool {
     pub fn update_pool(ctx: Context<UpdatePoolCtx>, ix: UpdatePoolIx) -> Result<()> {
         update_pool::handler(ctx, ix)
     }
+
+    pub fn update_total_stake_seconds(ctx: Context<UpdateTotalStakeSecondsCtx>) -> Result<()> {
+        update_total_stake_seconds::handler(ctx)
+    }
 }
