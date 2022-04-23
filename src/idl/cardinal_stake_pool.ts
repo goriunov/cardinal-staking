@@ -1,5 +1,5 @@
 export type CardinalStakePool = {
-  version: "1.1.0";
+  version: "1.2.0";
   name: "cardinal_stake_pool";
   instructions: [
     {
@@ -401,6 +401,22 @@ export type CardinalStakePool = {
           };
         }
       ];
+    },
+    {
+      name: "updateTotalStakeSeconds";
+      accounts: [
+        {
+          name: "stakeEntry";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "lastStaker";
+          isMut: true;
+          isSigner: true;
+        }
+      ];
+      args: [];
     }
   ];
   accounts: [
@@ -745,7 +761,7 @@ export type CardinalStakePool = {
 };
 
 export const IDL: CardinalStakePool = {
-  version: "1.1.0",
+  version: "1.2.0",
   name: "cardinal_stake_pool",
   instructions: [
     {
@@ -1147,6 +1163,22 @@ export const IDL: CardinalStakePool = {
           },
         },
       ],
+    },
+    {
+      name: "updateTotalStakeSeconds",
+      accounts: [
+        {
+          name: "stakeEntry",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "lastStaker",
+          isMut: true,
+          isSigner: true,
+        },
+      ],
+      args: [],
     },
   ],
   accounts: [
