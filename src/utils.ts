@@ -273,7 +273,7 @@ export const calculatePendingRewards = (
     );
   }
 
-  if (rewardAmountToReceive > remainingRewardAmount) {
+  if (rewardAmountToReceive.gt(remainingRewardAmount)) {
     rewardAmountToReceive = remainingRewardAmount;
   }
 
