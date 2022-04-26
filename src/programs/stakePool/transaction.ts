@@ -32,7 +32,6 @@ import {
   updateTotalStakeSeconds,
 } from "./instruction";
 import { findIdentifierId, findStakePoolId } from "./pda";
-import { withInvalidate } from "./token-manager";
 import {
   findStakeEntryIdFromMint,
   withRemainingAccountsForUnstake,
@@ -355,27 +354,10 @@ export const withUnstake = async (
   ]);
 
   // return receipt mint if its claimed
-  if (
-    stakeEntryData?.parsed.stakeMint &&
-    stakeEntryData.parsed.stakeMintClaimed
-  ) {
-    await withInvalidate(
-      transaction,
-      connection,
-      wallet,
-      stakeEntryData?.parsed.stakeMint
-    );
-  }
 
-  // return original mint if its locked
-  if (stakeEntryData?.parsed.originalMintClaimed) {
-    await withInvalidate(
-      transaction,
-      connection,
-      wallet,
-      params.originalMintId
-    );
-  }
+  await withReturnReceiptMint(transaction, connection, wallet, {
+    stakeEntryId: stakeEntryId,
+  });
 
   const stakeEntryOriginalMintTokenAccountId =
     await withFindOrInitAssociatedTokenAccount(
@@ -479,7 +461,6 @@ export const withReturnReceiptMint = async (
   connection: web3.Connection,
   wallet: Wallet,
   params: {
-    stakePoolId: web3.PublicKey;
     stakeEntryId: web3.PublicKey;
   }
 ): Promise<web3.Transaction> => {
@@ -489,13 +470,13 @@ export const withReturnReceiptMint = async (
   if (!stakeEntryData) {
     throw new Error(`Stake entry ${params.stakeEntryId.toString()} not found`);
   }
-  const receiptMint = stakeEntryData.parsed.stakeMintClaimed
-    ? stakeEntryData.parsed.stakeMint!
-    : stakeEntryData.parsed.originalMint;
+  const receiptMint =
+    stakeEntryData.parsed.stakeMint && stakeEntryData.parsed.stakeMintClaimed
+      ? stakeEntryData.parsed.stakeMint
+      : stakeEntryData.parsed.originalMint;
 
   transaction.add(
     await returnReceiptMint(connection, wallet, {
-      stakePool: params.stakePoolId,
       stakeEntry: params.stakeEntryId,
       receiptMint: receiptMint,
     })

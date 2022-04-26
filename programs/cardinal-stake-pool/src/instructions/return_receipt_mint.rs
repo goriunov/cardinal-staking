@@ -7,9 +7,6 @@ use {
 
 #[derive(Accounts)]
 pub struct ReturnReceiptMintCtx<'info> {
-    #[account(mut)]
-    stake_pool: Box<Account<'info, StakePool>>,
-    #[account(mut, constraint = stake_entry.pool == stake_pool.key() @ ErrorCode::InvalidStakePool)]
     stake_entry: Box<Account<'info, StakeEntry>>,
 
     #[account(mut)]
@@ -27,7 +24,7 @@ pub struct ReturnReceiptMintCtx<'info> {
     user: Signer<'info>,
     /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
-    invalidator: UncheckedAccount<'info>,
+    collector: UncheckedAccount<'info>,
 
     token_program: Program<'info, Token>,
     token_manager_program: Program<'info, CardinalTokenManager>,
@@ -53,7 +50,7 @@ pub fn handler<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts,
             mint: ctx.accounts.receipt_mint.to_account_info(),
             recipient_token_account: ctx.accounts.user_receipt_mint_token_account.to_account_info(),
             invalidator: ctx.accounts.user.to_account_info(),
-            collector: ctx.accounts.invalidator.to_account_info(),
+            collector: ctx.accounts.collector.to_account_info(),
             token_program: ctx.accounts.token_program.to_account_info(),
             rent: ctx.accounts.rent.to_account_info(),
         };

@@ -396,7 +396,6 @@ export const returnReceiptMint = async (
   connection: Connection,
   wallet: Wallet,
   params: {
-    stakePool: PublicKey;
     stakeEntry: PublicKey;
     receiptMint: PublicKey;
   }
@@ -425,14 +424,13 @@ export const returnReceiptMint = async (
 
   return stakePoolProgram.instruction.returnReceiptMint({
     accounts: {
-      stakePool: params.stakePool,
       stakeEntry: params.stakeEntry,
       receiptMint: params.receiptMint,
       tokenManager: tokenManagerId,
       tokenManagerTokenAccount: tokenManagerTokenAccountId,
       userReceiptMintTokenAccount: userReceiptMintTokenAccount,
       user: wallet.publicKey,
-      invalidator: CRANK_KEY,
+      collector: CRANK_KEY,
       tokenProgram: TOKEN_PROGRAM_ID,
       tokenManagerProgram: TOKEN_MANAGER_ADDRESS,
       rent: SYSVAR_RENT_PUBKEY,
