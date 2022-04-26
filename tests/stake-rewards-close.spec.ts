@@ -21,7 +21,8 @@ import {
   findRewardEntryId,
 } from "../src/programs/rewardDistributor/pda";
 import {
-  withClose,
+  withCloseRewardDistributor,
+  withCloseRewardEntry,
   withInitRewardDistributor,
   withInitRewardEntry,
 } from "../src/programs/rewardDistributor/transaction";
@@ -337,18 +338,55 @@ describe("Stake claim rewards and close", () => {
     expect(checkUserRewardTokenAccount.amount.toNumber()).greaterThan(1);
   });
 
-  it("Close", async () => {
-    await delay(2000);
+  it("Close reward entry", async () => {
     const provider = getProvider();
     const transaction = new Transaction();
-    await withClose(transaction, provider.connection, provider.wallet, {
-      stakePoolId: stakePoolId,
-    });
+    await withCloseRewardEntry(
+      transaction,
+      provider.connection,
+      provider.wallet,
+      {
+        stakePoolId: stakePoolId,
+        mintId: originalMint.publicKey,
+      }
+    );
     await expectTXTable(
       new TransactionEnvelope(SolanaProvider.init(provider), [
         ...transaction.instructions,
       ]),
-      "Close"
+      "Close reward entry"
+    ).to.be.fulfilled;
+
+    const [rewardDistributorId] = await findRewardDistributorId(stakePoolId);
+    const [rewardEntryId] = await findRewardEntryId(
+      rewardDistributorId,
+      originalMint.publicKey
+    );
+
+    const rewardEntryData = await tryGetAccount(() =>
+      getRewardEntry(provider.connection, rewardEntryId)
+    );
+
+    expect(rewardEntryData).to.eq(null);
+  });
+
+  it("Close reward distributor", async () => {
+    await delay(2000);
+    const provider = getProvider();
+    const transaction = new Transaction();
+    await withCloseRewardDistributor(
+      transaction,
+      provider.connection,
+      provider.wallet,
+      {
+        stakePoolId: stakePoolId,
+      }
+    );
+    await expectTXTable(
+      new TransactionEnvelope(SolanaProvider.init(provider), [
+        ...transaction.instructions,
+      ]),
+      "Close reward distributor"
     ).to.be.fulfilled;
 
     const [rewardDistributorId] = await findRewardDistributorId(stakePoolId);

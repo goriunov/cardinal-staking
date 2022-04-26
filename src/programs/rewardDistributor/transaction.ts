@@ -11,7 +11,8 @@ import { getRewardDistributor, getRewardEntry } from "./accounts";
 import { RewardDistributorKind } from "./constants";
 import {
   claimRewards,
-  close,
+  closeRewardDistributor,
+  closeRewardEntry,
   initRewardDistributor,
   initRewardEntry,
   updateRewardEntry,
@@ -141,7 +142,7 @@ export const withClaimRewards = async (
   return transaction;
 };
 
-export const withClose = async (
+export const withCloseRewardDistributor = async (
   transaction: Transaction,
   connection: Connection,
   wallet: Wallet,
@@ -167,7 +168,7 @@ export const withClose = async (
     );
 
     transaction.add(
-      await close(connection, wallet, {
+      await closeRewardDistributor(connection, wallet, {
         stakePoolId: params.stakePoolId,
         rewardMintId: rewardDistributorData.parsed.rewardMint,
         remainingAccountsForKind,
@@ -192,6 +193,32 @@ export const withUpdateRewardEntry = async (
       stakePoolId: params.stakePoolId,
       mintId: params.mintId,
       multiplier: params.multiplier,
+    })
+  );
+};
+
+export const withCloseRewardEntry = async (
+  transaction: Transaction,
+  connection: Connection,
+  wallet: Wallet,
+  params: {
+    stakePoolId: PublicKey;
+    mintId: PublicKey;
+  }
+): Promise<Transaction> => {
+  const [rewardDistributorId] = await findRewardDistributorId(
+    params.stakePoolId
+  );
+
+  const [rewardEntryId] = await findRewardEntryId(
+    rewardDistributorId,
+    params.mintId
+  );
+
+  return transaction.add(
+    closeRewardEntry(connection, wallet, {
+      rewardDistributorId: rewardDistributorId,
+      rewardEntryId: rewardEntryId,
     })
   );
 };

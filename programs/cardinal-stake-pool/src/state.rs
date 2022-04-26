@@ -1,5 +1,4 @@
 use anchor_lang::prelude::*;
-use std::str::FromStr;
 
 pub const STAKE_ENTRY_PREFIX: &str = "stake-entry";
 pub const STAKE_ENTRY_SIZE: usize = 8 + std::mem::size_of::<StakeEntry>() + 8;
@@ -13,8 +12,6 @@ pub const IDENTIFIER_SIZE: usize = 8 + std::mem::size_of::<Identifier>() + 8;
 
 pub const STAKE_AUTHORIZATION_PREFIX: &str = "stake-authorization";
 pub const STAKE_AUTHORIZATION_SIZE: usize = 8 + std::mem::size_of::<StakeAuthorizationRecord>() + 8;
-
-pub const CLAIM_REWARD_LAMPORTS: u64 = 5_000_000;
 
 #[account]
 pub struct StakeEntry {
@@ -63,8 +60,4 @@ pub fn get_stake_seed(supply: u64, user: Pubkey) -> Pubkey {
     } else {
         Pubkey::default()
     }
-}
-
-pub fn assert_reward_manager(pubkey: &Pubkey) -> bool {
-    pubkey.to_string() == Pubkey::from_str("crkdpVWjHWdggGgBuSyAqSmZUmAjYLzD435tcLDRLXr").unwrap().to_string()
 }

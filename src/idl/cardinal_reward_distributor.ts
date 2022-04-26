@@ -168,7 +168,7 @@ export type CardinalRewardDistributor = {
       ];
     },
     {
-      name: "close";
+      name: "closeRewardDistributor";
       accounts: [
         {
           name: "rewardDistributor";
@@ -194,6 +194,27 @@ export type CardinalRewardDistributor = {
           name: "tokenProgram";
           isMut: false;
           isSigner: false;
+        }
+      ];
+      args: [];
+    },
+    {
+      name: "closeRewardEntry";
+      accounts: [
+        {
+          name: "rewardDistributor";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "rewardEntry";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "authority";
+          isMut: true;
+          isSigner: true;
         }
       ];
       args: [];
@@ -580,7 +601,7 @@ export const IDL: CardinalRewardDistributor = {
       ],
     },
     {
-      name: "close",
+      name: "closeRewardDistributor",
       accounts: [
         {
           name: "rewardDistributor",
@@ -606,6 +627,27 @@ export const IDL: CardinalRewardDistributor = {
           name: "tokenProgram",
           isMut: false,
           isSigner: false,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: "closeRewardEntry",
+      accounts: [
+        {
+          name: "rewardDistributor",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "rewardEntry",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "authority",
+          isMut: true,
+          isSigner: true,
         },
       ],
       args: [],

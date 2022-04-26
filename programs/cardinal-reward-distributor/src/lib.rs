@@ -26,7 +26,11 @@ pub mod cardinal_reward_distributor {
         update_reward_entry::handler(ctx, ix)
     }
 
-    pub fn close<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, CloseCtx<'info>>) -> Result<()> {
-        close::handler(ctx)
+    pub fn close_reward_distributor<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, CloseCtx<'info>>) -> Result<()> {
+        close_reward_distributor::handler(ctx)
+    }
+
+    pub fn close_reward_entry(ctx: Context<CloseRewardEntryCtx>) -> Result<()> {
+        close_reward_entry::handler(ctx)
     }
 }

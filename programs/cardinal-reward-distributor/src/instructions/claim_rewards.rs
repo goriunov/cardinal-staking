@@ -1,5 +1,3 @@
-use cardinal_stake_pool::state::{assert_reward_manager, CLAIM_REWARD_LAMPORTS};
-
 use {
     crate::{errors::ErrorCode, state::*},
     anchor_lang::{
