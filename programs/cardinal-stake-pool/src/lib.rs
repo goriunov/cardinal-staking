@@ -49,4 +49,8 @@ pub mod cardinal_stake_pool {
     pub fn update_total_stake_seconds(ctx: Context<UpdateTotalStakeSecondsCtx>) -> Result<()> {
         update_total_stake_seconds::handler(ctx)
     }
+
+    pub fn return_receipt_mint<'key, 'accounts, 'remaining, 'info>(ctx: Context<'key, 'accounts, 'remaining, 'info, ReturnReceiptMintCtx<'info>>) -> Result<()> {
+        return_receipt_mint::handler(ctx)
+    }
 }

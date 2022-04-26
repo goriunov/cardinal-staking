@@ -25,6 +25,7 @@ import {
   initStakeEntry,
   initStakeMint,
   initStakePool,
+  returnReceiptMint,
   stake,
   unstake,
   updateStakePool,
@@ -468,6 +469,35 @@ export const withUpdateTotalStakeSeconds = (
     updateTotalStakeSeconds(connection, wallet, {
       stakEntryId: params.stakeEntryId,
       lastStaker: params.lastStaker,
+    })
+  );
+  return transaction;
+};
+
+export const withReturnReceiptMint = async (
+  transaction: web3.Transaction,
+  connection: web3.Connection,
+  wallet: Wallet,
+  params: {
+    stakePoolId: web3.PublicKey;
+    stakeEntryId: web3.PublicKey;
+  }
+): Promise<web3.Transaction> => {
+  const stakeEntryData = await tryGetAccount(() =>
+    getStakeEntry(connection, params.stakeEntryId)
+  );
+  if (!stakeEntryData) {
+    throw new Error(`Stake entry ${params.stakeEntryId.toString()} not found`);
+  }
+  const receiptMint = stakeEntryData.parsed.stakeMintClaimed
+    ? stakeEntryData.parsed.stakeMint!
+    : stakeEntryData.parsed.originalMint;
+
+  transaction.add(
+    await returnReceiptMint(connection, wallet, {
+      stakePool: params.stakePoolId,
+      stakeEntry: params.stakeEntryId,
+      receiptMint: receiptMint,
     })
   );
   return transaction;

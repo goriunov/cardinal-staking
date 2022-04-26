@@ -1,5 +1,6 @@
 import { findAta } from "@cardinal/common";
 import {
+  CRANK_KEY,
   getRemainingAccountsForKind,
   TOKEN_MANAGER_ADDRESS,
   TokenManagerKind,
@@ -387,6 +388,54 @@ export const updateTotalStakeSeconds = (
     accounts: {
       stakeEntry: params.stakEntryId,
       lastStaker: params.lastStaker,
+    },
+  });
+};
+
+export const returnReceiptMint = async (
+  connection: Connection,
+  wallet: Wallet,
+  params: {
+    stakePool: PublicKey;
+    stakeEntry: PublicKey;
+    receiptMint: PublicKey;
+  }
+) => {
+  const provider = new AnchorProvider(connection, wallet, {});
+  const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
+    STAKE_POOL_IDL,
+    STAKE_POOL_ADDRESS,
+    provider
+  );
+
+  const [tokenManagerId] = await findTokenManagerAddress(params.receiptMint);
+  const tokenManagerTokenAccountId = await findAta(
+    params.receiptMint,
+    (
+      await findTokenManagerAddress(params.receiptMint)
+    )[0],
+    true
+  );
+
+  const userReceiptMintTokenAccount = await findAta(
+    params.receiptMint,
+    wallet.publicKey,
+    true
+  );
+
+  return stakePoolProgram.instruction.returnReceiptMint({
+    accounts: {
+      stakePool: params.stakePool,
+      stakeEntry: params.stakeEntry,
+      receiptMint: params.receiptMint,
+      tokenManager: tokenManagerId,
+      tokenManagerTokenAccount: tokenManagerTokenAccountId,
+      userReceiptMintTokenAccount: userReceiptMintTokenAccount,
+      user: wallet.publicKey,
+      invalidator: CRANK_KEY,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      tokenManagerProgram: TOKEN_MANAGER_ADDRESS,
+      rent: SYSVAR_RENT_PUBKEY,
     },
   });
 };
