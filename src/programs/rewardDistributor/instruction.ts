@@ -142,7 +142,7 @@ export const claimRewards = async (
   });
 };
 
-export const close = async (
+export const closeRewardDistributor = async (
   connection: Connection,
   wallet: Wallet,
   params: {
@@ -161,7 +161,7 @@ export const close = async (
   const [rewardDistributorId] = await findRewardDistributorId(
     params.stakePoolId
   );
-  return rewardDistributorProgram.instruction.close({
+  return rewardDistributorProgram.instruction.closeRewardDistributor({
     accounts: {
       rewardDistributor: rewardDistributorId,
       stakePool: params.stakePoolId,
@@ -208,4 +208,28 @@ export const updateRewardEntry = async (
       },
     }
   );
+};
+
+export const closeRewardEntry = (
+  connection: Connection,
+  wallet: Wallet,
+  params: {
+    rewardDistributorId: PublicKey;
+    rewardEntryId: PublicKey;
+  }
+): TransactionInstruction => {
+  const provider = new AnchorProvider(connection, wallet, {});
+  const rewardDistributorProgram = new Program<REWARD_DISTRIBUTOR_PROGRAM>(
+    REWARD_DISTRIBUTOR_IDL,
+    REWARD_DISTRIBUTOR_ADDRESS,
+    provider
+  );
+
+  return rewardDistributorProgram.instruction.closeRewardEntry({
+    accounts: {
+      rewardDistributor: params.rewardDistributorId,
+      rewardEntry: params.rewardEntryId,
+      authority: wallet.publicKey,
+    },
+  });
 };
