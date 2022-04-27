@@ -437,9 +437,9 @@ dependencies = [
 
 [[package]]
 name = "cardinal-token-manager"
-version = "1.2.0"
+version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "597b0086feb35bd11b99519844df6199ffe68928bdf34ae15cfa40a4c55e5a53"
+checksum = "7703e99633244bbc48d02a1a10fe2459f9065a144163ea36d56ee4ee02d52c1c"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
@@ -1346,10 +1346,11 @@ dependencies = [
 
 [[package]]
 name = "spl-associated-token-account"
-version = "1.0.3"
+version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "393e2240d521c3dd770806bff25c2c00d761ac962be106e14e22dd912007f428"
+checksum = "2b013067447a1396303ddfc294f36e3d260a32f8a16c501c295bcdc7de39b490"
 dependencies = [
+ "borsh",
  "solana-program",
  "spl-token",
 ]
