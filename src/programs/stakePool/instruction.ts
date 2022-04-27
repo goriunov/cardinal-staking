@@ -4,6 +4,7 @@ import {
   getRemainingAccountsForKind,
   TOKEN_MANAGER_ADDRESS,
   TokenManagerKind,
+  TokenManagerState,
 } from "@cardinal/token-manager/dist/cjs/programs/tokenManager";
 import {
   findMintCounterId,
@@ -398,6 +399,9 @@ export const returnReceiptMint = async (
   params: {
     stakeEntry: PublicKey;
     receiptMint: PublicKey;
+    tokenManagerKind: TokenManagerKind;
+    tokenManagerState: TokenManagerState;
+    returnAccounts: AccountMeta[];
   }
 ) => {
   const provider = new AnchorProvider(connection, wallet, {});
@@ -422,6 +426,11 @@ export const returnReceiptMint = async (
     true
   );
 
+  const transferAccounts = await getRemainingAccountsForKind(
+    params.receiptMint,
+    params.tokenManagerKind
+  );
+
   return stakePoolProgram.instruction.returnReceiptMint({
     accounts: {
       stakeEntry: params.stakeEntry,
@@ -435,5 +444,11 @@ export const returnReceiptMint = async (
       tokenManagerProgram: TOKEN_MANAGER_ADDRESS,
       rent: SYSVAR_RENT_PUBKEY,
     },
+    remainingAccounts: [
+      ...(params.tokenManagerState === TokenManagerState.Claimed
+        ? transferAccounts
+        : []),
+      ...params.returnAccounts,
+    ],
   });
 };

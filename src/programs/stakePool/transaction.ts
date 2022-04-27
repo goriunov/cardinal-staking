@@ -3,9 +3,12 @@ import {
   tryGetAccount,
   withFindOrInitAssociatedTokenAccount,
 } from "@cardinal/common";
+import { tokenManager } from "@cardinal/token-manager/dist/cjs/programs";
+import { withRemainingAccountsForReturn } from "@cardinal/token-manager/dist/cjs/programs/tokenManager";
 import {
   findMintManagerId,
   findTokenManagerAddress,
+  tokenManagerAddressFromMint,
 } from "@cardinal/token-manager/dist/cjs/programs/tokenManager/pda";
 import * as metaplex from "@metaplex-foundation/mpl-token-metadata";
 import { BN } from "@project-serum/anchor";
@@ -354,7 +357,6 @@ export const withUnstake = async (
   ]);
 
   // return receipt mint if its claimed
-
   await withReturnReceiptMint(transaction, connection, wallet, {
     stakeEntryId: stakeEntryId,
   });
@@ -475,10 +477,32 @@ export const withReturnReceiptMint = async (
       ? stakeEntryData.parsed.stakeMint
       : stakeEntryData.parsed.originalMint;
 
+  const tokenManagerId = await tokenManagerAddressFromMint(
+    connection,
+    receiptMint
+  );
+  const tokenManagerData = await tryGetAccount(() =>
+    tokenManager.accounts.getTokenManager(connection, tokenManagerId)
+  );
+
+  if (!tokenManagerData) {
+    throw new Error("Token manager not found");
+  }
+
+  const remainingAccountsForReturn = await withRemainingAccountsForReturn(
+    transaction,
+    connection,
+    wallet,
+    tokenManagerData
+  );
+
   transaction.add(
     await returnReceiptMint(connection, wallet, {
       stakeEntry: params.stakeEntryId,
       receiptMint: receiptMint,
+      tokenManagerKind: tokenManagerData.parsed.kind,
+      tokenManagerState: tokenManagerData.parsed.state,
+      returnAccounts: remainingAccountsForReturn,
     })
   );
   return transaction;
