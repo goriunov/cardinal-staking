@@ -3,9 +3,12 @@ import {
   tryGetAccount,
   withFindOrInitAssociatedTokenAccount,
 } from "@cardinal/common";
+import { tokenManager } from "@cardinal/token-manager/dist/cjs/programs";
+import { withRemainingAccountsForReturn } from "@cardinal/token-manager/dist/cjs/programs/tokenManager";
 import {
   findMintManagerId,
   findTokenManagerAddress,
+  tokenManagerAddressFromMint,
 } from "@cardinal/token-manager/dist/cjs/programs/tokenManager/pda";
 import * as metaplex from "@metaplex-foundation/mpl-token-metadata";
 import { BN } from "@project-serum/anchor";
@@ -25,13 +28,13 @@ import {
   initStakeEntry,
   initStakeMint,
   initStakePool,
+  returnReceiptMint,
   stake,
   unstake,
   updateStakePool,
   updateTotalStakeSeconds,
 } from "./instruction";
 import { findIdentifierId, findStakePoolId } from "./pda";
-import { withInvalidate } from "./token-manager";
 import {
   findStakeEntryIdFromMint,
   withRemainingAccountsForUnstake,
@@ -354,27 +357,9 @@ export const withUnstake = async (
   ]);
 
   // return receipt mint if its claimed
-  if (
-    stakeEntryData?.parsed.stakeMint &&
-    stakeEntryData.parsed.stakeMintClaimed
-  ) {
-    await withInvalidate(
-      transaction,
-      connection,
-      wallet,
-      stakeEntryData?.parsed.stakeMint
-    );
-  }
-
-  // return original mint if its locked
-  if (stakeEntryData?.parsed.originalMintClaimed) {
-    await withInvalidate(
-      transaction,
-      connection,
-      wallet,
-      params.originalMintId
-    );
-  }
+  await withReturnReceiptMint(transaction, connection, wallet, {
+    stakeEntryId: stakeEntryId,
+  });
 
   const stakeEntryOriginalMintTokenAccountId =
     await withFindOrInitAssociatedTokenAccount(
@@ -468,6 +453,56 @@ export const withUpdateTotalStakeSeconds = (
     updateTotalStakeSeconds(connection, wallet, {
       stakEntryId: params.stakeEntryId,
       lastStaker: params.lastStaker,
+    })
+  );
+  return transaction;
+};
+
+export const withReturnReceiptMint = async (
+  transaction: web3.Transaction,
+  connection: web3.Connection,
+  wallet: Wallet,
+  params: {
+    stakeEntryId: web3.PublicKey;
+  }
+): Promise<web3.Transaction> => {
+  const stakeEntryData = await tryGetAccount(() =>
+    getStakeEntry(connection, params.stakeEntryId)
+  );
+  if (!stakeEntryData) {
+    throw new Error(`Stake entry ${params.stakeEntryId.toString()} not found`);
+  }
+  const receiptMint =
+    stakeEntryData.parsed.stakeMint && stakeEntryData.parsed.stakeMintClaimed
+      ? stakeEntryData.parsed.stakeMint
+      : stakeEntryData.parsed.originalMint;
+
+  const tokenManagerId = await tokenManagerAddressFromMint(
+    connection,
+    receiptMint
+  );
+  const tokenManagerData = await tryGetAccount(() =>
+    tokenManager.accounts.getTokenManager(connection, tokenManagerId)
+  );
+
+  if (!tokenManagerData) {
+    throw new Error("Token manager not found");
+  }
+
+  const remainingAccountsForReturn = await withRemainingAccountsForReturn(
+    transaction,
+    connection,
+    wallet,
+    tokenManagerData
+  );
+
+  transaction.add(
+    await returnReceiptMint(connection, wallet, {
+      stakeEntry: params.stakeEntryId,
+      receiptMint: receiptMint,
+      tokenManagerKind: tokenManagerData.parsed.kind,
+      tokenManagerState: tokenManagerData.parsed.state,
+      returnAccounts: remainingAccountsForReturn,
     })
   );
   return transaction;

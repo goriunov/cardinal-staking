@@ -417,6 +417,62 @@ export type CardinalStakePool = {
         }
       ];
       args: [];
+    },
+    {
+      name: "returnReceiptMint";
+      accounts: [
+        {
+          name: "stakeEntry";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "receiptMint";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "tokenManager";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "tokenManagerTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "userReceiptMintTokenAccount";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "user";
+          isMut: true;
+          isSigner: true;
+        },
+        {
+          name: "collector";
+          isMut: true;
+          isSigner: false;
+        },
+        {
+          name: "tokenProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "tokenManagerProgram";
+          isMut: false;
+          isSigner: false;
+        },
+        {
+          name: "rent";
+          isMut: false;
+          isSigner: false;
+        }
+      ];
+      args: [];
     }
   ];
   accounts: [
@@ -1176,6 +1232,62 @@ export const IDL: CardinalStakePool = {
           name: "lastStaker",
           isMut: true,
           isSigner: true,
+        },
+      ],
+      args: [],
+    },
+    {
+      name: "returnReceiptMint",
+      accounts: [
+        {
+          name: "stakeEntry",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "receiptMint",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "tokenManager",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "tokenManagerTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "userReceiptMintTokenAccount",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "user",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "collector",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "tokenManagerProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "rent",
+          isMut: false,
+          isSigner: false,
         },
       ],
       args: [],

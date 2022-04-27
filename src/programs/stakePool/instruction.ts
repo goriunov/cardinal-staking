@@ -1,8 +1,10 @@
 import { findAta } from "@cardinal/common";
 import {
+  CRANK_KEY,
   getRemainingAccountsForKind,
   TOKEN_MANAGER_ADDRESS,
   TokenManagerKind,
+  TokenManagerState,
 } from "@cardinal/token-manager/dist/cjs/programs/tokenManager";
 import {
   findMintCounterId,
@@ -388,5 +390,65 @@ export const updateTotalStakeSeconds = (
       stakeEntry: params.stakEntryId,
       lastStaker: params.lastStaker,
     },
+  });
+};
+
+export const returnReceiptMint = async (
+  connection: Connection,
+  wallet: Wallet,
+  params: {
+    stakeEntry: PublicKey;
+    receiptMint: PublicKey;
+    tokenManagerKind: TokenManagerKind;
+    tokenManagerState: TokenManagerState;
+    returnAccounts: AccountMeta[];
+  }
+) => {
+  const provider = new AnchorProvider(connection, wallet, {});
+  const stakePoolProgram = new Program<STAKE_POOL_PROGRAM>(
+    STAKE_POOL_IDL,
+    STAKE_POOL_ADDRESS,
+    provider
+  );
+
+  const [tokenManagerId] = await findTokenManagerAddress(params.receiptMint);
+  const tokenManagerTokenAccountId = await findAta(
+    params.receiptMint,
+    (
+      await findTokenManagerAddress(params.receiptMint)
+    )[0],
+    true
+  );
+
+  const userReceiptMintTokenAccount = await findAta(
+    params.receiptMint,
+    wallet.publicKey,
+    true
+  );
+
+  const transferAccounts = await getRemainingAccountsForKind(
+    params.receiptMint,
+    params.tokenManagerKind
+  );
+
+  return stakePoolProgram.instruction.returnReceiptMint({
+    accounts: {
+      stakeEntry: params.stakeEntry,
+      receiptMint: params.receiptMint,
+      tokenManager: tokenManagerId,
+      tokenManagerTokenAccount: tokenManagerTokenAccountId,
+      userReceiptMintTokenAccount: userReceiptMintTokenAccount,
+      user: wallet.publicKey,
+      collector: CRANK_KEY,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      tokenManagerProgram: TOKEN_MANAGER_ADDRESS,
+      rent: SYSVAR_RENT_PUBKEY,
+    },
+    remainingAccounts: [
+      ...(params.tokenManagerState === TokenManagerState.Claimed
+        ? transferAccounts
+        : []),
+      ...params.returnAccounts,
+    ],
   });
 };
