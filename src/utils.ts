@@ -220,7 +220,7 @@ export const getRewardMap = (
     );
   }
 
-  if (claimableRewards > remainingRewardAmount) {
+  if (claimableRewards.gt(remainingRewardAmount)) {
     claimableRewards = remainingRewardAmount;
   }
   return { rewardMap, claimableRewards };
